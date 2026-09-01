@@ -1,0 +1,23 @@
+[project]
+name = "dashanbing-backend"
+version = "0.1.0"
+description = "A local FastAPI authentication demo"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi[standard]",
+    "sqlmodel",
+    "pyjwt",
+    "pwdlib[argon2]",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
