@@ -9,6 +9,9 @@ from pwdlib import PasswordHash
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "local-demo-secret-key-change-before-production")
 JWT_ALGORITHM = "HS256"
 DEFAULT_TOKEN_EXPIRES_MINUTES = 30
+DUMMY_PASSWORD_HASH = (
+    "$argon2id$v=19$m=65536,t=3,p=4$MmQe3+JAl57f0Wy3ffOTgw$ieveehGfSL5dfPPt3qicvCWuNOxJOBur15kq/rnEoJI"
+)
 password_hash = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 

@@ -12,6 +12,7 @@ from app.models import Token, User, UserPublic, UserRegistration
 from app.security import (
     JWT_ALGORITHM,
     JWT_SECRET_KEY,
+    DUMMY_PASSWORD_HASH,
     create_access_token,
     hash_password,
     oauth2_scheme,
@@ -60,7 +61,9 @@ def create_app(database_url: str = DEFAULT_DATABASE_URL) -> FastAPI:
         session: Session = Depends(get_session),
     ) -> Token:
         user = session.exec(select(User).where(User.username == form_data.username)).first()
-        if user is None or not verify_password(form_data.password, user.hashed_password):
+        password_hash = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
+        password_is_valid = verify_password(form_data.password, password_hash)
+        if user is None or not password_is_valid:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",

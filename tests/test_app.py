@@ -25,6 +25,24 @@ def test_root_returns_the_demo_message(client: TestClient):
     assert response.json() == {"message": "FastAPI auth demo"}
 
 
+def test_default_app_creates_and_uses_demo_database_in_the_current_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Catches the default application using a database filename other than demo.db."""
+    main = import_module("app.main")
+    monkeypatch.chdir(tmp_path)
+
+    with TestClient(main.create_app()) as default_client:
+        response = default_client.post(
+            "/auth/register",
+            json={"username": "default_db_user", "password": "safe-password"},
+        )
+
+    assert response.status_code == 201
+    assert (tmp_path / "demo.db").is_file()
+
+
 def test_register_creates_a_public_user_without_password_fields(client: TestClient):
     """Catches registration returning the secret or failing to persist a user."""
     response = client.post(

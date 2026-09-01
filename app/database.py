@@ -5,7 +5,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy.engine import Engine
 
 
-DEFAULT_DATABASE_URL = "sqlite:///./auth_demo.db"
+DEFAULT_DATABASE_URL = "sqlite:///./demo.db"
 
 
 def create_database_engine(database_url: str) -> Engine:
