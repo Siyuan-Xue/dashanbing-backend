@@ -1,0 +1,26 @@
+.venv/
+
+# Python bytecode and caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local environment configuration
+.env
+.env.*
+
+# Local SQLite demo database and sidecars
+demo.db
+demo.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
