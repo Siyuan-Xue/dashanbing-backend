@@ -83,7 +83,12 @@ def create_app(database_url: str = DEFAULT_DATABASE_URL) -> FastAPI:
         if token is None:
             raise credentials_exception
         try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            payload = jwt.decode(
+                token,
+                JWT_SECRET_KEY,
+                algorithms=[JWT_ALGORITHM],
+                options={"require": ["sub", "exp"]},
+            )
             username = payload.get("sub")
         except jwt.PyJWTError as error:
             raise credentials_exception from error

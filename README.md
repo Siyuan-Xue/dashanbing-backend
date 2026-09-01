@@ -24,7 +24,7 @@ uv run pytest
 
 - `GET /`：返回演示服务状态。
 - `POST /auth/register`：以 JSON 注册用户，例如
-  `{"username":"alice","password":"secret"}`。成功返回用户公开信息。
+  `{"username":"alice","password":"safe-password"}`。用户名长度为 3–50 个字符，密码长度为 8–128 个字符；成功返回用户公开信息。
 - `POST /auth/token`：使用 OAuth2 密码表单登录；提交
   `application/x-www-form-urlencoded` 字段 `username` 和 `password`，成功返回 Bearer 访问令牌。
 - `GET /users/me`：需要在请求头提供 `Authorization: Bearer <access_token>`，返回当前用户公开信息。

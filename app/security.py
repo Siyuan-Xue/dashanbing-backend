@@ -26,6 +26,8 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
     expires_at = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=DEFAULT_TOKEN_EXPIRES_MINUTES)
+        expires_delta
+        if expires_delta is not None
+        else timedelta(minutes=DEFAULT_TOKEN_EXPIRES_MINUTES)
     )
     return jwt.encode({"sub": subject, "exp": expires_at}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)

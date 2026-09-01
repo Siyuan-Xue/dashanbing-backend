@@ -200,6 +200,42 @@ def test_current_user_returns_the_authenticated_public_user(client: TestClient):
     assert response.json() == {"id": 1, "username": "current_user"}
 
 
+def test_current_user_rejects_a_correctly_signed_token_without_an_expiration(
+    client: TestClient,
+):
+    """Catches accepting otherwise-valid JWTs that omit the required expiration."""
+    assert client.post(
+        "/auth/register",
+        json={"username": "no_exp_user", "password": "safe-password"},
+    ).status_code == 201
+    token = jwt.encode(
+        {"sub": "no_exp_user"},
+        JWT_SECRET_KEY,
+        algorithm=JWT_ALGORITHM,
+    )
+
+    response = client.get("/users/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {"detail": "Could not validate credentials"}
+
+
+def test_current_user_rejects_a_token_created_with_a_zero_duration(client: TestClient):
+    """Catches treating an explicit zero expiry as the default token lifetime."""
+    assert client.post(
+        "/auth/register",
+        json={"username": "zero_duration_user", "password": "safe-password"},
+    ).status_code == 201
+    token = create_access_token("zero_duration_user", expires_delta=timedelta(0))
+
+    response = client.get("/users/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    assert response.json() == {"detail": "Could not validate credentials"}
+
+
 @pytest.mark.parametrize(
     "token",
     [
