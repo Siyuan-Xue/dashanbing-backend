@@ -1,0 +1,26 @@
+{
+  "name": "basketball-training-review",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.19.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "generate:api": "openapi-typescript ../openapi.json -o src/generated/schema.d.ts",
+    "build": "npm run generate:api && tsc -b && vite build"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.14.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "openapi-typescript": "^7.9.1",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.4"
+  }
+}

@@ -1,0 +1,1131 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "篮球课堂训练复盘",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/login/access-token": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_login_access_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_api_v1_login_access_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/logout": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_api_v1_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Me",
+        "operationId": "me_api_v1_users_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/readiness": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Readiness",
+        "operationId": "readiness_api_v1_system_readiness_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Readiness Api V1 System Readiness Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets": {
+      "get": {
+        "tags": [
+          "presets"
+        ],
+        "summary": "List Presets",
+        "operationId": "list_presets_api_v1_presets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PresetPublic"
+                  },
+                  "type": "array",
+                  "title": "Response List Presets Api V1 Presets Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets/{preset_id}/result": {
+      "get": {
+        "tags": [
+          "presets"
+        ],
+        "summary": "Preset Result",
+        "operationId": "preset_result_api_v1_presets__preset_id__result_get",
+        "parameters": [
+          {
+            "name": "preset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets/{preset_id}/media/{kind}": {
+      "get": {
+        "tags": [
+          "presets"
+        ],
+        "summary": "Preset Media",
+        "operationId": "preset_media_api_v1_presets__preset_id__media__kind__get",
+        "parameters": [
+          {
+            "name": "preset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preset Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/upload": {
+      "post": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Upload Analysis",
+        "operationId": "upload_analysis_api_v1_analyses_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_analysis_api_v1_analyses_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/preset": {
+      "post": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Rerun Preset",
+        "operationId": "rerun_preset_api_v1_analyses_preset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresetRerunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses": {
+      "get": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "List Analyses",
+        "operationId": "list_analyses_api_v1_analyses_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnalysisPublic"
+                  },
+                  "type": "array",
+                  "title": "Response List Analyses Api V1 Analyses Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/{analysis_id}": {
+      "get": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Get Analysis",
+        "operationId": "get_analysis_api_v1_analyses__analysis_id__get",
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Delete Analysis",
+        "operationId": "delete_analysis_api_v1_analyses__analysis_id__delete",
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/{analysis_id}/result": {
+      "get": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Get Result",
+        "operationId": "get_result_api_v1_analyses__analysis_id__result_get",
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/{analysis_id}/media/{kind}": {
+      "get": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Analysis Media",
+        "operationId": "analysis_media_api_v1_analyses__analysis_id__media__kind__get",
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/{analysis_id}/cancel": {
+      "post": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Cancel Analysis",
+        "operationId": "cancel_analysis_api_v1_analyses__analysis_id__cancel_post",
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyses/{analysis_id}/retry": {
+      "post": {
+        "tags": [
+          "analyses"
+        ],
+        "summary": "Retry Analysis",
+        "operationId": "retry_analysis_api_v1_analyses__analysis_id__retry_post",
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalysisPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "preset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preset Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "progress": {
+            "type": "integer",
+            "title": "Progress"
+          },
+          "stage_message": {
+            "type": "string",
+            "title": "Stage Message"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "mode",
+          "source_type",
+          "preset_id",
+          "status",
+          "progress",
+          "stage_message",
+          "error_code",
+          "error_message",
+          "created_at",
+          "updated_at",
+          "started_at",
+          "completed_at"
+        ],
+        "title": "AnalysisPublic"
+      },
+      "Body_login_api_v1_login_access_token_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_api_v1_login_access_token_post"
+      },
+      "Body_upload_analysis_api_v1_analyses_upload_post": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "quick",
+              "full"
+            ],
+            "title": "Mode"
+          },
+          "enrollment_video": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Enrollment Video"
+          },
+          "cam_01": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Cam 01"
+          },
+          "cam_02": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Cam 02"
+          },
+          "cam_03": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Cam 03"
+          },
+          "cam_04": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Cam 04"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "mode",
+          "enrollment_video",
+          "cam_01",
+          "cam_02",
+          "cam_03",
+          "cam_04"
+        ],
+        "title": "Body_upload_analysis_api_v1_analyses_upload_post"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PresetPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "expected_minutes": {
+            "type": "number",
+            "title": "Expected Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "expected_minutes"
+        ],
+        "title": "PresetPublic"
+      },
+      "PresetRerunRequest": {
+        "properties": {
+          "preset_id": {
+            "type": "string",
+            "title": "Preset Id"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "quick",
+              "full"
+            ],
+            "title": "Mode",
+            "default": "full"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preset_id"
+        ],
+        "title": "PresetRerunRequest"
+      },
+      "ProductActionCounts": {
+        "properties": {
+          "triple_threat": {
+            "type": "integer",
+            "title": "Triple Threat",
+            "default": 0
+          },
+          "free_throw": {
+            "type": "integer",
+            "title": "Free Throw",
+            "default": 0
+          },
+          "jump_shot": {
+            "type": "integer",
+            "title": "Jump Shot",
+            "default": 0
+          },
+          "layup": {
+            "type": "integer",
+            "title": "Layup",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "ProductActionCounts"
+      },
+      "ProductActionEvent": {
+        "properties": {
+          "event_index": {
+            "type": "integer",
+            "title": "Event Index"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "triple_threat",
+              "free_throw",
+              "jump_shot",
+              "layup"
+            ],
+            "title": "Action Type"
+          },
+          "start_ms": {
+            "type": "number",
+            "title": "Start Ms"
+          },
+          "end_ms": {
+            "type": "number",
+            "title": "End Ms"
+          },
+          "time_ms": {
+            "type": "number",
+            "title": "Time Ms"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "make",
+                  "miss",
+                  "undetermined"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_index",
+          "action_type",
+          "start_ms",
+          "end_ms",
+          "time_ms"
+        ],
+        "title": "ProductActionEvent"
+      },
+      "ProductResult": {
+        "properties": {
+          "registered_participant_count": {
+            "type": "integer",
+            "title": "Registered Participant Count"
+          },
+          "action_counts": {
+            "$ref": "#/components/schemas/ProductActionCounts"
+          },
+          "unsupported_event_count": {
+            "type": "integer",
+            "title": "Unsupported Event Count"
+          },
+          "shots": {
+            "$ref": "#/components/schemas/ProductShotSummary"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ProductActionEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "media": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Media"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "AI 识别结果，仅供训练复盘。"
+          }
+        },
+        "type": "object",
+        "required": [
+          "registered_participant_count",
+          "action_counts",
+          "unsupported_event_count",
+          "shots",
+          "events",
+          "media"
+        ],
+        "title": "ProductResult"
+      },
+      "ProductShotSummary": {
+        "properties": {
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts",
+            "default": 0
+          },
+          "makes": {
+            "type": "integer",
+            "title": "Makes",
+            "default": 0
+          },
+          "misses": {
+            "type": "integer",
+            "title": "Misses",
+            "default": 0
+          },
+          "undetermined": {
+            "type": "integer",
+            "title": "Undetermined",
+            "default": 0
+          },
+          "make_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Make Rate"
+          },
+          "unlinked_outcomes": {
+            "type": "integer",
+            "title": "Unlinked Outcomes",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "ProductShotSummary"
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type"
+        ],
+        "title": "Token"
+      },
+      "UserPublic": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username"
+        ],
+        "title": "UserPublic"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 .venv/
+.DS_Store
 
 # Python bytecode and caches
 __pycache__/
@@ -16,6 +17,7 @@ coverage.xml
 # Local environment configuration
 .env
 .env.*
+!.env.example
 
 # Local SQLite demo database and sidecars
 demo.db
@@ -27,3 +29,17 @@ demo.db-*
 
 # Local reference materials
 references/
+
+# Large local runtime assets and generated analysis data
+local-assets/
+runtime/
+research_engine/data/
+
+# Frontend build and dependency artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+app/frontend/
+.pnpm-store/

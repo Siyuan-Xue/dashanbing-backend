@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "group_id": 1,
+  "dataset": "deployment",
+  "anchor_camera": "cam_03",
+  "offset_convention": "common_ms = local_ms - offset_ms; local_ms = common_ms + offset_ms; anchor offset is 0",
+  "camera_time_offsets_ms": {
+    "cam_01": 0.0,
+    "cam_02": 0.0,
+    "cam_03": 0.0,
+    "cam_04": 0.0
+  },
+  "source": "deployment_calibration",
+  "notes": "Replace these offsets with measurements from the installed cameras."
+}

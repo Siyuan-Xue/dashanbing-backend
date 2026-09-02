@@ -1,7 +1,7 @@
 [project]
 name = "dashanbing-backend"
 version = "0.1.0"
-description = "A local FastAPI authentication demo"
+description = "Local four-camera basketball training review product"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -9,6 +9,11 @@ dependencies = [
     "sqlmodel",
     "pyjwt",
     "pwdlib[argon2]",
+    "pydantic-settings",
+    "alembic",
+    "numpy>=1.24,<2",
+    "opencv-python-headless>=4.8",
+    "pyyaml>=6",
 ]
 
 [dependency-groups]

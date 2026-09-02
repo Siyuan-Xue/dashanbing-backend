@@ -1,0 +1,12 @@
+.git
+.venv
+runtime
+local-assets
+references
+frontend/node_modules
+app/frontend
+.DS_Store
+.pnpm-store
+__pycache__
+*.pyc
+*.db

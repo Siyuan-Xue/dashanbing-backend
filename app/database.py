@@ -2,16 +2,26 @@ from collections.abc import Generator
 
 from fastapi import Request
 from sqlmodel import SQLModel, Session, create_engine
+from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 
-DEFAULT_DATABASE_URL = "sqlite:///./demo.db"
+DEFAULT_DATABASE_URL = "sqlite:///./runtime/app.db"
 
 
 def create_database_engine(database_url: str) -> Engine:
     """Create the application database engine with SQLite-safe settings."""
     connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
-    return create_engine(database_url, connect_args=connect_args)
+    engine = create_engine(database_url, connect_args=connect_args)
+    if database_url.startswith("sqlite"):
+        @event.listens_for(engine, "connect")
+        def configure_sqlite(dbapi_connection, _connection_record) -> None:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.execute("PRAGMA busy_timeout=5000")
+            cursor.close()
+    return engine
 
 
 def create_tables(engine: Engine) -> None:

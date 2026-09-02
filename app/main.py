@@ -1,108 +1,140 @@
+import asyncio
+import shutil
 from contextlib import asynccontextmanager
 
-import jwt
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.exc import IntegrityError
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 
-from app.database import DEFAULT_DATABASE_URL, create_database_engine, create_tables
-from app.database import get_session
-from app.models import Token, User, UserPublic, UserRegistration
-from app.security import (
-    JWT_ALGORITHM,
-    JWT_SECRET_KEY,
-    DUMMY_PASSWORD_HASH,
-    create_access_token,
-    hash_password,
-    oauth2_scheme,
-    verify_password,
-)
+from app.api.router import api_router
+from app.api.deps import get_current_user
+from app.config import AppSettings, get_settings
+from app.database import create_database_engine, create_tables
+from app.models import User
+from app.security import hash_password
+from app.services.presets import PresetCatalog
+from app.services.readiness import ReadinessService
+from app.services.storage import AnalysisStorage
 
 
-def create_app(database_url: str = DEFAULT_DATABASE_URL) -> FastAPI:
-    """Build the FastAPI application against the supplied database URL."""
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        create_tables(app.state.engine)
-        yield
-
-    application = FastAPI(title="FastAPI Auth Demo", lifespan=lifespan)
-    application.state.engine = create_database_engine(database_url)
-
-    @application.get("/")
-    def root() -> dict[str, str]:
-        return {"message": "FastAPI auth demo"}
-
-    @application.post("/auth/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
-    def register_user(
-        registration: UserRegistration,
-        session: Session = Depends(get_session),
-    ) -> User:
-        user = User(
-            username=registration.username,
-            hashed_password=hash_password(registration.password),
-        )
-        session.add(user)
-        try:
+def _bootstrap_admin(app: FastAPI) -> None:
+    settings = app.state.settings
+    with Session(app.state.engine) as session:
+        existing = session.exec(select(User)).first()
+        if existing is None:
+            session.add(
+                User(
+                    username=settings.admin_username,
+                    hashed_password=hash_password(settings.admin_password),
+                )
+            )
             session.commit()
-        except IntegrityError as error:
-            session.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Username already registered",
-            ) from error
-        session.refresh(user)
-        return user
 
-    @application.post("/auth/token", response_model=Token)
-    def login_for_access_token(
-        form_data: OAuth2PasswordRequestForm = Depends(),
-        session: Session = Depends(get_session),
-    ) -> Token:
-        user = session.exec(select(User).where(User.username == form_data.username)).first()
-        password_hash = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
-        password_is_valid = verify_password(form_data.password, password_hash)
-        if user is None or not password_is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return Token(access_token=create_access_token(user.username), token_type="bearer")
 
-    def get_current_user(
-        token: str | None = Depends(oauth2_scheme),
-        session: Session = Depends(get_session),
-    ) -> User:
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-        if token is None:
-            raise credentials_exception
-        try:
-            payload = jwt.decode(
-                token,
-                JWT_SECRET_KEY,
-                algorithms=[JWT_ALGORITHM],
-                options={"require": ["sub", "exp"]},
-            )
-            username = payload.get("sub")
-        except jwt.PyJWTError as error:
-            raise credentials_exception from error
-        if not isinstance(username, str):
-            raise credentials_exception
+def create_app(
+    database_url: str | None = None,
+    *,
+    settings: AppSettings | None = None,
+) -> FastAPI:
+    """Create one local, same-origin basketball analysis application."""
+    app_settings = settings or get_settings()
+    if database_url is not None:
+        app_settings = app_settings.model_copy(update={"database_url": database_url})
 
-        user = session.exec(select(User).where(User.username == username)).first()
-        if user is None:
-            raise credentials_exception
-        return user
+    @asynccontextmanager
+    async def lifespan(application: FastAPI):
+        application.state.settings.runtime_root.mkdir(parents=True, exist_ok=True)
+        (application.state.settings.runtime_root / "tmp").mkdir(parents=True, exist_ok=True)
+        application.state.storage.root.mkdir(parents=True, exist_ok=True)
+        if application.state.settings.auto_create_schema:
+            create_tables(application.state.engine)
+        _bootstrap_admin(application)
+        if application.state.settings.worker_enabled:
+            from app.services.supervisor import AnalysisSupervisor
 
-    @application.get("/users/me", response_model=UserPublic)
-    def read_current_user(current_user: User = Depends(get_current_user)) -> User:
-        return current_user
+            # Serialize the one-time deep GPU/model probe before queued work can
+            # acquire the single engine slot. Subsequent readiness calls are cached.
+            preflight = application.state.readiness.preflight()
+            application.state.gpu_queue_ready = bool(preflight["ready"])
+            application.state.readiness.lock_queue_state(application.state.gpu_queue_ready)
+            supervisor = AnalysisSupervisor(application)
+            application.state.supervisor = supervisor
+            await supervisor.start()
+        yield
+        supervisor = getattr(application.state, "supervisor", None)
+        if supervisor is not None:
+            await supervisor.stop()
+
+    application = FastAPI(
+        title="篮球课堂训练复盘",
+        version="1.0.0",
+        lifespan=lifespan,
+    )
+    application.state.settings = app_settings
+    application.state.engine = create_database_engine(app_settings.database_url)
+    application.state.storage = AnalysisStorage(app_settings)
+    application.state.presets = PresetCatalog(app_settings.sample_root)
+    application.state.readiness = ReadinessService(app_settings)
+    application.state.upload_admission = asyncio.Lock()
+    application.include_router(api_router)
+
+    @application.middleware("http")
+    async def reject_oversized_uploads(request: Request, call_next):
+        if request.method == "POST" and request.url.path == "/api/v1/analyses/upload":
+            try:
+                with Session(application.state.engine) as session:
+                    get_current_user(request, session)
+            except HTTPException as error:
+                return JSONResponse(
+                    {"detail": error.detail},
+                    status_code=error.status_code,
+                    headers=error.headers,
+                )
+            content_length = request.headers.get("content-length")
+            limit = int(application.state.settings.max_upload_size_gb * 1024**3) + 10 * 1024**2
+            if content_length is None:
+                return JSONResponse({"detail": "Content-Length is required"}, status_code=411)
+            try:
+                too_large = int(content_length) > limit
+            except ValueError:
+                return JSONResponse({"detail": "Invalid Content-Length"}, status_code=400)
+            if too_large:
+                return JSONResponse({"detail": "上传文件总大小超过本地配置上限"}, status_code=413)
+            declared_bytes = int(content_length)
+            reserve_bytes = int(application.state.settings.min_free_storage_gb * 1024**3)
+            free_bytes = shutil.disk_usage(application.state.settings.runtime_root).free
+            if free_bytes - declared_bytes < reserve_bytes:
+                return JSONResponse({"detail": "本地存储空间不足，上传已停止"}, status_code=507)
+            admission = application.state.upload_admission
+            if admission.locked():
+                return JSONResponse({"detail": "已有视频正在上传，请稍后重试"}, status_code=409)
+            async with admission:
+                return await call_next(request)
+        return await call_next(request)
+
+    frontend = app_settings.frontend_dist
+    assets = frontend / "assets"
+    if assets.is_dir():
+        application.mount("/assets", StaticFiles(directory=assets), name="frontend-assets")
+
+    @application.get("/healthz", include_in_schema=False)
+    def healthz() -> dict[str, str]:
+        return {"status": "ok"}
+
+    @application.get("/readyz", include_in_schema=False, response_model=None)
+    def readyz():
+        report = application.state.readiness.report()
+        return JSONResponse(report, status_code=200 if report["ready"] else 503)
+
+    @application.get("/{path:path}", include_in_schema=False, response_model=None)
+    def frontend_fallback(path: str):
+        if path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        index = frontend / "index.html"
+        if index.is_file():
+            return FileResponse(index)
+        return {"message": "篮球课堂训练复盘 API", "docs": "/docs"}
 
     return application
 
