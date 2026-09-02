@@ -24,3 +24,6 @@ demo.db-*
 *.sqlite3
 *.sqlite-*
 *.sqlite3-*
+
+# Local reference materials
+references/
