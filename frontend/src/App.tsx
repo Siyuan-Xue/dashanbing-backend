@@ -398,7 +398,11 @@ function PresetPage() {
 
 function ResultView({ title, result, back, action }: { title: string; result: ProductResult; back: string; action?: ReactNode }) {
   const counts = result.action_counts as Record<string, number>;
-  const mediaEntries = Object.entries(result.media);
+  const mediaOrder = ["phases", "cam_01", "cam_02", "cam_03", "cam_04"];
+  const mediaEntries = [
+    ...mediaOrder.filter((kind) => result.media[kind]).map((kind) => [kind, result.media[kind]] as const),
+    ...Object.entries(result.media).filter(([kind]) => !mediaOrder.includes(kind)),
+  ];
   return (
     <div>
       <div className="result-head"><div><Link to={back}>← 返回</Link><span className="eyebrow">ANALYSIS RESULT</span><h1>{title}</h1><p>{result.disclaimer}</p></div>{action}</div>
@@ -421,7 +425,7 @@ function ResultView({ title, result, back, action }: { title: string; result: Pr
         <div><b>{actionNames[event.action_type]}</b><small>{formatTime(event.start_ms)} – {formatTime(event.end_ms)} · 关键时刻 {formatTime(event.time_ms)}</small></div>
         <span className={`outcome ${event.result || "none"}`}>{event.result === "make" ? "命中" : event.result === "miss" ? "未中" : event.result === "undetermined" ? "无法判断" : "未关联"}</span>
       </div>)}</div> : <div className="empty-state">未识别到当前版本支持的动作。</div>}
-      <SectionTitle title="复核视频" subtitle="视频画面中的编号仅是本次会话内匿名跟踪标签，不代表真实身份。" />
+      <SectionTitle title="复核视频" subtitle="四宫格为人体/球轨标注画面，编号只是本次会话内匿名跟踪标签；四路单独视频为各机位原片。" />
       <div className="video-grid">{mediaEntries.map(([kind, url]) => <figure className={kind === "phases" ? "wide-video" : ""} key={kind}>
         <video controls preload="metadata" src={url} /><figcaption>{mediaName(kind)}</figcaption>
       </figure>)}</div>
@@ -440,7 +444,13 @@ function formatTime(ms: number) {
 }
 
 function mediaName(kind: string) {
-  return ({ cam_01: "cam01 人体标注", cam_02: "cam02 人体标注", cam_03: "cam03 人体标注", cam_04: "cam04 球筐与球轨", phases: "四宫格动作阶段" } as Record<string, string>)[kind] || kind;
+  return ({
+    cam_01: "cam01 原视频",
+    cam_02: "cam02 原视频",
+    cam_03: "cam03 原视频",
+    cam_04: "cam04 原视频",
+    phases: "四宫格标注复核",
+  } as Record<string, string>)[kind] || kind;
 }
 
 export default function App() {

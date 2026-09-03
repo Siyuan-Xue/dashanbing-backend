@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from app.config import AppSettings
-from app.services.presets import MEDIA_FILES, PRESETS
+from app.services.media import PHASES_FILE
+from app.services.presets import PRESETS
 
 
 @dataclass(frozen=True)
@@ -134,8 +135,12 @@ class ReadinessService:
         sample_inputs = self.settings.sample_root / "test_data_v3"
         for preset in PRESETS:
             group = self.settings.sample_root / "outputs" / "v3" / preset.group_id
-            required_sample_files = [group / "report.json", group / "summary.json", group / "eval_vs_gt.json"]
-            required_sample_files.extend(group / "viz" / filename for filename in MEDIA_FILES.values())
+            required_sample_files = [
+                group / "report.json",
+                group / "summary.json",
+                group / "eval_vs_gt.json",
+                group / "viz" / PHASES_FILE,
+            ]
             required_sample_files.extend(
                 sample_inputs / f"{preset.group_number}-{camera}.mkv"
                 for camera in range(1, 5)

@@ -39,8 +39,12 @@ def main() -> None:
         precision, recall = THRESHOLDS[preset_id]
         assert float(evaluation["precision"]) >= precision
         assert float(evaluation["recall"]) >= recall
-        for kind, filename in MEDIA_FILES.items():
-            assert catalog.media_path(preset_id, kind) == group / "viz" / filename
+        assert catalog.media_path(preset_id, "phases") == group / "viz" / MEDIA_FILES["phases"]
+        for kind in ("cam_01", "cam_02", "cam_03", "cam_04"):
+            path = catalog.media_path(preset_id, kind)
+            assert path.is_file()
+            assert path.name != f"{kind}_annotated.mp4"
+            assert path.name != "cam_04_ball.mp4"
         print(
             f"{preset_id}: clips={supported_total}, shots={product.shots.attempts}, "
             f"precision={evaluation['precision']}, recall={evaluation['recall']}"

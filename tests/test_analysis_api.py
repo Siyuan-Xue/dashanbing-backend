@@ -42,18 +42,12 @@ def _build_sample_root(root: Path) -> None:
     _write_json(group / "eval_vs_gt.json", {"precision": 1.0, "recall": 1.0})
     viz = group / "viz"
     viz.mkdir()
-    for name in (
-        "cam_01_annotated.mp4",
-        "cam_02_annotated.mp4",
-        "cam_03_annotated.mp4",
-        "cam_04_ball.mp4",
-        "phases.mp4",
-    ):
-        (viz / name).write_bytes(b"0123456789")
+    (viz / "phases.mp4").write_bytes(b"0123456789")
+    (viz / "cam_01_annotated.mp4").write_bytes(b"annotated01")
     inputs = root / "test_data_v3"
     inputs.mkdir(parents=True)
     for name in ("0-2.mkv", "4-1.mkv", "4-2.mkv", "4-3.mkv", "4-4.mkv"):
-        (inputs / name).write_bytes(b"video")
+        (inputs / name).write_bytes(b"original-" + name.encode())
     (inputs / "sync").mkdir()
     (inputs / "sync" / "group_04.json").write_text("{}", encoding="utf-8")
 
@@ -149,12 +143,17 @@ def test_preset_result_is_protected_and_media_supports_range(client: TestClient)
         "/api/v1/presets/quick-demo/media/phases",
         headers={"Range": "bytes=2-5"},
     )
+    original = client.get("/api/v1/presets/quick-demo/media/cam_01")
 
     assert result.status_code == 200
     assert result.json()["action_counts"]["jump_shot"] == 1
+    assert set(result.json()["media"]) == {"cam_01", "cam_02", "cam_03", "cam_04", "phases"}
     assert "stu_" not in result.text
     assert media.status_code == 206
     assert media.content == b"2345"
+    assert original.status_code == 200
+    assert original.content == b"original-4-1.mkv"
+    assert original.content != b"annotated01"
 
 
 def test_video_header_detects_containers_and_rejects_documents():
@@ -380,6 +379,62 @@ def test_completed_analysis_media_uses_manifest_and_supports_range(client: TestC
     assert media.status_code == 206
     assert media.content == b"defg"
     assert client.get(f"/api/v1/analyses/{analysis_id}/media/evil").status_code == 404
+
+
+def test_completed_analysis_camera_media_uses_original_inputs_not_annotated(client: TestClient):
+    _login(client)
+    analysis = Analysis(
+        title="原片复核",
+        mode="full",
+        source_type="upload",
+        status="completed",
+        progress=100,
+        input_manifest_json="{}",
+    )
+    with Session(client.app.state.engine) as session:
+        session.add(analysis)
+        session.commit()
+        analysis_id = analysis.id
+    root = client.app.state.storage.prepare(analysis_id)
+    inputs = {}
+    for name in ("cam_01", "cam_02", "cam_03", "cam_04"):
+        path = root / "input" / f"{name}.mkv"
+        path.write_bytes(f"source-{name}".encode())
+        inputs[name] = str(path)
+    with Session(client.app.state.engine) as session:
+        stored = session.get(Analysis, analysis_id)
+        stored.input_manifest_json = json.dumps(inputs)
+        session.add(stored)
+        session.commit()
+    output = root / "output"
+    _write_json(
+        output / "report.json",
+        {"clips": [], "shot_outcomes": [], "shot_stats": {"attempts": 0, "makes": 0, "misses": 0, "undetermined": 0}},
+    )
+    _write_json(output / "summary.json", {"student_ids": []})
+    _write_json(
+        output / "media_manifest.json",
+        {
+            "cam_01": "cam_01_annotated.mp4",
+            "cam_02": "cam_02_annotated.mp4",
+            "cam_03": "cam_03_annotated.mp4",
+            "cam_04": "cam_04_ball.mp4",
+            "phases": "phases.mp4",
+        },
+    )
+    viz = output / "viz"
+    viz.mkdir()
+    (viz / "phases.mp4").write_bytes(b"mosaic-bytes")
+    (viz / "cam_01_annotated.mp4").write_bytes(b"annotated-duplicate")
+
+    result = client.get(f"/api/v1/analyses/{analysis_id}/result")
+    camera = client.get(f"/api/v1/analyses/{analysis_id}/media/cam_01")
+
+    assert result.status_code == 200
+    assert set(result.json()["media"]) == {"cam_01", "cam_02", "cam_03", "cam_04", "phases"}
+    assert camera.status_code == 200
+    assert camera.content == b"source-cam_01"
+    assert camera.content != b"annotated-duplicate"
 
 
 def test_real_upload_is_blocked_before_saving_when_runtime_is_not_ready(tmp_path: Path, monkeypatch):

@@ -13,7 +13,7 @@ from sqlmodel import Session
 
 from app.models import Analysis
 from app.services.analysis_state import AnalysisStatus, transition_status
-from app.services.presets import MEDIA_FILES
+from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, install_original_camera_videos
 
 
 STAGE_PROGRESS = {
@@ -154,6 +154,18 @@ def _simulate(app: FastAPI, analysis: Analysis) -> None:
             encoding="utf-8",
         )
         (output / "motion.json").write_text("{}", encoding="utf-8")
+    try:
+        manifest = json.loads(analysis.input_manifest_json)
+    except json.JSONDecodeError:
+        manifest = {}
+    install_original_camera_videos(
+        output / "viz",
+        {
+            kind: Path(manifest[kind])
+            for kind in ORIGINAL_CAMERA_FILES
+            if isinstance(manifest.get(kind), str)
+        },
+    )
     media = {
         kind: filename
         for kind, filename in MEDIA_FILES.items()

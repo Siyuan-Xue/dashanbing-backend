@@ -104,6 +104,27 @@ def deep_runtime_check(model_root: Path) -> dict:
     }
 
 
+def _install_original_review_videos(group_root: Path, viz_target: Path) -> None:
+    """Copy remuxed source cameras into viz so product review is not the annotated mosaic tiles."""
+    summary_path = group_root / "summary.json"
+    if not summary_path.is_file():
+        return
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    session_id = summary.get("session_id")
+    if not session_id:
+        return
+    from src.config import data_path
+
+    raw_dir = data_path("sessions", str(session_id), "raw")
+    for camera in ("cam_01", "cam_02", "cam_03", "cam_04"):
+        dest = viz_target / f"{camera}_original.mp4"
+        if dest.is_file() and dest.stat().st_size > 1000:
+            continue
+        source = raw_dir / f"{camera}.mp4"
+        if source.exists():
+            shutil.copy2(source.resolve(), dest)
+
+
 def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
     if output_root.exists():
         shutil.rmtree(output_root)
@@ -117,11 +138,14 @@ def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
     viz_target = output_root / "viz"
     if viz_source.is_dir():
         shutil.copytree(viz_source, viz_target)
+    else:
+        viz_target.mkdir(parents=True, exist_ok=True)
+    _install_original_review_videos(group_root, viz_target)
     expected = {
-        "cam_01": "cam_01_annotated.mp4",
-        "cam_02": "cam_02_annotated.mp4",
-        "cam_03": "cam_03_annotated.mp4",
-        "cam_04": "cam_04_ball.mp4",
+        "cam_01": "cam_01_original.mp4",
+        "cam_02": "cam_02_original.mp4",
+        "cam_03": "cam_03_original.mp4",
+        "cam_04": "cam_04_original.mp4",
         "phases": "phases.mp4",
     }
     media = {kind: name for kind, name in expected.items() if (viz_target / name).is_file()}

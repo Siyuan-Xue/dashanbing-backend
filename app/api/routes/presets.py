@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 
 from app.api.deps import get_current_user
 from app.models import PresetPublic
+from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4
 from app.services.results import ProductResult
 
 
@@ -28,4 +29,20 @@ def preset_media(preset_id: str, kind: str, request: Request) -> FileResponse:
         path = request.app.state.presets.media_path(preset_id, kind)
     except KeyError:
         raise HTTPException(status_code=404, detail="Preset media not found") from None
-    return FileResponse(path, media_type="video/mp4", filename=path.name, content_disposition_type="inline")
+    if kind in ORIGINAL_CAMERA_FILES and path.suffix.lower() != ".mp4":
+        dest = (
+            request.app.state.settings.runtime_root
+            / "preset-media"
+            / preset_id
+            / ORIGINAL_CAMERA_FILES[kind]
+        )
+        try:
+            path = remux_to_browser_mp4(path, dest)
+        except (OSError, RuntimeError) as error:
+            raise HTTPException(status_code=500, detail=str(error)) from error
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        filename=MEDIA_FILES.get(kind, path.name),
+        content_disposition_type="inline",
+    )

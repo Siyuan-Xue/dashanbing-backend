@@ -689,6 +689,12 @@ def render_group_visualizations(
         writer.release()
         outputs[cam_id] = str(out_path)
 
+        original_out = out_viz / f"{cam_id}_original.mp4"
+        if not (original_out.is_file() and original_out.stat().st_size > 1000):
+            source = Path(video_path)
+            if source.exists():
+                shutil.copy2(source.resolve(), original_out)
+
     # phases.mp4 = 2x2 mosaic synced to action-segment camera (cam_03) clock
     if all(c in outputs for c in ("cam_01", "cam_02", "cam_03", "cam_04")):
         phases_path = out_viz / "phases.mp4"

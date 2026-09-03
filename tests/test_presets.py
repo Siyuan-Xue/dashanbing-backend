@@ -48,18 +48,12 @@ def sample_root(tmp_path: Path) -> Path:
     )
     viz = group / "viz"
     viz.mkdir()
-    for name in (
-        "cam_01_annotated.mp4",
-        "cam_02_annotated.mp4",
-        "cam_03_annotated.mp4",
-        "cam_04_ball.mp4",
-        "phases.mp4",
-    ):
-        (viz / name).write_bytes(b"video")
+    (viz / "phases.mp4").write_bytes(b"mosaic")
+    (viz / "cam_01_annotated.mp4").write_bytes(b"annotated")
     inputs = root / "test_data_v3"
     inputs.mkdir(parents=True)
     for name in ("0-2.mkv", "4-1.mkv", "4-2.mkv", "4-3.mkv", "4-4.mkv"):
-        (inputs / name).write_bytes(b"input")
+        (inputs / name).write_bytes(b"original-" + name.encode())
     sync = inputs / "sync"
     sync.mkdir()
     (sync / "group_04.json").write_text("{}", encoding="utf-8")
@@ -85,6 +79,12 @@ def test_preset_media_rejects_unknown_kinds_and_path_traversal(sample_root: Path
     assert catalog.media_path("quick-demo", "phases") == (
         sample_root / "outputs" / "v3" / "group_04" / "viz" / "phases.mp4"
     )
+    assert catalog.media_path("quick-demo", "cam_01") == (
+        sample_root / "test_data_v3" / "4-1.mkv"
+    )
+    remuxed = sample_root / "outputs" / "v3" / "group_04" / "viz" / "cam_01_original.mp4"
+    remuxed.write_bytes(b"remuxed-original")
+    assert catalog.media_path("quick-demo", "cam_01") == remuxed
     with pytest.raises(KeyError):
         catalog.media_path("quick-demo", "../../report")
     with pytest.raises(KeyError):
@@ -92,7 +92,14 @@ def test_preset_media_rejects_unknown_kinds_and_path_traversal(sample_root: Path
 
 
 def test_preset_result_rejects_incomplete_review_media(sample_root: Path):
-    (sample_root / "outputs" / "v3" / "group_04" / "viz" / "cam_01_annotated.mp4").unlink()
+    (sample_root / "outputs" / "v3" / "group_04" / "viz" / "phases.mp4").unlink()
+
+    with pytest.raises(FileNotFoundError):
+        PresetCatalog(sample_root).result("quick-demo")
+
+
+def test_preset_result_rejects_missing_original_camera_video(sample_root: Path):
+    (sample_root / "test_data_v3" / "4-1.mkv").unlink()
 
     with pytest.raises(FileNotFoundError):
         PresetCatalog(sample_root).result("quick-demo")

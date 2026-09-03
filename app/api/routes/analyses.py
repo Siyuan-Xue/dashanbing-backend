@@ -11,7 +11,7 @@ from app.api.deps import get_current_user
 from app.database import get_session
 from app.models import Analysis, AnalysisPublic, PresetRerunRequest
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
-from app.services.presets import MEDIA_FILES
+from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4, resolve_review_media
 from app.services.results import ProductResult, build_product_result
 from app.services.storage import InvalidVideoUpload
 
@@ -131,23 +131,28 @@ def get_result(analysis_id: str, request: Request, session: Session = Depends(ge
         summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=500, detail="Analysis result is unavailable") from error
-    media_manifest = _load_media_manifest(root)
+    media_paths = _review_media_paths(analysis, request)
     media = {
-        kind: f"/api/v1/analyses/{analysis.id}/media/{kind}" for kind in media_manifest
+        kind: f"/api/v1/analyses/{analysis.id}/media/{kind}" for kind in media_paths
     }
     return build_product_result(report=report, summary=summary, media=media)
 
 
-def _load_media_manifest(output_root: Path) -> dict[str, str]:
-    path = output_root / "media_manifest.json"
-    if not path.is_file():
+def _original_sources(analysis: Analysis) -> dict[str, Path]:
+    try:
+        manifest = json.loads(analysis.input_manifest_json)
+    except json.JSONDecodeError:
         return {}
-    payload = json.loads(path.read_text(encoding="utf-8"))
     return {
-        kind: filename
-        for kind, filename in payload.items()
-        if kind in MEDIA_FILES and filename == MEDIA_FILES[kind]
+        kind: Path(manifest[kind])
+        for kind in ORIGINAL_CAMERA_FILES
+        if isinstance(manifest.get(kind), str)
     }
+
+
+def _review_media_paths(analysis: Analysis, request: Request) -> dict[str, Path]:
+    output_root = request.app.state.storage.analysis_root(analysis.id) / "output"
+    return resolve_review_media(output_root / "viz", _original_sources(analysis))
 
 
 @router.get("/{analysis_id}/media/{kind}")
@@ -155,15 +160,23 @@ def analysis_media(analysis_id: str, kind: str, request: Request, session: Sessi
     analysis = _analysis_or_404(analysis_id, session)
     if analysis.status != AnalysisStatus.completed:
         raise HTTPException(status_code=409, detail="Analysis is not completed")
-    output_root = request.app.state.storage.analysis_root(analysis.id) / "output"
-    manifest = _load_media_manifest(output_root)
-    filename = manifest.get(kind)
-    if filename is None:
+    if kind not in MEDIA_FILES:
         raise HTTPException(status_code=404, detail="Analysis media not found")
-    path = output_root / "viz" / filename
-    if not path.is_file():
+    path = _review_media_paths(analysis, request).get(kind)
+    if path is None or not path.is_file():
         raise HTTPException(status_code=404, detail="Analysis media not found")
-    return FileResponse(path, media_type="video/mp4", filename=filename, content_disposition_type="inline")
+    if kind in ORIGINAL_CAMERA_FILES:
+        dest = request.app.state.storage.analysis_root(analysis.id) / "output" / "viz" / ORIGINAL_CAMERA_FILES[kind]
+        try:
+            path = remux_to_browser_mp4(path, dest)
+        except (OSError, RuntimeError) as error:
+            raise HTTPException(status_code=500, detail=str(error)) from error
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        filename=MEDIA_FILES[kind],
+        content_disposition_type="inline",
+    )
 
 
 @router.post("/{analysis_id}/cancel", response_model=AnalysisPublic)

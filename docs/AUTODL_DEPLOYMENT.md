@@ -281,15 +281,14 @@ rsync -aR --partial --progress \
   "${ssh_user}@${ssh_host}:${remote_project}/"
 ```
 
-`-R` 会保留从 `local-assets/` 开始的相对路径。四个完整 group 输出目录中包括公开页面需要的 `report.json`、`summary.json`、`eval_vs_gt.json`、`motion.json` 和 `viz/` 视频，也会带上少量内部诊断文件。如果只追求最小体积，可进一步按文件筛选，但必须保留每组五个复核视频：
+`-R` 会保留从 `local-assets/` 开始的相对路径。四个完整 group 输出目录中包括公开页面需要的 `report.json`、`summary.json`、`eval_vs_gt.json`、`motion.json` 和 `viz/` 视频，也会带上少量内部诊断文件。如果只追求最小体积，可进一步按文件筛选，但必须保留每组四宫格标注视频和对应四路原片输入：
 
 ```text
-viz/cam_01_annotated.mp4
-viz/cam_02_annotated.mp4
-viz/cam_03_annotated.mp4
-viz/cam_04_ball.mp4
 viz/phases.mp4
+test_data_v3/{group}-{1,2,3,4}.mkv
 ```
+
+四路单独复核视频使用上述原片，不再使用 `cam_*_annotated.mp4` / `cam_04_ball.mp4`。标注单路视频仍可用于科研排查，但产品页面不展示。
 
 如果运行机磁盘充足，也可以直接上传整个 `local-assets/sample-bundle/data/`。这更简单，但会包含首版页面不用的 group1、group2、group7 和科研诊断产物。
 
@@ -554,7 +553,7 @@ cd /root/autodl-tmp/dashanbing-backend
 - `layup-demo`（group6）：precision/recall 为 1.0/1.0；
 - group5 outcome truth 为 17/17；
 - 结果 JSON 不包含 `stu_` 或 `student_id`；
-- 每组五个复核视频都存在。
+- 每组四宫格标注视频与四路原片输入都存在。
 
 这些阈值只代表固定 v3 测试集，不代表新视频上的泛化性能。
 
