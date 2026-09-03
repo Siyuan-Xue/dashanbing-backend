@@ -223,6 +223,37 @@ function AnalysisTable({ analyses }: { analyses: Analysis[] }) {
   );
 }
 
+function looksLikeVideoHeader(bytes: Uint8Array) {
+  if (bytes.length < 4) return false;
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return true;
+  if (bytes[0] === 0x46 && bytes[1] === 0x4c && bytes[2] === 0x56) return true;
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x41 && bytes[9] === 0x56 && bytes[10] === 0x49 && bytes[11] === 0x20
+  ) return true;
+  if (bytes.length >= 8 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return true;
+  return bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x01 && (bytes[3] === 0xba || bytes[3] === 0xb3);
+}
+
+async function assertUploadedVideos(form: FormData) {
+  const labels: Record<string, string> = {
+    enrollment_video: "注册视频",
+    cam_01: "cam01 视频",
+    cam_02: "cam02 视频",
+    cam_03: "cam03 视频",
+    cam_04: "cam04 视频",
+  };
+  for (const [name, title] of Object.entries(labels)) {
+    const value = form.get(name);
+    if (!(value instanceof File)) continue;
+    const header = new Uint8Array(await value.slice(0, 16).arrayBuffer());
+    if (!looksLikeVideoHeader(header)) {
+      throw { detail: `${title} 不是可识别的视频文件。请上传 mkv/mp4/mov/webm，不要改扩展名后上传 PDF 或其他文档。` };
+    }
+  }
+}
+
 function UploadPage() {
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
@@ -232,7 +263,9 @@ function UploadPage() {
     setPending(true);
     setError("");
     try {
-      const analysis = await uploadAnalysis(new FormData(event.currentTarget));
+      const form = new FormData(event.currentTarget);
+      await assertUploadedVideos(form);
+      const analysis = await uploadAnalysis(form);
       navigate(`/analyses/${analysis.id}`);
     } catch (reason) {
       setError(errorMessage(reason, "创建任务失败，请检查运行环境和视频文件。"));

@@ -106,18 +106,20 @@ def remux_to_mp4(src: Path, dst: Path) -> Path:
     r = subprocess.run(cmd_copy, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if r.returncode == 0 and dst.exists() and dst.stat().st_size > 1000:
         return dst
-    # re-encode
-    subprocess.run(
+    encoded = subprocess.run(
         [
             "ffmpeg", "-y", "-i", str(src),
             "-an", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
             "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(dst),
         ],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
     )
-    return dst
+    if encoded.returncode == 0 and dst.exists() and dst.stat().st_size > 1000:
+        return dst
+    detail = (encoded.stderr or encoded.stdout or "ffmpeg failed").strip().splitlines()
+    tail = " ".join(detail[-6:]) if detail else "ffmpeg failed"
+    raise RuntimeError(f"无法解码 {src.name}。请确认上传的是真实视频，而不是改过扩展名的文档。{tail}")
 
 
 def _load_detections_by_frame(session_id: str, cam_id: str) -> dict[int, list[dict]]:

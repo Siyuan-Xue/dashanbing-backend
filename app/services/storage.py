@@ -15,6 +15,34 @@ UPLOAD_NAMES = {
     "cam_04": "cam_04.mkv",
 }
 
+UPLOAD_TITLES = {
+    "enrollment_video": "注册视频",
+    "cam_01": "cam01 视频",
+    "cam_02": "cam02 视频",
+    "cam_03": "cam03 视频",
+    "cam_04": "cam04 视频",
+}
+
+
+class InvalidVideoUpload(ValueError):
+    """Raised when an uploaded file is not a recognizable video container."""
+
+
+def looks_like_video_header(header: bytes) -> bool:
+    if len(header) < 4:
+        return False
+    if header.startswith(b"\x1a\x45\xdf\xa3"):
+        return True
+    if header.startswith(b"FLV"):
+        return True
+    if header.startswith(b"RIFF") and header[8:12] == b"AVI ":
+        return True
+    if len(header) >= 8 and header[4:8] == b"ftyp":
+        return True
+    if header.startswith(b"\x00\x00\x01\xba") or header.startswith(b"\x00\x00\x01\xb3"):
+        return True
+    return False
+
 
 class AnalysisStorage:
     def __init__(self, settings: AppSettings):
@@ -44,14 +72,22 @@ class AnalysisStorage:
             reserve_bytes = int(self.settings.min_free_storage_gb * 1024**3)
             for field, filename in UPLOAD_NAMES.items():
                 destination = root / "input" / filename
+                header = b""
                 with destination.open("wb") as target:
                     while chunk := uploads[field].read(1024 * 1024):
+                        if not header:
+                            header = chunk[:16]
                         total_bytes += len(chunk)
                         if total_bytes > max_bytes:
                             raise ValueError("上传文件总大小超过本地配置上限")
                         if shutil.disk_usage(self.root).free - len(chunk) < reserve_bytes:
                             raise ValueError("本地存储空间不足，上传已停止")
                         target.write(chunk)
+                if not looks_like_video_header(header):
+                    title = UPLOAD_TITLES[field]
+                    raise InvalidVideoUpload(
+                        f"{title} 不是可识别的视频文件。请上传 mkv/mp4/mov/webm，不要改扩展名后上传 PDF 或其他文档。"
+                    )
                 manifest[field] = str(destination)
             sync_destination = root / "input" / "sync.json"
             shutil.copy2(self.settings.sync_config, sync_destination)

@@ -14,6 +14,13 @@ from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis
 from app.services.retention import RetentionService
+from app.services.storage import looks_like_video_header
+
+MKV_HEADER = b"\x1a\x45\xdf\xa3"
+
+
+def _mkv(payload: bytes) -> bytes:
+    return MKV_HEADER + payload
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -150,14 +157,22 @@ def test_preset_result_is_protected_and_media_supports_range(client: TestClient)
     assert media.content == b"2345"
 
 
+def test_video_header_detects_containers_and_rejects_documents():
+    assert looks_like_video_header(b"\x1a\x45\xdf\xa3rest")
+    assert looks_like_video_header(b"\x00\x00\x00\x18ftypisom")
+    assert looks_like_video_header(b"RIFF\x00\x00\x00\x00AVI ")
+    assert not looks_like_video_header(b"%PDF-1.6")
+    assert not looks_like_video_header(b"enroll")
+
+
 def test_upload_creates_isolated_queued_job_and_supports_cancel_retry_delete(client: TestClient):
     _login(client)
     files = {
-        "enrollment_video": ("enroll.mkv", b"enroll", "video/x-matroska"),
-        "cam_01": ("one.mkv", b"one", "video/x-matroska"),
-        "cam_02": ("two.mkv", b"two", "video/x-matroska"),
-        "cam_03": ("three.mkv", b"three", "video/x-matroska"),
-        "cam_04": ("four.mkv", b"four", "video/x-matroska"),
+        "enrollment_video": ("enroll.mkv", _mkv(b"enroll"), "video/x-matroska"),
+        "cam_01": ("one.mkv", _mkv(b"one"), "video/x-matroska"),
+        "cam_02": ("two.mkv", _mkv(b"two"), "video/x-matroska"),
+        "cam_03": ("three.mkv", _mkv(b"three"), "video/x-matroska"),
+        "cam_04": ("four.mkv", _mkv(b"four"), "video/x-matroska"),
     }
     created = client.post(
         "/api/v1/analyses/upload",
@@ -172,8 +187,8 @@ def test_upload_creates_isolated_queued_job_and_supports_cancel_retry_delete(cli
     analysis_id = payload["id"]
 
     job_root = Path(client.app.state.settings.runtime_root) / "analyses" / analysis_id
-    assert (job_root / "input" / "enrollment.mkv").read_bytes() == b"enroll"
-    assert (job_root / "input" / "cam_04.mkv").read_bytes() == b"four"
+    assert (job_root / "input" / "enrollment.mkv").read_bytes() == _mkv(b"enroll")
+    assert (job_root / "input" / "cam_04.mkv").read_bytes() == _mkv(b"four")
     assert (job_root / "input" / "sync.json").is_file()
 
     canceled = client.post(f"/api/v1/analyses/{analysis_id}/cancel")
@@ -184,6 +199,26 @@ def test_upload_creates_isolated_queued_job_and_supports_cancel_retry_delete(cli
     assert retried.json()["status"] == "queued"
     assert deleted.status_code == 204
     assert not job_root.exists()
+
+
+def test_non_video_upload_is_rejected_before_queueing(client: TestClient):
+    _login(client)
+    analyses_root = Path(client.app.state.settings.runtime_root) / "analyses"
+    response = client.post(
+        "/api/v1/analyses/upload",
+        data={"title": "格式检测", "mode": "quick"},
+        files={
+            "enrollment_video": ("enroll.mkv", b"%PDF-1.6 fake document", "video/x-matroska"),
+            "cam_01": ("one.mkv", _mkv(b"one"), "video/x-matroska"),
+            "cam_02": ("two.mkv", _mkv(b"two"), "video/x-matroska"),
+            "cam_03": ("three.mkv", _mkv(b"three"), "video/x-matroska"),
+            "cam_04": ("four.mkv", _mkv(b"four"), "video/x-matroska"),
+        },
+    )
+    assert response.status_code == 400
+    assert "注册视频" in response.json()["detail"]
+    assert "PDF" in response.json()["detail"]
+    assert list(analyses_root.iterdir()) == []
 
 
 def test_running_cancel_request_is_idempotent_until_worker_stops(client: TestClient):

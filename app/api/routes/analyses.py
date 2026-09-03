@@ -13,6 +13,7 @@ from app.models import Analysis, AnalysisPublic, PresetRerunRequest
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
 from app.services.presets import MEDIA_FILES
 from app.services.results import ProductResult, build_product_result
+from app.services.storage import InvalidVideoUpload
 
 
 router = APIRouter(prefix="/analyses", tags=["analyses"], dependencies=[Depends(get_current_user)])
@@ -72,6 +73,9 @@ def upload_analysis(
         )
         analysis.input_manifest_json = json.dumps(manifest, ensure_ascii=False)
         return _commit(session, analysis)
+    except InvalidVideoUpload as error:
+        storage.delete(analysis.id)
+        raise HTTPException(status_code=400, detail=str(error)) from error
     except ValueError as error:
         storage.delete(analysis.id)
         raise HTTPException(status_code=413, detail=str(error)) from error
