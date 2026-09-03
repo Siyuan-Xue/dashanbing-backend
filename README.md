@@ -20,6 +20,8 @@
 
 要求：Linux、NVIDIA 驱动、Docker Engine、Compose v2、NVIDIA Container Toolkit，以及至少约 12 GiB 的本地资产空间和充足的任务存储空间。GPU 最终验收不能在 Mac 上完成。
 
+如果使用 AutoDL 等没有 Docker 守护进程的 GPU 环境，请参考 [AutoDL Linux / NVIDIA 部署手册](docs/AUTODL_DEPLOYMENT.md)。该文档包含本次实测的 Conda、Uvicorn、screen、模型传输、SSH 隧道和故障恢复流程。
+
 ### 1. 准备本地资产
 
 仓库的 `references/` 与 `local-assets/` 均不进入 Git 和镜像。若两个归档位于 `references/`，运行：
@@ -83,7 +85,7 @@ pnpm run build
 cd ..
 uv run alembic upgrade head
 BASKETBALL_SIMULATION_MODE=true \
-BASKETBALL_WORKER_ENABLED=false \
+BASKETBALL_WORKER_ENABLED=true \
 BASKETBALL_ADMIN_PASSWORD=local-review-password \
 uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
