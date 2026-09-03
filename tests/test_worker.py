@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -12,7 +13,8 @@ from sqlmodel import Session
 from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis
-from app.services.worker import _run_subprocess, _terminate_process_group, run_analysis
+from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
+from app.services.worker import _run_subprocess, _set_stage, _terminate_process_group, run_analysis
 
 
 def test_simulation_worker_completes_without_exposing_research_ids(tmp_path: Path):
@@ -52,6 +54,122 @@ def test_simulation_worker_completes_without_exposing_research_ids(tmp_path: Pat
         output = app.state.storage.analysis_root(analysis_id) / "output"
         assert json.loads((output / "report.json").read_text())["clips"] == []
         assert json.loads((output / "summary.json").read_text())["student_ids"] == []
+
+
+def test_late_cancel_after_success_becomes_canceled(tmp_path: Path, monkeypatch):
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'late-cancel.db'}",
+        runtime_root=tmp_path / "runtime",
+        model_root=tmp_path / "models",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=False,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    app = create_app(settings=settings)
+    analysis = Analysis(title="late cancel", input_manifest_json="{}")
+    analysis_id = analysis.id
+    app.state.storage.prepare(analysis_id)
+
+    async def engine_finishes_as_cancel_is_committed(application, detached):
+        with Session(application.state.engine) as session:
+            running = session.get(Analysis, detached.id)
+            running.status = "cancel_requested"
+            session.add(running)
+            session.commit()
+
+    monkeypatch.setattr("app.services.worker._run_subprocess", engine_finishes_as_cancel_is_committed)
+
+    with TestClient(app):
+        with Session(app.state.engine) as session:
+            session.add(analysis)
+            session.commit()
+
+        asyncio.run(run_analysis(app, analysis_id))
+
+        with Session(app.state.engine) as session:
+            finished = session.get(Analysis, analysis_id)
+        assert finished.status == "canceled"
+        assert finished.completed_at is not None
+
+
+def test_cancel_cannot_be_overwritten_by_stale_stage_update(tmp_path: Path, monkeypatch):
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'stage-cancel-race.db'}",
+        runtime_root=tmp_path / "runtime",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    app = create_app(settings=settings)
+    analysis = Analysis(title="stage cancel race", input_manifest_json="{}")
+    analysis_id = analysis.id
+    worker_has_read = threading.Event()
+    release_worker = threading.Event()
+    cancel_has_lock = threading.Event()
+    cancel_committed = threading.Event()
+    thread_errors: list[BaseException] = []
+    original_transition = transition_status
+
+    def pause_stage_after_read(current, target):
+        if target == AnalysisStatus.registering:
+            worker_has_read.set()
+            assert release_worker.wait(timeout=2)
+        return original_transition(current, target)
+
+    def run_stage():
+        try:
+            _set_stage(app, analysis_id, AnalysisStatus.registering)
+        except BaseException as error:
+            thread_errors.append(error)
+
+    def run_cancel():
+        try:
+            with Session(app.state.engine) as session:
+                session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+                cancel_has_lock.set()
+                current = session.get(Analysis, analysis_id)
+                current_status = AnalysisStatus(current.status)
+                target = (
+                    AnalysisStatus.cancel_requested
+                    if current_status in ACTIVE_STATUSES
+                    else AnalysisStatus.canceled
+                )
+                current.status = original_transition(current_status, target).value
+                session.add(current)
+                session.commit()
+                cancel_committed.set()
+        except BaseException as error:
+            thread_errors.append(error)
+
+    monkeypatch.setattr("app.services.worker.transition_status", pause_stage_after_read)
+
+    with TestClient(app):
+        with Session(app.state.engine) as session:
+            session.add(analysis)
+            session.commit()
+
+        stage_thread = threading.Thread(target=run_stage)
+        cancel_thread = threading.Thread(target=run_cancel)
+        stage_thread.start()
+        assert worker_has_read.wait(timeout=2)
+        cancel_thread.start()
+
+        if cancel_has_lock.wait(timeout=0.2):
+            assert cancel_committed.wait(timeout=2)
+        release_worker.set()
+        stage_thread.join(timeout=2)
+        cancel_thread.join(timeout=2)
+
+        assert not stage_thread.is_alive()
+        assert not cancel_thread.is_alive()
+        assert thread_errors == []
+        with Session(app.state.engine) as session:
+            finished = session.get(Analysis, analysis_id)
+        assert finished.status in {"cancel_requested", "canceled"}
 
 
 @pytest.mark.skipif(os.name != "posix", reason="Product deployment uses POSIX process groups")

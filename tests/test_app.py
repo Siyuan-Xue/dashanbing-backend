@@ -60,6 +60,52 @@ def test_first_start_bootstraps_one_argon2_admin(configured_app):
     assert verify_password("correct-password", users[0].hashed_password)
 
 
+def test_default_credentials_do_not_bootstrap_admin(tmp_path: Path):
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'default-credentials.db'}",
+        runtime_root=tmp_path / "runtime",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    app = create_app(settings=settings)
+
+    with TestClient(app):
+        with Session(app.state.engine) as session:
+            users = list(session.exec(select(User)).all())
+
+    assert users == []
+
+
+def test_readiness_rejects_admin_password_that_does_not_match_database(tmp_path: Path):
+    database_url = f"sqlite:///{tmp_path / 'credential-mismatch.db'}"
+    original = AppSettings(
+        database_url=database_url,
+        runtime_root=tmp_path / "runtime",
+        admin_username="local_admin",
+        admin_password="original-secure-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    with TestClient(create_app(settings=original)):
+        pass
+
+    changed = original.model_copy(
+        update={"admin_password": "different-secure-password", "worker_enabled": True}
+    )
+    with TestClient(create_app(settings=changed)) as client:
+        response = client.get("/readyz")
+
+    credentials = next(
+        check for check in response.json()["checks"] if check["name"] == "credentials"
+    )
+    assert response.status_code == 503
+    assert credentials["ready"] is False
+    assert "数据库" in credentials["detail"]
+
+
 def test_login_issues_configured_expiring_token_and_cookie(client: TestClient, configured_app):
     _, settings = configured_app
     issued_after = datetime.now(timezone.utc)
@@ -125,5 +171,7 @@ def test_no_registration_and_unknown_api_does_not_fall_back_to_spa(client: TestC
 def test_liveness_and_simulation_readiness_are_distinct(client: TestClient):
     assert client.get("/healthz").json() == {"status": "ok"}
     response = client.get("/readyz")
-    assert response.status_code == 200
+    assert response.status_code == 503
     assert response.json()["mode"] == "simulation"
+    worker = next(check for check in response.json()["checks"] if check["name"] == "worker")
+    assert worker["ready"] is False

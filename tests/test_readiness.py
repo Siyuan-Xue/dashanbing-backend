@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 
 from app.config import AppSettings
@@ -18,7 +19,24 @@ def test_simulation_readiness_is_explicitly_not_a_gpu_claim(tmp_path: Path):
     assert "不会执行真实推理" in report["checks"][0]["detail"]
 
 
-def test_real_readiness_names_missing_active_models_and_sync(tmp_path: Path):
+def test_readiness_rejects_disabled_worker(tmp_path: Path):
+    settings = AppSettings(
+        runtime_root=tmp_path / "runtime",
+        simulation_mode=True,
+        worker_enabled=False,
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+    )
+
+    report = ReadinessService(settings).report()
+    worker = next(check for check in report["checks"] if check["name"] == "worker")
+
+    assert report["ready"] is False
+    assert worker["ready"] is False
+
+
+def test_real_readiness_names_missing_active_models_and_sync(tmp_path: Path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "torch", None)
     settings = AppSettings(
         runtime_root=tmp_path / "runtime",
         model_root=tmp_path / "models",

@@ -1,4 +1,5 @@
 import json
+import sys
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -70,6 +71,7 @@ def client(tmp_path: Path):
         auto_create_schema=True,
     )
     with TestClient(create_app(settings=settings), raise_server_exceptions=False) as test_client:
+        test_client.app.state.readiness.require_ready = lambda: None
         yield test_client
 
 
@@ -165,6 +167,8 @@ def test_upload_creates_isolated_queued_job_and_supports_cancel_retry_delete(cli
     assert created.status_code == 201
     payload = created.json()
     assert payload["status"] == "queued"
+    assert payload["created_at"].endswith("Z")
+    assert payload["updated_at"].endswith("Z")
     analysis_id = payload["id"]
 
     job_root = Path(client.app.state.settings.runtime_root) / "analyses" / analysis_id
@@ -343,7 +347,8 @@ def test_completed_analysis_media_uses_manifest_and_supports_range(client: TestC
     assert client.get(f"/api/v1/analyses/{analysis_id}/media/evil").status_code == 404
 
 
-def test_real_upload_is_blocked_before_saving_when_runtime_is_not_ready(tmp_path: Path):
+def test_real_upload_is_blocked_before_saving_when_runtime_is_not_ready(tmp_path: Path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "torch", None)
     settings = AppSettings(
         database_url=f"sqlite:///{tmp_path / 'blocked.db'}",
         runtime_root=tmp_path / "runtime",
@@ -370,3 +375,26 @@ def test_real_upload_is_blocked_before_saving_when_runtime_is_not_ready(tmp_path
     assert response.status_code == 503
     assert "cuda" in response.json()["detail"]
     assert not any((settings.runtime_root / "analyses").iterdir())
+
+
+def test_disabled_worker_rejects_new_analysis(tmp_path: Path):
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'disabled-worker.db'}",
+        runtime_root=tmp_path / "runtime",
+        sample_root=tmp_path / "samples",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+
+    with TestClient(create_app(settings=settings)) as disabled_client:
+        _login(disabled_client)
+        response = disabled_client.post(
+            "/api/v1/analyses/preset",
+            json={"preset_id": "quick-demo", "mode": "quick"},
+        )
+
+    assert response.status_code == 503
+    assert "worker" in response.json()["detail"]

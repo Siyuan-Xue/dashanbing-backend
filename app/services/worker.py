@@ -45,6 +45,7 @@ def _now() -> datetime:
 
 def _set_stage(app: FastAPI, analysis_id: str, target: AnalysisStatus) -> None:
     with Session(app.state.engine) as session:
+        session.connection().exec_driver_sql("BEGIN IMMEDIATE")
         analysis = session.get(Analysis, analysis_id)
         if analysis is None or analysis.status == target:
             return
@@ -60,14 +61,22 @@ def _set_stage(app: FastAPI, analysis_id: str, target: AnalysisStatus) -> None:
 
 def _complete(app: FastAPI, analysis_id: str) -> None:
     with Session(app.state.engine) as session:
+        session.connection().exec_driver_sql("BEGIN IMMEDIATE")
         analysis = session.get(Analysis, analysis_id)
         if analysis is None:
             return
-        if analysis.status != AnalysisStatus.visualizing:
-            _advance_missing_stages(session, analysis)
-        analysis.status = transition_status(analysis.status, AnalysisStatus.completed).value
-        analysis.progress = 100
-        analysis.stage_message = "分析完成"
+        current = AnalysisStatus(analysis.status)
+        if current in {AnalysisStatus.canceled, AnalysisStatus.completed}:
+            return
+        if current == AnalysisStatus.cancel_requested:
+            analysis.status = transition_status(current, AnalysisStatus.canceled).value
+            analysis.stage_message = "已取消"
+        else:
+            if current != AnalysisStatus.visualizing:
+                _advance_missing_stages(session, analysis)
+            analysis.status = transition_status(analysis.status, AnalysisStatus.completed).value
+            analysis.progress = 100
+            analysis.stage_message = "分析完成"
         analysis.completed_at = _now()
         analysis.updated_at = _now()
         session.add(analysis)
@@ -84,6 +93,7 @@ def _advance_missing_stages(session: Session, analysis: Analysis) -> None:
 
 def _fail(app: FastAPI, analysis_id: str, code: str, message: str) -> None:
     with Session(app.state.engine) as session:
+        session.connection().exec_driver_sql("BEGIN IMMEDIATE")
         analysis = session.get(Analysis, analysis_id)
         if analysis is None:
             return
@@ -108,12 +118,6 @@ def _cancel_requested(app: FastAPI, analysis_id: str) -> bool:
     with Session(app.state.engine) as session:
         analysis = session.get(Analysis, analysis_id)
         return bool(analysis and analysis.status == AnalysisStatus.cancel_requested)
-
-
-def _current_status(app: FastAPI, analysis_id: str) -> AnalysisStatus | None:
-    with Session(app.state.engine) as session:
-        analysis = session.get(Analysis, analysis_id)
-        return AnalysisStatus(analysis.status) if analysis else None
 
 
 def _simulate(app: FastAPI, analysis: Analysis) -> None:
@@ -272,10 +276,7 @@ async def run_analysis(app: FastAPI, analysis_id: str) -> None:
                 _set_stage(app, analysis_id, stage)
         else:
             await _run_subprocess(app, detached)
-        if _current_status(app, analysis_id) == AnalysisStatus.canceled:
-            return
-        if not _cancel_requested(app, analysis_id):
-            _complete(app, analysis_id)
+        _complete(app, analysis_id)
     except Exception as error:
         task_root = app.state.storage.analysis_root(analysis_id)
         log_path = task_root / "logs" / "worker.log"

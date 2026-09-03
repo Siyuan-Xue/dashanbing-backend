@@ -12,14 +12,16 @@ from app.api.deps import get_current_user
 from app.config import AppSettings, get_settings
 from app.database import create_database_engine, create_tables
 from app.models import User
-from app.security import hash_password
+from app.security import hash_password, verify_password
 from app.services.presets import PresetCatalog
 from app.services.readiness import ReadinessService
 from app.services.storage import AnalysisStorage
 
 
-def _bootstrap_admin(app: FastAPI) -> None:
+def _bootstrap_admin(app: FastAPI) -> bool:
     settings = app.state.settings
+    if not app.state.readiness.configured_credentials_ready():
+        return False
     with Session(app.state.engine) as session:
         existing = session.exec(select(User)).first()
         if existing is None:
@@ -30,6 +32,14 @@ def _bootstrap_admin(app: FastAPI) -> None:
                 )
             )
             session.commit()
+            return True
+        try:
+            return existing.username == settings.admin_username and verify_password(
+                settings.admin_password,
+                existing.hashed_password,
+            )
+        except Exception:
+            return False
 
 
 def create_app(
@@ -49,7 +59,8 @@ def create_app(
         application.state.storage.root.mkdir(parents=True, exist_ok=True)
         if application.state.settings.auto_create_schema:
             create_tables(application.state.engine)
-        _bootstrap_admin(application)
+        credentials_ready = _bootstrap_admin(application)
+        application.state.readiness.set_database_credentials_ready(credentials_ready)
         if application.state.settings.worker_enabled:
             from app.services.supervisor import AnalysisSupervisor
 

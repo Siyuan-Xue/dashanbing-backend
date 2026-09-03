@@ -26,6 +26,40 @@ class ReadinessService:
         self._cached_deep_check: dict | None = None
         self._deep_check_lock = threading.Lock()
         self._startup_queue_ready: bool | None = None
+        self._database_credentials_ready: bool | None = None
+
+    def configured_credentials_ready(self) -> bool:
+        return (
+            self.settings.admin_password != "change-me-local-admin"
+            and not self.settings.admin_password.startswith("replace-with")
+            and self.settings.jwt_secret_key != "change-this-local-jwt-secret-before-deployment-please"
+            and not self.settings.jwt_secret_key.startswith("replace-with")
+        )
+
+    def set_database_credentials_ready(self, ready: bool) -> None:
+        self._database_credentials_ready = ready
+
+    def _common_checks(self) -> list[ReadinessCheck]:
+        configured = self.configured_credentials_ready()
+        database_matches = self._database_credentials_ready is not False
+        if not configured:
+            credentials_detail = "仍在使用默认本地凭据"
+        elif not database_matches:
+            credentials_detail = "配置的管理员账号或密码与数据库不一致"
+        else:
+            credentials_detail = "管理员密码与 JWT 密钥已配置"
+        return [
+            ReadinessCheck(
+                "credentials",
+                configured and database_matches,
+                credentials_detail,
+            ),
+            ReadinessCheck(
+                "worker",
+                self.settings.worker_enabled,
+                "任务执行器已启用" if self.settings.worker_enabled else "任务执行器已禁用",
+            ),
+        ]
 
     @staticmethod
     def _valid_sync_file(path: Path) -> bool:
@@ -48,12 +82,18 @@ class ReadinessService:
 
     def report(self) -> dict:
         if self.settings.simulation_mode:
+            checks = [
+                ReadinessCheck(
+                    "simulation",
+                    True,
+                    "开发模拟引擎已启用；不会执行真实推理。",
+                ),
+                *self._common_checks(),
+            ]
             return {
-                "ready": True,
+                "ready": all(check.ready for check in checks),
                 "mode": "simulation",
-                "checks": [
-                    {"name": "simulation", "ready": True, "detail": "开发模拟引擎已启用；不会执行真实推理。"}
-                ],
+                "checks": [check.__dict__ for check in checks],
             }
         required = {
             "yolox": self.settings.model_root / "detection" / "yolox_m" / "end2end.onnx",
@@ -112,19 +152,7 @@ class ReadinessService:
                 "四个预置组及复核视频完整" if sample_ready else "预置样例包不完整",
             )
         )
-        credentials_ready = (
-            self.settings.admin_password != "change-me-local-admin"
-            and not self.settings.admin_password.startswith("replace-with")
-            and self.settings.jwt_secret_key != "change-this-local-jwt-secret-before-deployment-please"
-            and not self.settings.jwt_secret_key.startswith("replace-with")
-        )
-        checks.append(
-            ReadinessCheck(
-                "credentials",
-                credentials_ready,
-                "管理员密码与 JWT 密钥已配置" if credentials_ready else "仍在使用默认本地凭据",
-            )
-        )
+        checks.extend(self._common_checks())
         checks.append(ReadinessCheck("ffmpeg", shutil.which("ffmpeg") is not None, "ffmpeg executable"))
         usage = shutil.disk_usage(self.settings.runtime_root)
         free_gb = usage.free / (1024**3)

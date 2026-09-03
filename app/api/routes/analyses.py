@@ -164,6 +164,7 @@ def analysis_media(analysis_id: str, kind: str, request: Request, session: Sessi
 
 @router.post("/{analysis_id}/cancel", response_model=AnalysisPublic)
 def cancel_analysis(analysis_id: str, session: Session = Depends(get_session)) -> Analysis:
+    session.connection().exec_driver_sql("BEGIN IMMEDIATE")
     analysis = _analysis_or_404(analysis_id, session)
     current = AnalysisStatus(analysis.status)
     if current == AnalysisStatus.cancel_requested:

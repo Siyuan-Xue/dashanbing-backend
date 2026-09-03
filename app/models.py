@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Literal
 from uuid import uuid4
 
+from pydantic import field_serializer
 from sqlalchemy import Column, Text
 from sqlmodel import Field, SQLModel
 
@@ -64,6 +65,20 @@ class AnalysisPublic(SQLModel):
     updated_at: datetime
     started_at: datetime | None
     completed_at: datetime | None
+
+    @field_serializer(
+        "created_at",
+        "updated_at",
+        "started_at",
+        "completed_at",
+        when_used="json",
+    )
+    def serialize_utc_datetime(self, value: datetime | None) -> str | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class PresetRerunRequest(SQLModel):

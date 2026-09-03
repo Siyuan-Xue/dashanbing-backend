@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "generate:api": "openapi-typescript ../openapi.json -o src/generated/schema.d.ts",
-    "build": "npm run generate:api && tsc -b && vite build"
+    "build": "pnpm run generate:api && tsc -b && vite build"
   },
   "dependencies": {
     "openapi-fetch": "^0.14.0",
