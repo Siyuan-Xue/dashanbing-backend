@@ -64,6 +64,8 @@ def test_default_credentials_do_not_bootstrap_admin(tmp_path: Path):
     settings = AppSettings(
         database_url=f"sqlite:///{tmp_path / 'default-credentials.db'}",
         runtime_root=tmp_path / "runtime",
+        admin_password="change-me-local-admin",
+        jwt_secret_key="change-this-local-jwt-secret-before-deployment-please",
         simulation_mode=True,
         worker_enabled=False,
         auto_create_schema=True,

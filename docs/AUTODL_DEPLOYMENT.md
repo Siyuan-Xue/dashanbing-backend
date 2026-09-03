@@ -237,17 +237,17 @@ ssh -p "${ssh_port}" "${ssh_user}@${ssh_host}" \
 ### 5.1 上传运行模型、现场配置和前端
 
 ```bash
-rsync -a --partial --info=progress2 \
+rsync -a --partial --progress \
   -e "ssh -p ${ssh_port}" \
   local-assets/runtime-models/ \
   "${ssh_user}@${ssh_host}:${remote_project}/local-assets/runtime-models/"
 
-rsync -a --partial --info=progress2 \
+rsync -a --partial --progress \
   -e "ssh -p ${ssh_port}" \
   local-assets/deployment/ \
   "${ssh_user}@${ssh_host}:${remote_project}/local-assets/deployment/"
 
-rsync -a --partial --info=progress2 \
+rsync -a --partial --progress \
   -e "ssh -p ${ssh_port}" \
   app/frontend/ \
   "${ssh_user}@${ssh_host}:${remote_project}/app/frontend/"
@@ -258,7 +258,7 @@ rsync -a --partial --info=progress2 \
 首页四张预置卡片只需要 group3–6。上传注册视频、四组输入、各组同步配置以及最终输出：
 
 ```bash
-rsync -aR --partial --info=progress2 \
+rsync -aR --partial --progress \
   -e "ssh -p ${ssh_port}" \
   local-assets/sample-bundle/data/test_data_v3/0-2.mkv \
   local-assets/sample-bundle/data/test_data_v3/{3,4,5,6}-{1,2,3,4}.mkv \
@@ -283,6 +283,7 @@ viz/phases.mp4
 ### 5.3 网络较慢时的传输策略
 
 - 使用 `rsync --partial`，连接中断后重新执行同一命令可续传未完成文件；
+- macOS 自带的旧版 rsync 不支持 `--info=progress2`，本文统一使用兼容的 `--progress`；
 - 视频本身已经压缩，SSH 的 `-C` 通常收益不大，反而可能增加两端 CPU 开销；
 - 可以把模型、输入视频和输出视频拆成 3–4 个独立 rsync 连接并行上传；
 - 不要让所有并行 rsync 都复用同一个 SSH ControlMaster，它们会共享一条 TCP 连接，丢包时可能一起降速；
