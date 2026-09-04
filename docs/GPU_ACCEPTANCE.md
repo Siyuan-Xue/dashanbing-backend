@@ -3,7 +3,7 @@
 ## 环境门槛
 
 1. `docker compose up -d` 后 `/readyz` 返回 HTTP 200。
-2. readiness 中 CUDA、FFmpeg、五个活动权重、buffalo_l、同步配置、空间和空帧推理全部为 `ready=true`。
+2. readiness 中 CUDA、FFmpeg/ffprobe、五个活动权重、buffalo_l、同步配置、空间和空帧推理全部为 `ready=true`。
 3. 容器启动和任务运行期间断网，确认不会尝试下载模型。
 4. 人为移除任一模型、buffalo_l 或同步文件时，创建真实任务返回 503；禁用 GPU 时同样失败。
 
@@ -43,7 +43,7 @@
 
 ## 本次 AutoDL RTX 4090 实测（2026-09-03）
 
-非 Docker 部署：`/root/autodl-tmp/dashanbing-backend`，PyTorch 2.5.1+cu124，驱动 580.76.05。实例 Git HEAD 为 `990ffa5`，工作区另有未推送到镜像的生命周期修复。原始 JSON 在运行机 `/root/autodl-tmp/gpu-acceptance-results.json`。
+非 Docker 部署：`/root/autodl-tmp/dashanbing-backend`，PyTorch 2.5.1+cu124，驱动 580.76.05。四次推理执行时的 Git 基线为 `990ffa5`，工作区另有当时尚未合入的生命周期修复；这不是当前部署版本声明。原始 JSON 在运行机 `/root/autodl-tmp/gpu-acceptance-results.json`。
 
 | 任务 | 模式 | 墙钟 | 原参考 | 峰值显存 | report SHA-256 | 动作 / 球轨 | v3 评估 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -52,6 +52,6 @@
 | group4 `db21082b` | 快速 | 16.29 min | — | 4671 MiB | `254c241a65c59671023d31a20e38d023cd8ead543f9d93116bb6a4dccd0c4d2d` | 跳投 4；4 次（2/2） | precision/recall 1.0/1.0，4/4 |
 | group5 `02e370df` | 快速 | 55.67 min | — | 5139 MiB | `0dc46fb24e890f5bc5c5252fda44395436fade7b54e13d9be3d5d2375d883802` | 罚篮 18；18 次（11/7） | precision/recall 0.944/1.0，outcome 17/17，fa=1 |
 
-四次运行的产品 DTO 动作计数均与同次 `report.json` clips 一致，公开 JSON 不含 `stu_` / `student_id`，五个复核视频均已生成。group5 的 18 个预测片段中 17 个匹配真值（允许 1 个 false alarm），命中对错 17/17。本机耗时约为原科研环境的 2.3–2.5 倍，峰值显存远低于 24 GiB。
+四次运行的产品 DTO 动作计数均与同次 `report.json` clips 一致，公开 JSON 不含 `stu_` / `student_id`。推理输出生成处理后的 `phases.mp4`；在原片交付修复后，又对已完成的 group5 快速任务验证了四路输入原片加 `phases.mp4` 共五个媒体端点均支持 HTTP 206 Range。group5 的 18 个预测片段中 17 个匹配真值（允许 1 个 false alarm），命中对错 17/17。本机耗时约为原科研环境的 2.3–2.5 倍，峰值显存远低于 24 GiB。
 
 这只证明固定 v3 测试集在该 GPU 上可复现，不覆盖现场四机位同步实测，也不覆盖任意自定义上传。

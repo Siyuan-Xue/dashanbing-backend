@@ -159,6 +159,7 @@ class ReadinessService:
         )
         checks.extend(self._common_checks())
         checks.append(ReadinessCheck("ffmpeg", shutil.which("ffmpeg") is not None, "ffmpeg executable"))
+        checks.append(ReadinessCheck("ffprobe", shutil.which("ffprobe") is not None, "ffprobe executable"))
         usage = shutil.disk_usage(self.settings.runtime_root)
         free_gb = usage.free / (1024**3)
         checks.append(

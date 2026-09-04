@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -23,7 +24,10 @@ def test_resolve_review_media_prefers_originals_over_annotated(tmp_path: Path):
     assert media["phases"] == viz / "phases.mp4"
     assert media["cam_01"] == source
     remuxed = viz / "cam_01_original.mp4"
-    remuxed.write_bytes(b"remuxed")
+    remuxed.write_bytes(b"partial")
+    media = resolve_review_media(viz, {"cam_01": source})
+    assert media["cam_01"] == source
+    remuxed.write_bytes(b"r" * 1001)
     media = resolve_review_media(viz, {"cam_01": source})
     assert media["cam_01"] == remuxed
 
@@ -48,6 +52,30 @@ def test_remux_without_ffmpeg_copies_existing_mp4(tmp_path: Path, monkeypatch):
 
     assert result == dst
     assert dst.read_bytes() == b"source-bytes"
+
+
+def test_remux_publishes_completed_file_atomically(tmp_path: Path, monkeypatch):
+    src = tmp_path / "cam_01.mkv"
+    dst = tmp_path / "viz" / "cam_01_original.mp4"
+    src.write_bytes(b"source")
+    observed_outputs = []
+
+    def successful_remux(command, **_kwargs):
+        output = Path(command[-1])
+        observed_outputs.append(output)
+        assert output != dst
+        output.write_bytes(b"x" * 1001)
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("app.services.media.shutil.which", lambda _name: "/usr/bin/ffmpeg")
+    monkeypatch.setattr("app.services.media.subprocess.run", successful_remux)
+
+    result = remux_to_browser_mp4(src, dst)
+
+    assert observed_outputs
+    assert result == dst
+    assert dst.read_bytes() == b"x" * 1001
+    assert not any(path.exists() for path in observed_outputs)
 
 
 def test_install_original_camera_videos_writes_product_filenames(tmp_path: Path, monkeypatch):

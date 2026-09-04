@@ -13,7 +13,12 @@ from app.models import Analysis, AnalysisPublic, PresetRerunRequest
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
 from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4, resolve_review_media
 from app.services.results import ProductResult, build_product_result
-from app.services.storage import InvalidVideoUpload
+from app.services.storage import (
+    InsufficientStorage,
+    InvalidVideoUpload,
+    UploadTooLarge,
+    VideoProbeUnavailable,
+)
 
 
 router = APIRouter(prefix="/analyses", tags=["analyses"], dependencies=[Depends(get_current_user)])
@@ -84,9 +89,15 @@ def upload_analysis(
     except InvalidVideoUpload as error:
         storage.delete(analysis.id)
         raise HTTPException(status_code=400, detail=str(error)) from error
-    except ValueError as error:
+    except UploadTooLarge as error:
         storage.delete(analysis.id)
         raise HTTPException(status_code=413, detail=str(error)) from error
+    except InsufficientStorage as error:
+        storage.delete(analysis.id)
+        raise HTTPException(status_code=507, detail=str(error)) from error
+    except VideoProbeUnavailable as error:
+        storage.delete(analysis.id)
+        raise HTTPException(status_code=503, detail=str(error)) from error
     except Exception:
         storage.delete(analysis.id)
         raise

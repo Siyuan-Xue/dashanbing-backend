@@ -14,7 +14,7 @@ from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
-from app.services.worker import _run_subprocess, _set_stage, _terminate_process_group, run_analysis
+from app.services.worker import _run_subprocess, _set_stage, _simulate, _terminate_process_group, run_analysis
 
 
 def test_simulation_worker_completes_without_exposing_research_ids(tmp_path: Path):
@@ -54,6 +54,53 @@ def test_simulation_worker_completes_without_exposing_research_ids(tmp_path: Pat
         output = app.state.storage.analysis_root(analysis_id) / "output"
         assert json.loads((output / "report.json").read_text())["clips"] == []
         assert json.loads((output / "summary.json").read_text())["student_ids"] == []
+
+
+def test_preset_simulation_exports_only_five_public_review_videos(tmp_path: Path, monkeypatch):
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'preset-worker.db'}",
+        runtime_root=tmp_path / "runtime",
+        sample_root=tmp_path / "samples",
+        model_root=tmp_path / "models",
+        sync_config=tmp_path / "sync.json",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    source = settings.sample_root / "outputs" / "v3" / "group_04"
+    viz = source / "viz"
+    viz.mkdir(parents=True)
+    for name in ("report.json", "summary.json", "motion.json"):
+        (source / name).write_text("{}", encoding="utf-8")
+    (viz / "phases.mp4").write_bytes(b"processed-mosaic")
+    (viz / "cam_01_annotated.mp4").write_bytes(b"private-annotated")
+
+    def install_originals(target: Path, _sources: dict):
+        target.mkdir(parents=True, exist_ok=True)
+        for camera in ("cam_01", "cam_02", "cam_03", "cam_04"):
+            (target / f"{camera}_original.mp4").write_bytes(camera.encode())
+
+    monkeypatch.setattr("app.services.worker.install_original_camera_videos", install_originals)
+    app = create_app(settings=settings)
+    analysis = Analysis(
+        title="预置模拟",
+        source_type="preset",
+        preset_id="quick-demo",
+        input_manifest_json="{}",
+    )
+
+    _simulate(app, analysis)
+
+    public_viz = app.state.storage.analysis_root(analysis.id) / "output" / "viz"
+    assert {path.name for path in public_viz.iterdir()} == {
+        "cam_01_original.mp4",
+        "cam_02_original.mp4",
+        "cam_03_original.mp4",
+        "cam_04_original.mp4",
+        "phases.mp4",
+    }
 
 
 def test_late_cancel_after_success_becomes_canceled(tmp_path: Path, monkeypatch):

@@ -37,6 +37,10 @@ def test_readiness_rejects_disabled_worker(tmp_path: Path):
 
 def test_real_readiness_names_missing_active_models_and_sync(tmp_path: Path, monkeypatch):
     monkeypatch.setitem(sys.modules, "torch", None)
+    monkeypatch.setattr(
+        "app.services.readiness.shutil.which",
+        lambda executable: "/usr/bin/ffmpeg" if executable == "ffmpeg" else None,
+    )
     settings = AppSettings(
         runtime_root=tmp_path / "runtime",
         model_root=tmp_path / "models",
@@ -48,7 +52,17 @@ def test_real_readiness_names_missing_active_models_and_sync(tmp_path: Path, mon
     settings.runtime_root.mkdir()
     report = ReadinessService(settings).report()
     failed = {item["name"] for item in report["checks"] if not item["ready"]}
-    assert {"yolox", "rtmw", "yolo_pose", "osnet", "basketball", "buffalo_l", "sync_config", "cuda"} <= failed
+    assert {
+        "yolox",
+        "rtmw",
+        "yolo_pose",
+        "osnet",
+        "basketball",
+        "buffalo_l",
+        "sync_config",
+        "ffprobe",
+        "cuda",
+    } <= failed
     assert "empty_frame_inference" not in {item["name"] for item in report["checks"]}
 
 

@@ -4,11 +4,85 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import uuid
 from pathlib import Path
 
 
 def ffmpeg_available() -> bool:
     return shutil.which("ffmpeg") is not None
+
+
+def remux_to_mp4(src: Path, dst: Path) -> Path:
+    """Publish a browser-compatible MP4 atomically; never relabel another container."""
+    src = Path(src)
+    dst = Path(dst)
+    if not src.is_file():
+        raise FileNotFoundError(src)
+    if src.absolute() == dst.absolute():
+        return dst
+    if dst.is_symlink():
+        dst.unlink()
+    if dst.is_file() and dst.stat().st_size > 1000:
+        return dst
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise RuntimeError("ffmpeg not found; cannot prepare browser-compatible MP4")
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    temporary = dst.with_name(f".{dst.stem}.{uuid.uuid4().hex}.tmp{dst.suffix}")
+    try:
+        copied = subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-i",
+                str(src),
+                "-c",
+                "copy",
+                "-an",
+                "-movflags",
+                "+faststart",
+                str(temporary),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if copied.returncode == 0 and temporary.is_file() and temporary.stat().st_size > 1000:
+            temporary.replace(dst)
+            return dst
+
+        encoded = subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-i",
+                str(src),
+                "-an",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "ultrafast",
+                "-crf",
+                "23",
+                "-pix_fmt",
+                "yuv420p",
+                "-movflags",
+                "+faststart",
+                str(temporary),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if encoded.returncode == 0 and temporary.is_file() and temporary.stat().st_size > 1000:
+            temporary.replace(dst)
+            return dst
+        detail = (encoded.stderr or encoded.stdout or "ffmpeg failed").strip().splitlines()
+        tail = " ".join(detail[-6:]) if detail else "ffmpeg failed"
+        raise RuntimeError(
+            f"无法解码 {src.name}。请确认上传的是真实视频，而不是改过扩展名的文档。{tail}"
+        )
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 class H264VideoWriter:

@@ -14,7 +14,12 @@ from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis
 from app.services.retention import RetentionService
-from app.services.storage import looks_like_video_header
+from app.services.storage import (
+    InsufficientStorage,
+    UploadTooLarge,
+    VideoProbeUnavailable,
+    looks_like_video_header,
+)
 
 MKV_HEADER = b"\x1a\x45\xdf\xa3"
 
@@ -73,6 +78,7 @@ def client(tmp_path: Path):
     )
     with TestClient(create_app(settings=settings), raise_server_exceptions=False) as test_client:
         test_client.app.state.readiness.require_ready = lambda: None
+        test_client.app.state.storage.video_probe = lambda _path, _title: None
         yield test_client
 
 
@@ -163,7 +169,7 @@ def test_preset_result_is_protected_and_media_supports_range(client: TestClient,
 def test_video_header_detects_containers_and_rejects_documents():
     assert looks_like_video_header(b"\x1a\x45\xdf\xa3rest")
     assert looks_like_video_header(b"\x00\x00\x00\x18ftypisom")
-    assert looks_like_video_header(b"RIFF\x00\x00\x00\x00AVI ")
+    assert not looks_like_video_header(b"RIFF\x00\x00\x00\x00AVI ")
     assert not looks_like_video_header(b"%PDF-1.6")
     assert not looks_like_video_header(b"enroll")
 
@@ -222,6 +228,38 @@ def test_non_video_upload_is_rejected_before_queueing(client: TestClient):
     assert "注册视频" in response.json()["detail"]
     assert "PDF" in response.json()["detail"]
     assert list(analyses_root.iterdir()) == []
+
+
+@pytest.mark.parametrize(
+    ("error", "status_code"),
+    [
+        (UploadTooLarge("too large"), 413),
+        (InsufficientStorage("no space"), 507),
+        (VideoProbeUnavailable("probe unavailable"), 503),
+    ],
+)
+def test_upload_storage_errors_use_specific_http_statuses(
+    client: TestClient,
+    monkeypatch,
+    error: Exception,
+    status_code: int,
+):
+    _login(client)
+
+    def fail_upload(*_args, **_kwargs):
+        raise error
+
+    monkeypatch.setattr(client.app.state.storage, "save_uploads", fail_upload)
+    response = client.post(
+        "/api/v1/analyses/upload",
+        data={"title": "错误映射", "mode": "quick"},
+        files={
+            name: (f"{name}.mkv", _mkv(b"video"), "video/x-matroska")
+            for name in ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04")
+        },
+    )
+
+    assert response.status_code == status_code
 
 
 def test_running_cancel_request_is_idempotent_until_worker_stops(client: TestClient):

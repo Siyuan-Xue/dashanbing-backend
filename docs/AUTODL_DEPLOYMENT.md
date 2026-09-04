@@ -339,9 +339,10 @@ df -h /root/autodl-tmp
 apt-get update
 apt-get install -y ffmpeg libglib2.0-0 build-essential screen curl rsync
 ffmpeg -version
+ffprobe -version
 ```
 
-科研引擎会调用 FFmpeg。只有 Python OpenCV 而没有 `ffmpeg` 命令，readiness 仍会失败。
+科研引擎会调用 FFmpeg，上传接口还会用同一软件包提供的 `ffprobe` 检查视频流。只有 Python OpenCV 而没有这两个命令，readiness 仍会失败。
 
 ### 6.2 创建独立 Conda 环境
 
@@ -572,6 +573,20 @@ tests/test_analysis_api.py::test_real_upload_is_blocked_before_saving_when_runti
 ```
 
 这两个测试构造了“运行环境缺失”的场景，却同时假设执行测试的机器没有 CUDA；在真实 GPU 主机上 CUDA 检查会通过，因此断言失败。当前代码已经在这两个用例中显式隔离 CUDA 探测，使测试不再依赖执行主机是否有 GPU。新部署应以完整测试全部通过为要求；若仍出现上述失败，说明运行机源码不是包含该修复的最新版本。
+
+### 8.5 验证自定义上传边界
+
+产品只接受 MKV、MP4、MOV、WebM。前端文件选择器和文件头检查只用于尽早提示；服务端会先校验允许的容器签名，再调用 `ffprobe` 确认存在可读取、尺寸有效且时长大于零的视频流。不能信任文件名、扩展名或浏览器上报的 Content-Type。
+
+建议至少验证以下情况：
+
+- 正常五路视频创建任务并进入队列；
+- PDF、空文件以及只伪造 Matroska/MP4 文件头的内容返回 HTTP 400，且不会留下任务目录；
+- 超出上传总量限制返回 HTTP 413；
+- 低于存储保留空间返回 HTTP 507；
+- `ffprobe` 不可用时 readiness 失败，上传返回 HTTP 503，而不是跳过校验。
+
+这是一项上传时的快速结构校验，不会为节省几秒而完整解码数小时视频；文件在后续深度解码时仍可能暴露帧级损坏，此时任务应明确失败，不能生成伪结果。
 
 ## 9. 使用 screen 管理服务
 
@@ -920,10 +935,11 @@ git -c http.version=HTTP/1.1 fetch origin
 
 AutoDL 提供的环境本身往往已经是容器，里面没有 Docker daemon 或 `/var/run/docker.sock`。这是正常情况，按本文 Conda + Uvicorn + screen 路径部署，不要尝试在受限容器里强行启动 Docker-in-Docker。
 
-### 14.3 readiness 报 `ffmpeg` 失败
+### 14.3 readiness 报 `ffmpeg` 或 `ffprobe` 失败
 
 ```bash
 command -v ffmpeg
+command -v ffprobe
 apt-get install -y ffmpeg
 ```
 
@@ -966,7 +982,7 @@ opencv-python-headless==4.11.0.86
 
 ### 14.7 readiness 报 `sample_bundle` 不完整
 
-确认 group3–6 各自具备 `report.json`、`summary.json`、`eval_vs_gt.json`、五个 `viz` 视频，以及：
+确认 group3–6 各自具备 `report.json`、`summary.json`、`eval_vs_gt.json`、`viz/phases.mp4`，并具备四路原片输入：
 
 ```text
 test_data_v3/0-2.mkv
@@ -1013,7 +1029,7 @@ du -sh /root/autodl-tmp/dashanbing-backend/runtime/*
 - 使用真实部署机位测量自定义上传的四机位固定同步偏移；
 - 正式产品或商业使用前确认 InsightFace 模型授权。
 
-本机耗时约为原科研环境的 2.3–2.5 倍，不应把原 9.4 / 30.9 分钟写成当前服务等级。任意自定义上传仍可能因封装格式失败，需要单独处理。
+本机耗时约为原科研环境的 2.3–2.5 倍，不应把原 9.4 / 30.9 分钟写成当前服务等级。自定义上传会在排队前拒绝不受支持或结构损坏的封装，但后续深度解码仍可能发现帧级损坏并使任务明确失败。
 
 ## 16. 一页式复部署清单
 

@@ -226,14 +226,7 @@ function AnalysisTable({ analyses }: { analyses: Analysis[] }) {
 function looksLikeVideoHeader(bytes: Uint8Array) {
   if (bytes.length < 4) return false;
   if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return true;
-  if (bytes[0] === 0x46 && bytes[1] === 0x4c && bytes[2] === 0x56) return true;
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-    bytes[8] === 0x41 && bytes[9] === 0x56 && bytes[10] === 0x49 && bytes[11] === 0x20
-  ) return true;
-  if (bytes.length >= 8 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return true;
-  return bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x01 && (bytes[3] === 0xba || bytes[3] === 0xb3);
+  return bytes.length >= 8 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70;
 }
 
 async function assertUploadedVideos(form: FormData) {
@@ -249,7 +242,7 @@ async function assertUploadedVideos(form: FormData) {
     if (!(value instanceof File)) continue;
     const header = new Uint8Array(await value.slice(0, 16).arrayBuffer());
     if (!looksLikeVideoHeader(header)) {
-      throw { detail: `${title} 不是可识别的视频文件。请上传 mkv/mp4/mov/webm，不要改扩展名后上传 PDF 或其他文档。` };
+      throw { detail: `${title} 不是可读取的 MKV/MP4/MOV/WebM 视频。请上传真实视频，不要仅修改 PDF 或其他文件的扩展名。` };
     }
   }
 }
@@ -295,7 +288,12 @@ function UploadPage() {
           {files.map(([name, title, hint], index) => <label className="file-input" key={name}>
             <span className="file-number">{index + 1}</span>
             <span><b>{title}</b><small>{hint}</small></span>
-            <input type="file" name={name} accept="video/*,.mkv" required />
+            <input
+              type="file"
+              name={name}
+              accept=".mkv,.mp4,.mov,.webm,video/x-matroska,video/mp4,video/quicktime,video/webm"
+              required
+            />
           </label>)}
         </div>
         <div className="notice"><b>处理说明</b><span>快速与完整模式都会生成复核视频，但均不承诺实时完成。任务在本机串行使用 GPU。</span></div>

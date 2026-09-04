@@ -83,7 +83,7 @@ def test_preset_media_rejects_unknown_kinds_and_path_traversal(sample_root: Path
         sample_root / "test_data_v3" / "4-1.mkv"
     )
     remuxed = sample_root / "outputs" / "v3" / "group_04" / "viz" / "cam_01_original.mp4"
-    remuxed.write_bytes(b"remuxed-original")
+    remuxed.write_bytes(b"r" * 1001)
     assert catalog.media_path("quick-demo", "cam_01") == remuxed
     with pytest.raises(KeyError):
         catalog.media_path("quick-demo", "../../report")

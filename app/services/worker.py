@@ -13,7 +13,7 @@ from sqlmodel import Session
 
 from app.models import Analysis
 from app.services.analysis_state import AnalysisStatus, transition_status
-from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, install_original_camera_videos
+from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, PHASES_FILE, install_original_camera_videos
 
 
 STAGE_PROGRESS = {
@@ -134,8 +134,10 @@ def _simulate(app: FastAPI, analysis: Analysis) -> None:
         for filename in ("report.json", "summary.json", "motion.json"):
             if (source / filename).is_file():
                 shutil.copy2(source / filename, output / filename)
-        if (source / "viz").is_dir():
-            shutil.copytree(source / "viz", output / "viz")
+        phases = source / "viz" / PHASES_FILE
+        if phases.is_file():
+            (output / "viz").mkdir(parents=True, exist_ok=True)
+            shutil.copy2(phases, output / "viz" / PHASES_FILE)
     else:
         (output / "report.json").write_text(
             json.dumps(

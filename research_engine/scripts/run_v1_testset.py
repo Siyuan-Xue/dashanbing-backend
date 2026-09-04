@@ -6,11 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
-import subprocess
 import sys
 import time
-import uuid
 from pathlib import Path
 
 import cv2
@@ -48,7 +45,7 @@ from src.privacy.db import init_db  # noqa: E402
 from src.shot.outcome import run_ball_tracking_on_video, run_shot_outcome_session  # noqa: E402
 from src.types import ConsentScope, StudentActions  # noqa: E402
 from src.utils.files import link_or_copy_file  # noqa: E402
-from src.utils.video_io import create_video_writer, ffmpeg_available  # noqa: E402
+from src.utils.video_io import create_video_writer, remux_to_mp4  # noqa: E402
 from src.viz.identity_style import (  # noqa: E402
     VizIdentitySticky,
     format_student_label,
@@ -86,41 +83,6 @@ def discover_groups(data_dir: Path) -> dict[int, dict[str, Path]]:
             continue
         groups.setdefault(g, {})[CAM_MAP[c]] = path
     return dict(sorted(groups.items()))
-
-
-def remux_to_mp4(src: Path, dst: Path) -> Path:
-    """Fast remux mkv→mp4 when possible; else re-encode."""
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    if dst.exists() and dst.stat().st_size > 1000:
-        return dst
-    if not ffmpeg_available():
-        # OpenCV may still open mkv; copy as-is with .mp4 name won't work — symlink
-        if dst.exists() or dst.is_symlink():
-            dst.unlink()
-        dst.symlink_to(src.resolve())
-        return dst
-    # try copy streams
-    cmd_copy = [
-        "ffmpeg", "-y", "-i", str(src),
-        "-c", "copy", "-an", "-movflags", "+faststart", str(dst),
-    ]
-    r = subprocess.run(cmd_copy, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if r.returncode == 0 and dst.exists() and dst.stat().st_size > 1000:
-        return dst
-    encoded = subprocess.run(
-        [
-            "ffmpeg", "-y", "-i", str(src),
-            "-an", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
-            "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(dst),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    if encoded.returncode == 0 and dst.exists() and dst.stat().st_size > 1000:
-        return dst
-    detail = (encoded.stderr or encoded.stdout or "ffmpeg failed").strip().splitlines()
-    tail = " ".join(detail[-6:]) if detail else "ffmpeg failed"
-    raise RuntimeError(f"无法解码 {src.name}。请确认上传的是真实视频，而不是改过扩展名的文档。{tail}")
 
 
 def _load_detections_by_frame(session_id: str, cam_id: str) -> dict[int, list[dict]]:
