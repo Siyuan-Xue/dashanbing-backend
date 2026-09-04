@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from app.config import AppSettings
 from app.database import create_database_engine, create_tables
-from app.models import Analysis, User
+from app.models import Analysis, TaskInput, User
 from app.services.retention import RetentionService
 from app.services.storage import AnalysisStorage
 
@@ -77,6 +77,19 @@ def test_retention_cleans_runtime_tiers_but_never_read_only_presets(tmp_path: Pa
         (root / "engine-output").mkdir()
         (root / "engine-output" / "intermediate.json").write_text("{}", encoding="utf-8")
         (root / "output" / "report.json").write_text("{}", encoding="utf-8")
+    old_input = storage.analysis_root(old_id) / "input" / "video.mkv"
+    with Session(engine) as session:
+        session.add(
+            TaskInput(
+                task_id=old_id,
+                slot="cam_01",
+                original_filename="video.mkv",
+                byte_size=old_input.stat().st_size,
+                validation_state="valid",
+                path=str(old_input),
+            )
+        )
+        session.commit()
     preset = settings.sample_root / "outputs" / "v3" / "group_04" / "report.json"
     preset.parent.mkdir(parents=True)
     preset.write_text("{}", encoding="utf-8")

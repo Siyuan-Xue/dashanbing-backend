@@ -99,7 +99,13 @@ def create_app(
 
     @application.middleware("http")
     async def reject_oversized_uploads(request: Request, call_next):
-        if request.method == "POST" and request.url.path == "/api/v1/analyses/upload":
+        is_legacy_upload = request.method == "POST" and request.url.path == "/api/v1/analyses/upload"
+        is_task_upload = (
+            request.method == "PUT"
+            and request.url.path.startswith("/api/v1/tasks/")
+            and "/inputs/" in request.url.path
+        )
+        if is_legacy_upload or is_task_upload:
             try:
                 with Session(application.state.engine) as session:
                     get_current_user(request, session)
@@ -130,6 +136,14 @@ def create_app(
             async with admission:
                 return await call_next(request)
         return await call_next(request)
+
+    @application.middleware("http")
+    async def mark_legacy_analysis_routes_deprecated(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/v1/analyses"):
+            response.headers["Deprecation"] = "true"
+            response.headers["Sunset"] = "Fri, 04 Dec 2026 00:00:00 GMT"
+        return response
 
     frontend = app_settings.frontend_dist
     assets = frontend / "assets"

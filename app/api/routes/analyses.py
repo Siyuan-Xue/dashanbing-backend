@@ -19,6 +19,14 @@ from app.services.storage import (
     UploadTooLarge,
     VideoProbeUnavailable,
 )
+from app.services.tasks import (
+    add_task_inputs_from_manifest,
+    begin_write,
+    delete_task_inputs,
+    enforce_daily_submission_quota,
+    enforce_unfinished_quota,
+    expire_drafts,
+)
 
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
@@ -74,12 +82,17 @@ def upload_analysis(
         request.app.state.readiness.require_ready()
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
+    expire_drafts(session, current_user.id, request.app.state.storage)
+    begin_write(session)
+    enforce_unfinished_quota(session, current_user.id)
+    enforce_daily_submission_quota(session, current_user.id)
     analysis = Analysis(
         title=title,
         mode=mode,
         source_type="upload",
         input_manifest_json="{}",
         owner_id=current_user.id,
+        submitted_at=datetime.now(timezone.utc),
         created_via="legacy_upload",
     )
     storage = request.app.state.storage
@@ -95,6 +108,20 @@ def upload_analysis(
             },
         )
         analysis.input_manifest_json = json.dumps(manifest, ensure_ascii=False)
+        session.add(analysis)
+        session.flush()
+        add_task_inputs_from_manifest(
+            session,
+            analysis.id,
+            manifest,
+            original_filenames={
+                "enrollment_video": enrollment_video.filename or "enrollment.mkv",
+                "cam_01": cam_01.filename or "cam_01.mkv",
+                "cam_02": cam_02.filename or "cam_02.mkv",
+                "cam_03": cam_03.filename or "cam_03.mkv",
+                "cam_04": cam_04.filename or "cam_04.mkv",
+            },
+        )
         return _commit(session, analysis)
     except InvalidVideoUpload as error:
         storage.delete(analysis.id)
@@ -109,6 +136,7 @@ def upload_analysis(
         storage.delete(analysis.id)
         raise HTTPException(status_code=503, detail=str(error)) from error
     except Exception:
+        session.rollback()
         storage.delete(analysis.id)
         raise
 
@@ -129,6 +157,10 @@ def rerun_preset(
         raise HTTPException(status_code=503, detail="Preset rerun inputs are unavailable") from None
     except KeyError:
         raise HTTPException(status_code=404, detail="Preset not found") from None
+    expire_drafts(session, current_user.id, request.app.state.storage)
+    begin_write(session)
+    enforce_unfinished_quota(session, current_user.id)
+    enforce_daily_submission_quota(session, current_user.id)
     analysis = Analysis(
         title=f"预置重跑：{payload.preset_id}",
         mode=payload.mode,
@@ -136,8 +168,12 @@ def rerun_preset(
         preset_id=payload.preset_id,
         input_manifest_json=json.dumps(manifest, ensure_ascii=False),
         owner_id=current_user.id,
+        submitted_at=datetime.now(timezone.utc),
         created_via="legacy_preset",
     )
+    session.add(analysis)
+    session.flush()
+    add_task_inputs_from_manifest(session, analysis.id, manifest)
     request.app.state.storage.prepare_preset(analysis.id, manifest)
     return _commit(session, analysis)
 
@@ -291,11 +327,14 @@ def retry_analysis(
         request.app.state.readiness.require_ready()
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
+    expire_drafts(session, current_user.id, request.app.state.storage)
     # Reserve the SQLite writer before reloading and validating the manifest.
     # Retention uses the same reservation and must re-check status after this
     # transaction commits, so it cannot delete inputs behind a queued retry.
     session.connection().exec_driver_sql("BEGIN IMMEDIATE")
     analysis = _analysis_or_404(analysis_id, current_user, session)
+    enforce_unfinished_quota(session, current_user.id)
+    enforce_daily_submission_quota(session, current_user.id, task=analysis)
     try:
         manifest = json.loads(analysis.input_manifest_json)
     except json.JSONDecodeError:
@@ -312,6 +351,7 @@ def retry_analysis(
     analysis.error_message = None
     analysis.started_at = None
     analysis.completed_at = None
+    analysis.submitted_at = datetime.now(timezone.utc)
     analysis.retry_count += 1
     return _commit(session, analysis)
 
@@ -327,6 +367,7 @@ def delete_analysis(
     if AnalysisStatus(analysis.status) in ACTIVE_STATUSES or analysis.status == AnalysisStatus.cancel_requested:
         raise HTTPException(status_code=409, detail="Running analysis must be canceled first")
     request.app.state.storage.delete(analysis.id)
+    delete_task_inputs(session, analysis.id)
     session.delete(analysis)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

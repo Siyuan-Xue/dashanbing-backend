@@ -90,3 +90,37 @@ def test_user_identity_migration_deduplicates_a_single_users_matching_values(
             text("SELECT value, user_id FROM user_identity ORDER BY value")
         ).all()
     assert identities == [("bootstrap", 9)]
+
+
+def test_task_input_migration_records_staged_upload_metadata(tmp_path: Path, monkeypatch):
+    """Catches shipping the staged task API without its durable input metadata."""
+    database_url = f"sqlite:///{tmp_path / 'task-input-migration.db'}"
+    monkeypatch.setenv("BASKETBALL_DATABASE_URL", database_url)
+    monkeypatch.setenv("BASKETBALL_ADMIN_USERNAME", "bootstrap")
+    config = _alembic_config()
+    command.upgrade(config, "20260903_0001")
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text("INSERT INTO user (id, username, hashed_password) VALUES (11, 'bootstrap', 'hash')")
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as connection:
+        columns = {column["name"]: column for column in inspect(connection).get_columns("task_input")}
+        primary_key = inspect(connection).get_pk_constraint("task_input")["constrained_columns"]
+        foreign_keys = inspect(connection).get_foreign_keys("task_input")
+
+    assert set(columns) == {
+        "task_id",
+        "slot",
+        "original_filename",
+        "byte_size",
+        "validation_state",
+        "path",
+        "created_at",
+        "updated_at",
+    }
+    assert set(primary_key) == {"task_id", "slot"}
+    assert foreign_keys[0]["referred_table"] == "analysis"

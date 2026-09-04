@@ -3,8 +3,10 @@ import math
 import shutil
 import subprocess
 import threading
+from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO
+from uuid import uuid4
 
 from app.config import AppSettings
 
@@ -40,6 +42,13 @@ class InsufficientStorage(RuntimeError):
 
 class VideoProbeUnavailable(RuntimeError):
     """Raised when the server cannot perform authoritative media validation."""
+
+
+@dataclass(frozen=True)
+class InstalledUpload:
+    destination: Path
+    byte_size: int
+    backup: Path | None
 
 
 def looks_like_video_header(header: bytes) -> bool:
@@ -164,6 +173,78 @@ class AnalysisStorage:
             manifest["sync"] = str(sync_destination)
             self.write_manifest(root, manifest)
             return manifest
+
+    def replace_task_input(
+        self,
+        analysis_id: str,
+        slot: str,
+        upload: BinaryIO,
+        *,
+        existing_bytes: int,
+    ) -> InstalledUpload:
+        if slot not in UPLOAD_NAMES:
+            raise ValueError("Invalid input slot")
+        with self._upload_lock:
+            root = self.prepare(analysis_id)
+            destination = root / "input" / UPLOAD_NAMES[slot]
+            temporary = root / "input" / f".{slot}-{uuid4().hex}.tmp"
+            backup = root / "input" / f".{slot}-{uuid4().hex}.bak"
+            total_bytes = existing_bytes
+            byte_size = 0
+            max_bytes = int(self.settings.max_upload_size_gb * 1024**3)
+            reserve_bytes = int(self.settings.min_free_storage_gb * 1024**3)
+            try:
+                with temporary.open("wb") as target:
+                    first_chunk = True
+                    while chunk := upload.read(1024 * 1024):
+                        if first_chunk:
+                            first_chunk = False
+                            if not looks_like_video_header(chunk[:16]):
+                                raise InvalidVideoUpload(_invalid_video_message(UPLOAD_TITLES[slot]))
+                        total_bytes += len(chunk)
+                        byte_size += len(chunk)
+                        if total_bytes > max_bytes:
+                            raise UploadTooLarge("上传文件总大小超过本地配置上限")
+                        if shutil.disk_usage(self.root).free - len(chunk) < reserve_bytes:
+                            raise InsufficientStorage("本地存储空间不足，上传已停止")
+                        target.write(chunk)
+                if first_chunk:
+                    raise InvalidVideoUpload(_invalid_video_message(UPLOAD_TITLES[slot]))
+                self.video_probe(temporary, UPLOAD_TITLES[slot])
+                installed_backup = None
+                if destination.exists():
+                    destination.replace(backup)
+                    installed_backup = backup
+                temporary.replace(destination)
+                return InstalledUpload(destination, byte_size, installed_backup)
+            except Exception:
+                temporary.unlink(missing_ok=True)
+                if backup.exists():
+                    destination.unlink(missing_ok=True)
+                    backup.replace(destination)
+                raise
+
+    @staticmethod
+    def finalize_task_input(upload: InstalledUpload) -> None:
+        if upload.backup is not None:
+            upload.backup.unlink(missing_ok=True)
+
+    @staticmethod
+    def rollback_task_input(upload: InstalledUpload) -> None:
+        upload.destination.unlink(missing_ok=True)
+        if upload.backup is not None and upload.backup.exists():
+            upload.backup.replace(upload.destination)
+
+    def prepare_task_submission(self, analysis_id: str, manifest: dict[str, str]) -> dict[str, str]:
+        root = self.prepare(analysis_id)
+        sync_destination = root / "input" / "sync.json"
+        sync_temporary = root / "input" / ".sync.json.tmp"
+        shutil.copy2(self.settings.sync_config, sync_temporary)
+        sync_temporary.replace(sync_destination)
+        completed = dict(manifest)
+        completed["sync"] = str(sync_destination)
+        self.write_manifest(root, completed)
+        return completed
 
     def prepare_preset(self, analysis_id: str, manifest: dict[str, str]) -> None:
         root = self.prepare(analysis_id)

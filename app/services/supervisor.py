@@ -55,7 +55,13 @@ class AnalysisSupervisor:
             analyses = session.exec(select(Analysis)).all()
             changed = False
             for analysis in analyses:
-                if AnalysisStatus(analysis.status) in ACTIVE_STATUSES or analysis.status == AnalysisStatus.cancel_requested:
+                if analysis.status == AnalysisStatus.uploading:
+                    analysis.status = AnalysisStatus.draft
+                    analysis.stage_message = "Upload interrupted; replace the slot to continue"
+                    analysis.updated_at = datetime.now(timezone.utc)
+                    session.add(analysis)
+                    changed = True
+                elif AnalysisStatus(analysis.status) in ACTIVE_STATUSES or analysis.status == AnalysisStatus.cancel_requested:
                     analysis.status = AnalysisStatus.interrupted
                     analysis.stage_message = "服务重启，任务已中断；可从原输入重试"
                     analysis.updated_at = datetime.now(timezone.utc)

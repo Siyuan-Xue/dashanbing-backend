@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class AnalysisStatus(str, Enum):
+    draft = "draft"
+    uploading = "uploading"
     queued = "queued"
     running = "running"
     registering = "registering"
@@ -17,6 +19,7 @@ class AnalysisStatus(str, Enum):
     failed = "failed"
     canceled = "canceled"
     interrupted = "interrupted"
+    expired = "expired"
 
 
 ACTIVE_STATUSES = {
@@ -35,9 +38,21 @@ TERMINAL_STATUSES = {
     AnalysisStatus.failed,
     AnalysisStatus.canceled,
     AnalysisStatus.interrupted,
+    AnalysisStatus.expired,
 }
 
 _NEXT_STAGE = {
+    AnalysisStatus.draft: {
+        AnalysisStatus.uploading,
+        AnalysisStatus.queued,
+        AnalysisStatus.canceled,
+        AnalysisStatus.expired,
+    },
+    AnalysisStatus.uploading: {
+        AnalysisStatus.draft,
+        AnalysisStatus.canceled,
+        AnalysisStatus.expired,
+    },
     AnalysisStatus.queued: {AnalysisStatus.running, AnalysisStatus.registering, AnalysisStatus.canceled},
     AnalysisStatus.running: {AnalysisStatus.registering, AnalysisStatus.interrupted},
     AnalysisStatus.registering: {AnalysisStatus.perception},

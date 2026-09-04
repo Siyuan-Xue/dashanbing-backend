@@ -61,7 +61,7 @@ class Analysis(SQLModel, table=True):
     stage_message: str = Field(default="等待执行", max_length=255)
     input_manifest_json: str = Field(sa_column=Column(Text, nullable=False))
     owner_id: int = Field(foreign_key="user.id", nullable=False, index=True)
-    submitted_at: datetime | None = Field(default_factory=utc_now, index=True)
+    submitted_at: datetime | None = Field(default=None, index=True)
     created_via: str = Field(default="legacy", max_length=32)
     retry_count: int = Field(default=0, ge=0)
     error_code: str | None = Field(default=None, max_length=64)
@@ -70,6 +70,19 @@ class Analysis(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=utc_now)
     started_at: datetime | None = None
     completed_at: datetime | None = None
+
+
+class TaskInput(SQLModel, table=True):
+    __tablename__ = "task_input"
+
+    task_id: str = Field(foreign_key="analysis.id", primary_key=True)
+    slot: str = Field(primary_key=True, max_length=32)
+    original_filename: str = Field(max_length=255)
+    byte_size: int = Field(ge=0)
+    validation_state: str = Field(default="valid", max_length=32)
+    path: str = Field(sa_column=Column(Text, nullable=False))
+    created_at: datetime = Field(default_factory=utc_now, nullable=False)
+    updated_at: datetime = Field(default_factory=utc_now, nullable=False)
 
 
 class AnalysisPublic(SQLModel):
@@ -111,6 +124,69 @@ class AnalysisPublic(SQLModel):
 class PresetRerunRequest(SQLModel):
     preset_id: str
     mode: Literal["quick", "full"] = "full"
+
+
+class TaskCreate(SQLModel):
+    title: str = Field(min_length=1, max_length=120)
+    mode: Literal["quick", "full"] = "full"
+
+
+class TaskInputPublic(SQLModel):
+    slot: str
+    original_filename: str
+    byte_size: int
+    validation_state: str
+    created_at: datetime
+    updated_at: datetime
+
+    @field_serializer("created_at", "updated_at", when_used="json")
+    def serialize_utc_datetime(self, value: datetime) -> str:
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+class TaskPublic(SQLModel):
+    id: str
+    title: str
+    mode: str
+    source_type: str
+    preset_id: str | None
+    status: str
+    progress: int
+    stage_message: str
+    error_code: str | None
+    error_message: str | None
+    submitted_at: datetime | None
+    created_via: str
+    retry_count: int
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    inputs: list[TaskInputPublic]
+
+    @field_serializer(
+        "created_at",
+        "updated_at",
+        "submitted_at",
+        "started_at",
+        "completed_at",
+        when_used="json",
+    )
+    def serialize_task_datetime(self, value: datetime | None) -> str | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+class TaskListPublic(SQLModel):
+    items: list[TaskPublic]
+    total: int
+    page: int
+    page_size: int
 
 
 class PresetPublic(SQLModel):

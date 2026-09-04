@@ -25,18 +25,23 @@ def test_startup_marks_active_jobs_interrupted_but_preserves_queue(tmp_path: Pat
     with TestClient(app):
         active = Analysis(title="active", status="perception", input_manifest_json="{}", owner_id=1)
         queued = Analysis(title="queued", status="queued", input_manifest_json="{}", owner_id=1)
+        uploading = Analysis(title="uploading", status="uploading", input_manifest_json="{}", owner_id=1)
         with Session(app.state.engine) as session:
             session.add(active)
             session.add(queued)
+            session.add(uploading)
             session.commit()
-            active_id, queued_id = active.id, queued.id
+            active_id, queued_id, uploading_id = active.id, queued.id, uploading.id
         AnalysisSupervisor(app)._mark_interrupted()
         with Session(app.state.engine) as session:
             active = session.get(Analysis, active_id)
             queued = session.get(Analysis, queued_id)
+            uploading = session.get(Analysis, uploading_id)
         assert active.status == "interrupted"
         assert "重启" in active.stage_message
         assert queued.status == "queued"
+        assert uploading.status == "draft"
+        assert "upload" in uploading.stage_message.lower()
 
 
 def test_idle_supervisor_continues_after_asyncio_timeout(tmp_path: Path, monkeypatch):

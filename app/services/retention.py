@@ -9,6 +9,7 @@ from app.config import AppSettings
 from app.models import Analysis
 from app.services.analysis_state import AnalysisStatus, TERMINAL_STATUSES
 from app.services.storage import AnalysisStorage
+from app.services.tasks import DRAFT_TTL, delete_task_inputs, mark_draft_expired
 
 
 def _aware(value: datetime | None) -> datetime | None:
@@ -42,7 +43,19 @@ class RetentionService:
             with Session(self.engine) as session:
                 session.connection().exec_driver_sql("BEGIN IMMEDIATE")
                 analysis = session.get(Analysis, analysis_id)
-                if analysis is None or AnalysisStatus(analysis.status) not in TERMINAL_STATUSES:
+                if analysis is None:
+                    session.commit()
+                    continue
+                analysis_status = AnalysisStatus(analysis.status)
+                if analysis_status in {AnalysisStatus.draft, AnalysisStatus.uploading}:
+                    if current - _aware(analysis.created_at) >= DRAFT_TTL:
+                        mark_draft_expired(session, analysis, current)
+                        session.commit()
+                        self.storage.delete(analysis.id)
+                    else:
+                        session.commit()
+                    continue
+                if analysis_status not in TERMINAL_STATUSES:
                     session.commit()
                     continue
                 terminal_at = _aware(analysis.completed_at) or _aware(analysis.updated_at)
@@ -53,6 +66,7 @@ class RetentionService:
                 root = self.storage.analysis_root(analysis.id)
                 if age_days >= self.settings.result_retention_days:
                     self.storage.delete(analysis.id)
+                    delete_task_inputs(session, analysis.id)
                     session.delete(analysis)
                     session.commit()
                     continue
