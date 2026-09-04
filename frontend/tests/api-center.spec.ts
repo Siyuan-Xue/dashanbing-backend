@@ -119,6 +119,32 @@ test("restores focus to a live API-key target after state-changing success", asy
   await expect(page.getByRole("button", { name: "撤销 Key 0" })).toHaveCount(0);
 });
 
+test("defers fifth-key secret dismissal focus until delayed refresh settles", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "Controlled Chromium focus coverage.");
+  let active = 4;
+  let keyReads = 0;
+  await page.route("**/api/v1/**", async route => {
+    const { pathname } = new URL(route.request().url());
+    if (pathname === "/api/v1/users/me") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) });
+    if (pathname === "/api/v1/account/usage") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...usage, active_api_keys: { used: active, limit: 5 } }) });
+    if (pathname === "/api/v1/api-keys" && route.request().method() === "POST") { active = 5; return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ...key, id: "fifth", secret: "dsb_live_fifth_once" }) }); }
+    if (pathname === "/api/v1/api-keys") {
+      if (++keyReads > 1) await new Promise(resolve => setTimeout(resolve, 900));
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(Array.from({ length: active }, (_, index) => ({ ...key, id: `key-${index}`, last_four: `00${index}` }))) });
+    }
+    return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: "Not found" }) });
+  });
+  await page.goto("/api/keys");
+  await page.getByRole("button", { name: "创建 API 密钥" }).click();
+  const create = page.getByRole("dialog", { name: "创建 API 密钥" });
+  await create.getByLabel("密钥名称").fill("Fifth");
+  await create.getByRole("button", { name: "创建密钥" }).click();
+  await page.getByRole("dialog", { name: "保存新密钥" }).getByRole("button", { name: "我已保存" }).click();
+  await expect(page.getByRole("heading", { name: /API 密钥 \(5\/5\)/ })).toBeFocused();
+  await expect(page.getByRole("button", { name: "创建 API 密钥" })).toBeDisabled();
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(false);
+});
+
 test("mobile API-key cards retain table headers and expose visible field labels", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium", "Card labels are the phone presentation.");
   await page.goto("/api/keys");

@@ -53,6 +53,10 @@ The API-key modal now restores focus only to a connected, enabled invoking contr
 
 Final review-round verification: 145 backend tests passed (nine existing Alembic warnings), 63 Vitest tests passed, TypeScript and production build passed, OpenAPI/schema generation had no drift, and the full Playwright suite passed 74 tests with 6 intentional project-specific skips. The visual-matrix test produced exactly 48 unique PNG captures at `frontend/test-results/**/visual-matrix/` plus two non-capture delayed-auth regressions.
 
+## Review round 3 follow-up
+
+The create flow now tracks its post-create key/usage refresh separately from the one-time secret. If acknowledgement occurs before that refresh settles, the secret is still immediately discarded, while focus restoration is armed until the refreshed DOM renders; it then selects the live create control or stable key-list heading. A controlled Chromium regression delays that refresh for 900 ms, dismisses the fifth-key secret immediately, and proves focus ends on the 5/5 heading rather than `BODY`. Focused Chromium, API-center Vitest (63 tests), TypeScript, and diff checks passed.
+
 `uv run python scripts/validate_v3_presets.py` remains unable to run in this checkout because the supplied local sample bundle is incomplete: `local-assets/sample-bundle/data/outputs/v3/group_04/report.json` is absent. This is independent of Task 6; the complete Python test suite above passed.
 
 ## Files

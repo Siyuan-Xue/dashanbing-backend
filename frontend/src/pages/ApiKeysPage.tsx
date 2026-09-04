@@ -53,6 +53,8 @@ export function ApiKeysPage() {
   const keyListHeading = useRef<HTMLHeadingElement>(null);
   const secretInput = useRef<HTMLInputElement>(null);
   const [restoreAfterRefresh, setRestoreAfterRefresh] = useState(false);
+  const [creatingRefresh, setCreatingRefresh] = useState(false);
+  const [restoreAfterCreateRefresh, setRestoreAfterCreateRefresh] = useState(false);
 
   const restoreModalTrigger = () => requestAnimationFrame(() => {
     const trigger = modalTrigger.current;
@@ -65,8 +67,17 @@ export function ApiKeysPage() {
     restoreModalTrigger();
     setRestoreAfterRefresh(false);
   }, [keys, restoreAfterRefresh, usage]);
+  useEffect(() => {
+    if (!restoreAfterCreateRefresh || creatingRefresh) return;
+    restoreModalTrigger();
+    setRestoreAfterCreateRefresh(false);
+  }, [creatingRefresh, restoreAfterCreateRefresh]);
   const closeCreating = () => { if (busy) return; setCreating(false); setModalError(""); restoreModalTrigger(); };
-  const closeSecret = () => { setSecret(null); restoreModalTrigger(); };
+  const closeSecret = () => {
+    setSecret(null);
+    if (creatingRefresh) setRestoreAfterCreateRefresh(true);
+    else restoreModalTrigger();
+  };
   const closeRevoke = (force = false) => { if (busy && !force) return; setRevoke(null); setModalError(""); restoreModalTrigger(); };
   const failureMessage = (cause: unknown) => {
     const detail = cause instanceof ApiError ? cause.message : "Request failed";
@@ -89,11 +100,11 @@ export function ApiKeysPage() {
     setBusy(true); setModalError("");
     try {
       const created = await apiCenterApi.createKey({ name: name.trim(), expires_in_days: days });
-      setCreating(false); setName(""); setSecret(created); setCopied(false); setCopyFailed(false);
+      setCreating(false); setName(""); setSecret(created); setCopied(false); setCopyFailed(false); setCreatingRefresh(true);
       const [nextKeys, nextUsage] = await Promise.all([apiCenterApi.keys(), apiCenterApi.usage()]);
       setKeys(nextKeys); setUsage(nextUsage);
     } catch (cause) { setModalError(failureMessage(cause)); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setCreatingRefresh(false); }
   }
   async function confirmRevoke() {
     if (!revoke) return;
