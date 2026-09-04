@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import re
 from typing import Literal
 from uuid import uuid4
 
@@ -30,8 +31,15 @@ class UserRegistration(SQLModel):
 
     @field_validator("username", "email", mode="before")
     @classmethod
-    def normalize_identity_fields(cls, value: str) -> str:
-        return value.strip().casefold()
+    def normalize_identity_fields(cls, value: object) -> object:
+        return value.strip().casefold() if isinstance(value, str) else value
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_syntax(cls, value: str) -> str:
+        if re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", value) is None:
+            raise ValueError("Email address has invalid syntax")
+        return value
 
 
 class UserPublic(SQLModel):
@@ -171,6 +179,16 @@ class SubmissionEvent(SQLModel, table=True):
     submitted_at: datetime = Field(default_factory=utc_now, nullable=False, index=True)
 
 
+class StorageDeletion(SQLModel, table=True):
+    __tablename__ = "storage_deletion"
+
+    analysis_id: str = Field(primary_key=True)
+    target: str = Field(primary_key=True, max_length=32)
+    created_at: datetime = Field(default_factory=utc_now, nullable=False)
+    attempts: int = Field(default=0, ge=0, nullable=False)
+    last_error: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+
+
 class AnalysisPublic(SQLModel):
     id: str
     title: str
@@ -207,18 +225,28 @@ class AnalysisPublic(SQLModel):
         return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+TaskMode = Literal["quick", "full"]
+TaskInputSlot = Literal[
+    "enrollment_video",
+    "cam_01",
+    "cam_02",
+    "cam_03",
+    "cam_04",
+]
+
+
 class PresetRerunRequest(SQLModel):
     preset_id: str
-    mode: Literal["quick", "full"] = "full"
+    mode: TaskMode = "full"
 
 
 class TaskCreate(SQLModel):
     title: str = Field(min_length=1, max_length=120)
-    mode: Literal["quick", "full"] = "full"
+    mode: TaskMode = "full"
 
 
 class TaskInputPublic(SQLModel):
-    slot: str
+    slot: TaskInputSlot
     original_filename: str
     byte_size: int
     validation_state: str
@@ -247,7 +275,7 @@ TaskPublicStatus = Literal[
 class TaskPublic(SQLModel):
     id: str
     title: str
-    mode: str
+    mode: TaskMode
     source_type: str
     preset_id: str | None
     status: TaskPublicStatus
@@ -264,20 +292,22 @@ class TaskPublic(SQLModel):
     completed_at: datetime | None
     inputs: list[TaskInputPublic]
 
+    @field_serializer("created_at", "updated_at", when_used="json")
+    def serialize_required_task_datetime(self, value: datetime) -> str:
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
     @field_serializer(
-        "created_at",
-        "updated_at",
         "submitted_at",
         "started_at",
         "completed_at",
         when_used="json",
     )
-    def serialize_task_datetime(self, value: datetime | None) -> str | None:
+    def serialize_optional_task_datetime(self, value: datetime | None) -> str | None:
         if value is None:
             return None
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        return self.serialize_required_task_datetime(value)
 
 
 class TaskListPublic(SQLModel):

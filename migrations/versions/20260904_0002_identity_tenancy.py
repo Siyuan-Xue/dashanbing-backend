@@ -40,19 +40,23 @@ def upgrade() -> None:
 
     bootstrap_username = os.getenv("BASKETBALL_ADMIN_USERNAME", "admin")
     connection = op.get_bind()
-    bootstrap_owner_id = connection.execute(
-        sa.text("SELECT id FROM user WHERE username = :username"),
-        {"username": bootstrap_username},
-    ).scalar_one_or_none()
-    if bootstrap_owner_id is None:
-        raise RuntimeError("Cannot backfill analyses because the bootstrap admin is missing")
-    connection.execute(
-        sa.text(
-            "UPDATE analysis SET owner_id = :owner_id, submitted_at = created_at "
-            "WHERE owner_id IS NULL"
-        ),
-        {"owner_id": bootstrap_owner_id},
-    )
+    unowned_analysis_count = connection.execute(
+        sa.text("SELECT COUNT(*) FROM analysis WHERE owner_id IS NULL")
+    ).scalar_one()
+    if unowned_analysis_count:
+        bootstrap_owner_id = connection.execute(
+            sa.text("SELECT id FROM user WHERE username = :username"),
+            {"username": bootstrap_username},
+        ).scalar_one_or_none()
+        if bootstrap_owner_id is None:
+            raise RuntimeError("Cannot backfill analyses because the bootstrap admin is missing")
+        connection.execute(
+            sa.text(
+                "UPDATE analysis SET owner_id = :owner_id, submitted_at = created_at "
+                "WHERE owner_id IS NULL"
+            ),
+            {"owner_id": bootstrap_owner_id},
+        )
 
     with op.batch_alter_table("analysis") as batch_op:
         batch_op.alter_column("owner_id", existing_type=sa.Integer(), nullable=False)

@@ -21,6 +21,17 @@ MEDIA_FILES = {
     "phases": PHASES_FILE,
 }
 
+VIDEO_MP4_RESPONSES = {
+    200: {
+        "description": "Successful Response",
+        "content": {
+            "video/mp4": {
+                "schema": {"type": "string", "format": "binary"},
+            }
+        },
+    }
+}
+
 _LOCKS: dict[str, threading.Lock] = {}
 _LOCKS_GUARD = threading.Lock()
 

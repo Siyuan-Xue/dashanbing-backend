@@ -241,6 +241,74 @@ def test_registration_normalizes_identity_and_returns_a_public_user(client: Test
     assert "password" not in response.text
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("username", 123),
+        ("username", {"name": "coach"}),
+        ("email", 123),
+        ("email", {"address": "coach@example.com"}),
+    ],
+)
+def test_registration_rejects_non_string_identity_fields_as_validation_errors(
+    client: TestClient,
+    field: str,
+    value: object,
+):
+    """Catches before-validators raising AttributeError and turning bad JSON into a 500."""
+    payload = {
+        "username": "typedcoach",
+        "email": "typedcoach@example.com",
+        "password": "new-password",
+    }
+    payload[field] = value
+
+    response = client.post("/api/v1/register", json=payload)
+
+    assert response.status_code == 422
+    assert any(issue["loc"][-1] == field for issue in response.json()["detail"])
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "not-an-email",
+        "coach@example",
+        "coach @example.com",
+        "coach@@example.com",
+    ],
+)
+def test_registration_rejects_email_without_frontend_compatible_syntax(
+    client: TestClient,
+    email: str,
+):
+    """Catches the API accepting addresses the registration form rejects."""
+    response = client.post(
+        "/api/v1/register",
+        json={"username": "emailshape", "email": email, "password": "new-password"},
+    )
+
+    assert response.status_code == 422
+    assert any(issue["loc"][-1] == "email" for issue in response.json()["detail"])
+
+
+def test_registration_accepts_and_normalizes_syntactically_valid_unicode_email(
+    client: TestClient,
+):
+    """Catches an ASCII-only server rule diverging from the Unicode-capable UI contract."""
+    response = client.post(
+        "/api/v1/register",
+        json={
+            "username": "篮球教练",
+            "email": " 教练@例子.中国 ",
+            "password": "new-password",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["email"] == "教练@例子.中国"
+
+
 def test_registration_rejects_duplicate_normalized_username_or_email(client: TestClient):
     """Catches a case or whitespace variant creating a second account."""
     first = {"username": "CourtCoach", "email": "coach@example.com", "password": "new-password"}
@@ -263,12 +331,20 @@ def test_registration_rejects_an_email_matching_an_existing_username(client: Tes
     """Catches an ambiguous login identity spanning username and email fields."""
     assert client.post(
         "/api/v1/register",
-        json={"username": "identity", "email": "owner@example.com", "password": "new-password"},
+        json={
+            "username": "identity@example.com",
+            "email": "owner@example.com",
+            "password": "new-password",
+        },
     ).status_code == 201
 
     response = client.post(
         "/api/v1/register",
-        json={"username": "othercoach", "email": " IDENTITY ", "password": "new-password"},
+        json={
+            "username": "othercoach",
+            "email": " IDENTITY@EXAMPLE.COM ",
+            "password": "new-password",
+        },
     )
 
     assert response.status_code == 409
@@ -323,15 +399,16 @@ def test_registration_returns_conflict_when_swapped_identities_race(
     def register_competing_user(session, _flush_context, _instances) -> None:
         nonlocal competing_result, inserted
         if inserted or not any(
-            isinstance(item, User) and item.username == "racingcoach" for item in session.new
+            isinstance(item, User) and item.username == "racing-a@example.com"
+            for item in session.new
         ):
             return
         inserted = True
         with Session(app.state.engine) as competing_session:
             competing_result = register(
                 UserRegistration(
-                    username="racing@example.com",
-                    email="racingcoach",
+                    username="racing-b@example.com",
+                    email="racing-a@example.com",
                     password="new-password",
                 ),
                 session=competing_session,
@@ -341,7 +418,11 @@ def test_registration_returns_conflict_when_swapped_identities_race(
     try:
         response = client.post(
             "/api/v1/register",
-            json={"username": "racingcoach", "email": "racing@example.com", "password": "new-password"},
+            json={
+                "username": "racing-a@example.com",
+                "email": "racing-b@example.com",
+                "password": "new-password",
+            },
         )
     finally:
         event.remove(Session, "before_flush", register_competing_user)
@@ -351,7 +432,9 @@ def test_registration_returns_conflict_when_swapped_identities_race(
     with Session(app.state.engine) as session:
         users = list(
             session.exec(
-                select(User).where(User.username.in_(["racingcoach", "racing@example.com"]))
+                select(User).where(
+                    User.username.in_(["racing-a@example.com", "racing-b@example.com"])
+                )
             )
         )
     assert len(users) == 1

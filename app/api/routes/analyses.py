@@ -11,7 +11,19 @@ from app.api.deps import get_current_user
 from app.database import get_session
 from app.models import Analysis, AnalysisPublic, PresetRerunRequest, User
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
-from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4, resolve_review_media
+from app.services.deletions import (
+    ANALYSIS_ROOT,
+    drain_storage_deletions,
+    enqueue_storage_deletion,
+    has_pending_input_deletion,
+)
+from app.services.media import (
+    MEDIA_FILES,
+    ORIGINAL_CAMERA_FILES,
+    VIDEO_MP4_RESPONSES,
+    remux_to_browser_mp4,
+    resolve_review_media,
+)
 from app.services.results import ProductResult, build_product_result
 from app.services.storage import (
     InsufficientStorage,
@@ -275,7 +287,12 @@ def _review_media_paths(analysis: Analysis, request: Request) -> dict[str, Path]
     }
 
 
-@router.get("/{analysis_id}/media/{kind}")
+@router.get(
+    "/{analysis_id}/media/{kind}",
+    response_class=FileResponse,
+    response_model=None,
+    responses=VIDEO_MP4_RESPONSES,
+)
 def analysis_media(
     analysis_id: str,
     kind: str,
@@ -344,6 +361,8 @@ def retry_analysis(
     analysis = _analysis_or_404(analysis_id, current_user, session)
     enforce_unfinished_quota(session, current_user.id)
     enforce_daily_submission_quota(session, current_user.id)
+    if has_pending_input_deletion(session, analysis.id):
+        raise HTTPException(status_code=409, detail="原输入已过期或不完整，无法重试")
     try:
         manifest = json.loads(analysis.input_manifest_json)
     except json.JSONDecodeError:
@@ -376,8 +395,9 @@ def delete_analysis(
     analysis = _analysis_or_404(analysis_id, current_user, session)
     if not task_can_be_deleted(analysis.status):
         raise HTTPException(status_code=409, detail="Running analysis must be canceled first")
-    request.app.state.storage.delete(analysis.id)
+    enqueue_storage_deletion(session, analysis.id, ANALYSIS_ROOT)
     delete_task_inputs(session, analysis.id)
     session.delete(analysis)
     session.commit()
+    drain_storage_deletions(request.app.state.engine, request.app.state.storage)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

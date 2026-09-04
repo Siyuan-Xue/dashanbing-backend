@@ -17,6 +17,7 @@ from app.models import (
     TaskPublicStatus,
 )
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus
+from app.services.deletions import ANALYSIS_ROOT, drain_storage_deletions, enqueue_storage_deletion
 
 
 TASK_SLOTS = ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04")
@@ -171,9 +172,9 @@ def expire_drafts(session: Session, owner_id: int, storage, *, now: datetime | N
         return
     for task in drafts:
         mark_draft_expired(session, task, current)
+        enqueue_storage_deletion(session, task.id, ANALYSIS_ROOT)
     session.commit()
-    for task in drafts:
-        storage.delete(task.id)
+    drain_storage_deletions(session.get_bind(), storage)
 
 
 def begin_write(session: Session) -> None:

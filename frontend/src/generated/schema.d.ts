@@ -788,8 +788,11 @@ export interface components {
         };
         /** TaskInputPublic */
         TaskInputPublic: {
-            /** Slot */
-            slot: string;
+            /**
+             * Slot
+             * @enum {string}
+             */
+            slot: "enrollment_video" | "cam_01" | "cam_02" | "cam_03" | "cam_04";
             /** Original Filename */
             original_filename: string;
             /** Byte Size */
@@ -818,8 +821,11 @@ export interface components {
             id: string;
             /** Title */
             title: string;
-            /** Mode */
-            mode: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "quick" | "full";
             /** Source Type */
             source_type: string;
             /** Preset Id */
@@ -844,9 +850,9 @@ export interface components {
             /** Retry Count */
             retry_count: number;
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Updated At */
-            updated_at: string | null;
+            updated_at: string;
             /** Started At */
             started_at: string | null;
             /** Completed At */
@@ -1207,7 +1213,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "video/mp4": string;
                 };
             };
             /** @description Validation Error */
@@ -1416,7 +1422,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "video/mp4": string;
                 };
             };
             /** @description Validation Error */
@@ -1769,7 +1775,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "video/mp4": string;
                 };
             };
             /** @description Validation Error */

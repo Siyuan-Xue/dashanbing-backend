@@ -2,8 +2,9 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "../api";
 import { apiCenterApi } from "../apiCenter/api";
 import type { AccountUsage, ApiKey, CreatedApiKey } from "../apiCenter/api";
-import { apiCopy, formatRetentionDuration } from "../apiCenter/copy";
+import { apiCopy } from "../apiCenter/copy";
 import { Icon } from "../components/Icon";
+import { formatRetentionDuration } from "../localization";
 import { useLocale } from "../providers/LocaleProvider";
 
 function formatDate(value: string | null, locale: "zh" | "en") {

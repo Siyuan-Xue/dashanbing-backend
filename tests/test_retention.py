@@ -2,11 +2,12 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlmodel import Session
+import pytest
+from sqlmodel import Session, select
 
 from app.config import AppSettings
 from app.database import create_database_engine, create_tables
-from app.models import Analysis, TaskInput, User
+from app.models import Analysis, StorageDeletion, TaskInput, User
 from app.services.retention import RetentionService
 from app.services.storage import AnalysisStorage
 
@@ -113,3 +114,82 @@ def test_retention_cleans_runtime_tiers_but_never_read_only_presets(tmp_path: Pa
     assert (raw_expired_root / "output" / "report.json").is_file()
     assert (queued_root / "input" / "video.mkv").is_file()
     assert preset.is_file()
+
+
+def test_retention_persists_failed_root_and_tier_cleanup_for_retry(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Catches terminal or tier cleanup failures becoming permanent storage leaks."""
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'retry-retention.db'}",
+        runtime_root=tmp_path / "runtime",
+        sample_root=tmp_path / "samples",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+    )
+    engine = create_database_engine(settings.database_url)
+    create_tables(engine)
+    storage = AnalysisStorage(settings)
+    now = datetime.now(timezone.utc)
+    with Session(engine) as session:
+        owner = User(username="cleanup-owner", hashed_password="hash")
+        session.add(owner)
+        session.commit()
+        session.refresh(owner)
+        deleted = Analysis(
+            title="delete whole root",
+            status="completed",
+            input_manifest_json="{}",
+            owner_id=owner.id,
+            completed_at=now - timedelta(days=190),
+        )
+        tiered = Analysis(
+            title="delete raw tiers",
+            status="failed",
+            input_manifest_json="{}",
+            owner_id=owner.id,
+            completed_at=now - timedelta(days=40),
+        )
+        session.add(deleted)
+        session.add(tiered)
+        session.commit()
+        deleted_id, tiered_id = deleted.id, tiered.id
+    for analysis_id in (deleted_id, tiered_id):
+        root = storage.prepare(analysis_id)
+        (root / "input" / "video.mkv").write_bytes(b"raw")
+        (root / "data" / "nested").mkdir(parents=True)
+        (root / "data" / "nested" / "raw.bin").write_bytes(b"raw")
+        (root / "engine-output").mkdir()
+        (root / "engine-output" / "stage.bin").write_bytes(b"stage")
+
+    def fail_cleanup(_analysis_id: str, _target: str) -> None:
+        raise OSError("retention filesystem failure")
+
+    monkeypatch.setattr(storage, "remove_deletion_target", fail_cleanup, raising=False)
+    service = RetentionService(settings, engine, storage)
+    service.run_once(now=now)
+
+    assert storage.analysis_root(deleted_id).is_dir()
+    assert (storage.analysis_root(tiered_id) / "input").is_dir()
+    with Session(engine) as session:
+        assert session.get(Analysis, deleted_id) is None
+        assert session.get(Analysis, tiered_id) is not None
+        pending = list(session.exec(select(StorageDeletion)).all())
+    assert {(item.analysis_id, item.target) for item in pending} == {
+        (deleted_id, "analysis_root"),
+        (tiered_id, "input"),
+        (tiered_id, "data"),
+        (tiered_id, "engine_output"),
+    }
+    assert all(item.attempts == 1 for item in pending)
+
+    monkeypatch.undo()
+    service.run_once(now=now)
+
+    assert not storage.analysis_root(deleted_id).exists()
+    assert not (storage.analysis_root(tiered_id) / "input").exists()
+    assert not (storage.analysis_root(tiered_id) / "data").exists()
+    assert not (storage.analysis_root(tiered_id) / "engine-output").exists()
+    with Session(engine) as session:
+        assert list(session.exec(select(StorageDeletion)).all()) == []

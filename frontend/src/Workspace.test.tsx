@@ -8,7 +8,7 @@ import App from "./App";
 import { ResultWorkspace } from "./components/ResultWorkspace";
 import { LocaleProvider } from "./providers/LocaleProvider";
 import { taskStageMessageLabel } from "./workspace/labels";
-import type { Task } from "./workspace/types";
+import type { ProductResult, Task } from "./workspace/types";
 import "./styles.css";
 
 const currentUser = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
@@ -43,7 +43,7 @@ const presets = [
   { id: "layup-demo", title: "上篮演示", description: "6 次上篮", expected_minutes: 14.3 },
 ];
 
-const productResult = {
+const productResult: ProductResult = {
   registered_participant_count: 2,
   action_counts: { triple_threat: 1, free_throw: 0, jump_shot: 4, layup: 1 },
   unsupported_event_count: 0,
@@ -735,6 +735,48 @@ describe("task and example result workspaces", () => {
     expect(taskStageMessageLabel("zh", "Worker handoff 7/9")).toBe("Worker handoff 7/9");
   });
 
+  test.each([
+    [
+      "zh",
+      "2 个事件属于当前版本未支持的动作类型。",
+      "1 个投篮结果无法可靠关联到最终动作片段。",
+      "AI 识别结果，仅供训练复盘。",
+    ],
+    [
+      "en",
+      "2 events use action types not supported by this version.",
+      "1 shot result could not be reliably linked to a final action clip.",
+      "AI-generated results are for training review only.",
+    ],
+  ] as const)(
+    "localizes real backend result warnings and disclaimer in %s while preserving diagnostics",
+    (locale, unsupported, unlinked, disclaimer) => {
+      localStorage.setItem("dashanbing-locale", locale);
+      const diagnostic = "GPU diagnostic: code 17";
+      render(
+        <MemoryRouter>
+          <LocaleProvider>
+            <ResultWorkspace
+              result={{
+                ...productResult,
+                warnings: [
+                  "2 个事件属于当前版本未支持的动作类型。",
+                  "1 个投篮结果无法可靠关联到最终动作片段。",
+                  diagnostic,
+                ],
+              }}
+            />
+          </LocaleProvider>
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByText(unsupported)).toBeVisible();
+      expect(screen.getByText(unlinked)).toBeVisible();
+      expect(screen.getByText(disclaimer)).toBeVisible();
+      expect(screen.getByText(diagnostic)).toBeVisible();
+    },
+  );
+
   test("localizes real worker stages in both the task header and media state", async () => {
     localStorage.setItem("dashanbing-locale", "en");
     installBaseFetch((url) => {
@@ -770,10 +812,11 @@ describe("workspace settings", () => {
 
     expect(await screen.findByRole("heading", { name: "设置" })).toBeVisible();
     expect(await screen.findByText("4 / 20")).toBeVisible();
-    expect(screen.getByText("180 days")).toBeVisible();
+    expect(screen.getByText("180 天")).toBeVisible();
     expect(screen.queryByText(/账单|团队|Webhook|对象存储/)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "English" }));
     expect(screen.getByRole("heading", { name: "Settings" })).toBeVisible();
+    expect(screen.getByText("180 days")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Switch to dark theme" }));
     expect(document.documentElement).toHaveAttribute("data-theme", "dark");
   });

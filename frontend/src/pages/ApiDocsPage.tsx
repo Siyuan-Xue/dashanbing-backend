@@ -1,5 +1,6 @@
 import { useLocale } from "../providers/LocaleProvider";
-import { apiCopy, formatRetentionDuration } from "../apiCenter/copy";
+import { apiCopy } from "../apiCenter/copy";
+import { formatRetentionDuration } from "../localization";
 
 const curlExample = `export BASE_URL="http://127.0.0.1:8000"
 export API_KEY="dsb_live_replace_with_your_key"

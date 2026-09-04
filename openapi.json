@@ -363,8 +363,11 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
@@ -636,8 +639,11 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
@@ -1195,8 +1201,11 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
@@ -2104,6 +2113,13 @@
         "properties": {
           "slot": {
             "type": "string",
+            "enum": [
+              "enrollment_video",
+              "cam_01",
+              "cam_02",
+              "cam_03",
+              "cam_04"
+            ],
             "title": "Slot"
           },
           "original_filename": {
@@ -2181,6 +2197,10 @@
           },
           "mode": {
             "type": "string",
+            "enum": [
+              "quick",
+              "full"
+            ],
             "title": "Mode"
           },
           "source_type": {
@@ -2262,25 +2282,11 @@
             "title": "Retry Count"
           },
           "created_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Created At"
           },
           "updated_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Updated At"
           },
           "started_at": {

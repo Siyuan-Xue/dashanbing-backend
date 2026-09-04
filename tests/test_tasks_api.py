@@ -961,3 +961,23 @@ def test_task_status_schema_is_closed_and_unknown_internal_states_fail(client: T
         session.add(task)
         session.commit()
     assert client.get(f"/api/v1/tasks/{task_id}").status_code == 500
+
+
+def test_workspace_contract_schema_closes_task_mode_slot_and_required_timestamps(
+    client: TestClient,
+):
+    schemas = client.app.openapi()["components"]["schemas"]
+
+    assert set(schemas["TaskPublic"]["properties"]["mode"]["enum"]) == {
+        "quick",
+        "full",
+    }
+    assert set(schemas["TaskInputPublic"]["properties"]["slot"]["enum"]) == {
+        "enrollment_video",
+        "cam_01",
+        "cam_02",
+        "cam_03",
+        "cam_04",
+    }
+    assert schemas["TaskPublic"]["properties"]["created_at"]["type"] == "string"
+    assert schemas["TaskPublic"]["properties"]["updated_at"]["type"] == "string"

@@ -339,7 +339,33 @@ class AnalysisStorage:
             json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
-    def delete(self, analysis_id: str) -> None:
+    def deletion_target_path(self, analysis_id: str, target: str) -> Path:
         root = self.analysis_root(analysis_id)
-        if root.exists():
-            shutil.rmtree(root)
+        suffixes = {
+            "analysis_root": (),
+            "enrollment": ("data", "enrollment"),
+            "input": ("input",),
+            "data": ("data",),
+            "engine_output": ("engine-output",),
+        }
+        if target not in suffixes:
+            raise ValueError("Invalid storage deletion target")
+        candidate = root
+        for component in suffixes[target]:
+            candidate /= component
+            if candidate.is_symlink():
+                raise ValueError("Storage deletion target contains a symbolic link")
+        resolved = candidate.resolve()
+        if resolved != root and root not in resolved.parents:
+            raise ValueError("Storage deletion target escapes analysis root")
+        return candidate
+
+    def remove_deletion_target(self, analysis_id: str, target: str) -> None:
+        path = self.deletion_target_path(analysis_id, target)
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists() or path.is_symlink():
+            path.unlink()
+
+    def delete(self, analysis_id: str) -> None:
+        self.remove_deletion_target(analysis_id, "analysis_root")

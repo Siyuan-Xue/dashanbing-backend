@@ -8,11 +8,14 @@ import { WorkspaceState } from "../components/WorkspaceState";
 import { useLocale } from "../providers/LocaleProvider";
 import { workspaceApi, WorkspaceApiError } from "../workspace/api";
 import { taskModeLabel, taskStatusLabel } from "../workspace/labels";
-import type { Task, TaskMode, TaskStatus } from "../workspace/types";
+import type { Task, TaskListQuery, TaskMode, TaskStatus } from "../workspace/types";
 import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 
 type Action = "cancel" | "retry" | "delete";
 const statusValues: TaskStatus[] = ["draft", "uploading", "queued", "running", "completed", "failed", "canceled", "expired"];
+const modeValues: TaskMode[] = ["quick", "full"];
+const isTaskStatus = (value: string): value is TaskStatus => statusValues.some((candidate) => candidate === value);
+const isTaskMode = (value: string): value is TaskMode => modeValues.some((candidate) => candidate === value);
 
 export function TaskListPage() {
   const wt = useWorkspaceCopy();
@@ -45,17 +48,29 @@ export function TaskListPage() {
     params.set("page_size", String(pageSize));
     return params;
   }, [query, page, pageSize]);
+  const requestQuery = useMemo<TaskListQuery>(() => {
+    const q = requestParams.get("q");
+    const requestedStatus = requestParams.get("status") || "";
+    const requestedMode = requestParams.get("mode") || "";
+    return {
+      page,
+      page_size: pageSize,
+      ...(q ? { q } : {}),
+      ...(isTaskStatus(requestedStatus) ? { status: requestedStatus } : {}),
+      ...(isTaskMode(requestedMode) ? { mode: requestedMode } : {}),
+    };
+  }, [requestParams, page, pageSize]);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError(null);
-    workspaceApi.listTasks(requestParams).then((result) => {
+    workspaceApi.listTasks(requestQuery).then((result) => {
       if (!active) return;
       setTasks(result.items); setTotal(result.total); setLoading(false);
     }).catch((reason) => { if (active) { setError(reason instanceof Error ? reason : new Error("Request failed")); setLoading(false); } });
     return () => { active = false; };
-  }, [requestParams, revision]);
+  }, [requestQuery, revision]);
 
   const applyFilters = (event: FormEvent) => {
     event.preventDefault();

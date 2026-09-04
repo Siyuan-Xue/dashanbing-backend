@@ -20,7 +20,19 @@ from app.models import (
     User,
 )
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus
-from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4, resolve_review_media
+from app.services.deletions import (
+    ANALYSIS_ROOT,
+    drain_storage_deletions,
+    enqueue_storage_deletion,
+    has_pending_input_deletion,
+)
+from app.services.media import (
+    MEDIA_FILES,
+    ORIGINAL_CAMERA_FILES,
+    VIDEO_MP4_RESPONSES,
+    remux_to_browser_mp4,
+    resolve_review_media,
+)
 from app.services.results import ProductResult, build_product_result
 from app.services.storage import (
     InsufficientStorage,
@@ -390,7 +402,12 @@ def get_task_result(
     return build_product_result(report=report, summary=summary, media=media)
 
 
-@router.get("/{task_id}/media/{kind}")
+@router.get(
+    "/{task_id}/media/{kind}",
+    response_class=FileResponse,
+    response_model=None,
+    responses=VIDEO_MP4_RESPONSES,
+)
 def task_media(
     task_id: str,
     kind: str,
@@ -463,6 +480,8 @@ def retry_task(
     task = task_or_404(task_id, current_user.id, session)
     if task.status not in {"failed", "canceled", "interrupted"}:
         raise HTTPException(status_code=409, detail="Only failed or canceled tasks can be retried")
+    if has_pending_input_deletion(session, task.id):
+        raise HTTPException(status_code=409, detail="Original task inputs are expired or incomplete")
     manifest = valid_manifest(task, session)
     if manifest is None or "sync" not in manifest:
         raise HTTPException(status_code=409, detail="Original task inputs are expired or incomplete")
@@ -495,8 +514,9 @@ def delete_task(
     task = task_or_404(task_id, current_user.id, session)
     if not task_can_be_deleted(task.status):
         raise HTTPException(status_code=409, detail="Task must be canceled before deletion")
-    request.app.state.storage.delete(task.id)
+    enqueue_storage_deletion(session, task.id, ANALYSIS_ROOT)
     delete_task_inputs(session, task.id)
     session.delete(task)
     session.commit()
+    drain_storage_deletions(request.app.state.engine, request.app.state.storage)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

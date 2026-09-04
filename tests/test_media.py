@@ -3,12 +3,28 @@ from pathlib import Path
 
 import pytest
 
+from app.main import create_app
 from app.services.media import (
     MEDIA_FILES,
     install_original_camera_videos,
     remux_to_browser_mp4,
     resolve_review_media,
 )
+
+
+def test_all_media_routes_document_binary_mp4_success_responses():
+    """Catches generated clients treating successful video responses as JSON."""
+    schema = create_app().openapi()
+    paths = (
+        "/api/v1/tasks/{task_id}/media/{kind}",
+        "/api/v1/analyses/{analysis_id}/media/{kind}",
+        "/api/v1/presets/{preset_id}/media/{kind}",
+    )
+
+    for path in paths:
+        assert schema["paths"][path]["get"]["responses"]["200"]["content"] == {
+            "video/mp4": {"schema": {"type": "string", "format": "binary"}}
+        }
 
 
 def test_resolve_review_media_prefers_originals_over_annotated(tmp_path: Path):

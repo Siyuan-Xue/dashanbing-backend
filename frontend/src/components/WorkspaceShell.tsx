@@ -35,9 +35,8 @@ export function WorkspaceShell() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams({ page: "1", page_size: "5" });
     let active = true;
-    workspaceApi.listTasks(params).then((page) => { if (active) setRecent(page.items); }).catch(() => undefined);
+    workspaceApi.listTasks({ page: 1, page_size: 5 }).then((page) => { if (active) setRecent(page.items); }).catch(() => undefined);
     return () => { active = false; };
   }, []);
 

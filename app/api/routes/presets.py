@@ -3,7 +3,12 @@ from fastapi.responses import FileResponse
 
 from app.api.deps import get_current_user
 from app.models import PresetPublic
-from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4
+from app.services.media import (
+    MEDIA_FILES,
+    ORIGINAL_CAMERA_FILES,
+    VIDEO_MP4_RESPONSES,
+    remux_to_browser_mp4,
+)
 from app.services.results import ProductResult
 
 
@@ -23,7 +28,12 @@ def preset_result(preset_id: str, request: Request) -> ProductResult:
         raise HTTPException(status_code=404, detail="Preset not found") from None
 
 
-@router.get("/{preset_id}/media/{kind}")
+@router.get(
+    "/{preset_id}/media/{kind}",
+    response_class=FileResponse,
+    response_model=None,
+    responses=VIDEO_MP4_RESPONSES,
+)
 def preset_media(preset_id: str, kind: str, request: Request) -> FileResponse:
     try:
         path = request.app.state.presets.media_path(preset_id, kind)

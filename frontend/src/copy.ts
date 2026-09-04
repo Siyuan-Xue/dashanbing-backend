@@ -30,7 +30,6 @@ export const copy = {
     usernameRequired: "请输入用户名", usernameLong: "用户名不能超过 50 个字符", emailRequired: "请输入邮箱", emailLong: "邮箱不能超过 255 个字符",
     passwordRequired: "请输入密码", passwordLong: "密码不能超过 128 个字符", requestFailed: "暂时无法完成请求，请稍后重试",
     authChecking: "正在确认登录状态", authCheckFailed: "暂时无法确认登录状态", authCheckFailedBody: "网络或服务出现问题。请重试，我们不会把这次错误当作退出登录。", retry: "重试",
-    routePreparing: "工作台基础已就绪", routePreparingBody: "此受保护页面将在下一阶段接入完整工作流。",
   },
   en: {
     home: "Home", api: "API", github: "GitHub", onlineUse: "Online Use", login: "Log in", register: "Sign up", account: "Account",
@@ -64,7 +63,6 @@ export const copy = {
     emailRequired: "Enter an email address", emailLong: "Email cannot exceed 255 characters", passwordRequired: "Enter a password", passwordLong: "Password cannot exceed 128 characters",
     requestFailed: "We could not complete the request. Try again shortly.", authChecking: "Checking your sign-in status",
     authCheckFailed: "We could not confirm your sign-in status", authCheckFailedBody: "There may be a network or service problem. Retry without being signed out.", retry: "Retry",
-    routePreparing: "Workspace foundation ready", routePreparingBody: "The complete workflow for this protected page arrives in the next phase.",
   },
 } as const;
 

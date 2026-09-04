@@ -8,7 +8,7 @@ const presets = [
   { id: "verified-outcome", title: "Verified outcome", description: "Free throws with outcome truth", expected_minutes: 30.9 },
   { id: "layup-demo", title: "Layup demo", description: "6 layups", expected_minutes: 14.3 },
 ];
-const result = { registered_participant_count: 2, action_counts: { triple_threat: 1, free_throw: 0, jump_shot: 4, layup: 1 }, unsupported_event_count: 0, shots: { attempts: 5, makes: 3, misses: 1, undetermined: 1, make_rate: 0.6, unlinked_outcomes: 0 }, events: [{ event_index: 1, action_type: "jump_shot", start_ms: 1000, end_ms: 2200, time_ms: 1800, result: "make" }], media: {}, warnings: [], disclaimer: "AI output for training review." };
+const result = { registered_participant_count: 2, action_counts: { triple_threat: 1, free_throw: 0, jump_shot: 4, layup: 1 }, unsupported_event_count: 2, shots: { attempts: 5, makes: 3, misses: 1, undetermined: 1, make_rate: 0.6, unlinked_outcomes: 1 }, events: [{ event_index: 1, action_type: "jump_shot", start_ms: 1000, end_ms: 2200, time_ms: 1800, result: "make" }], media: {}, warnings: ["2 个事件属于当前版本未支持的动作类型。", "1 个投篮结果无法可靠关联到最终动作片段。"], disclaimer: "AI 识别结果，仅供训练复盘。" };
 const usage = { submitted_today: { used: 4, limit: 20 }, unfinished_tasks: { used: 2, limit: 5 }, drafts: { used: 1, limit: 3 }, active_api_keys: { used: 1, limit: 5 }, retention: { drafts: "24 hours", enrollment_data: "7 days", raw_inputs: "30 days", results: "180 days" } };
 const keys = [{ id: "key-1", name: "Production", prefix: "dsb_live_abcd12", last_four: "9xyz", status: "active", created_at: "2026-09-01T10:00:00Z", expires_at: "2026-12-01T10:00:00Z", last_used_at: null, revoked_at: null }];
 

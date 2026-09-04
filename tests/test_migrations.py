@@ -9,6 +9,24 @@ def _alembic_config() -> Config:
     return Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
 
 
+def test_empty_database_upgrades_to_head_before_application_startup(
+    tmp_path: Path,
+    monkeypatch,
+):
+    """Catches migration 0002 requiring an admin when there is nothing to backfill."""
+    database_url = f"sqlite:///{tmp_path / 'empty-upgrade.db'}"
+    monkeypatch.setenv("BASKETBALL_DATABASE_URL", database_url)
+    monkeypatch.setenv("BASKETBALL_ADMIN_USERNAME", "not-created-yet")
+    config = _alembic_config()
+
+    command.upgrade(config, "head")
+
+    engine = create_engine(database_url)
+    with engine.connect() as connection:
+        assert inspect(connection).get_table_names()
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+
+
 def test_identity_migration_backfills_existing_analyses_before_making_owner_required(
     tmp_path: Path,
     monkeypatch,
@@ -170,3 +188,33 @@ def test_api_key_migration_creates_owner_scoped_non_plaintext_credentials(
     assert columns["digest"]["nullable"] is False
     assert foreign_keys[0]["referred_table"] == "user"
     assert any(index["column_names"] == ["digest"] and index["unique"] for index in indexes)
+
+
+def test_storage_deletion_migration_creates_durable_fixed_target_outbox(
+    tmp_path: Path,
+    monkeypatch,
+):
+    """Catches deleting logical tasks without a durable filesystem cleanup record."""
+    database_url = f"sqlite:///{tmp_path / 'storage-deletion-migration.db'}"
+    monkeypatch.setenv("BASKETBALL_DATABASE_URL", database_url)
+    monkeypatch.setenv("BASKETBALL_ADMIN_USERNAME", "bootstrap")
+    config = _alembic_config()
+
+    command.upgrade(config, "head")
+
+    engine = create_engine(database_url)
+    with engine.connect() as connection:
+        inspector = inspect(connection)
+        columns = {column["name"]: column for column in inspector.get_columns("storage_deletion")}
+        primary_key = inspector.get_pk_constraint("storage_deletion")["constrained_columns"]
+        foreign_keys = inspector.get_foreign_keys("storage_deletion")
+
+    assert set(columns) == {
+        "analysis_id",
+        "target",
+        "created_at",
+        "attempts",
+        "last_error",
+    }
+    assert set(primary_key) == {"analysis_id", "target"}
+    assert foreign_keys == []

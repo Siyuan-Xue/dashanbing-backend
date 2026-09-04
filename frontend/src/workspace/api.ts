@@ -1,4 +1,17 @@
-import type { AccountUsage, Preset, ProductResult, Task, TaskMode, TaskPage, TaskSlot } from "./types";
+import type {
+  AccountUsage,
+  CreateFromPresetRequest,
+  CreateTaskRequest,
+  Preset,
+  ProductResult,
+  Task,
+  TaskListQuery,
+  TaskMode,
+  TaskPage,
+  TaskSlot,
+  UploadTaskPath,
+  UploadTaskResponse,
+} from "./types";
 import { ApiError } from "../api";
 import type { ApiValidationIssue } from "../api";
 import { notifySessionExpired } from "../session";
@@ -50,25 +63,42 @@ function jsonInit(method: string, body?: unknown): RequestInit {
   };
 }
 
+function taskListSearch(query: TaskListQuery) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== "") {
+      params.set(key, String(value));
+    }
+  }
+  return params.toString();
+}
+
 export const workspaceApi = {
-  createTask: (title: string, mode: TaskMode) => request<Task>("/api/v1/tasks", jsonInit("POST", { title, mode })),
+  createTask: (title: string, mode: TaskMode) => {
+    const body: CreateTaskRequest = { title, mode };
+    return request<Task>("/api/v1/tasks", jsonInit("POST", body));
+  },
   submitTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/submit`, jsonInit("POST")),
   getTask: (taskId: string, signal?: AbortSignal) => request<Task>(`/api/v1/tasks/${taskId}`, { signal }),
-  listTasks: (params: URLSearchParams) => request<TaskPage>(`/api/v1/tasks?${params}`),
+  listTasks: (query: TaskListQuery) => request<TaskPage>(`/api/v1/tasks?${taskListSearch(query)}`),
   cancelTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/cancel`, jsonInit("POST")),
   retryTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/retry`, jsonInit("POST")),
   deleteTask: (taskId: string) => request<void>(`/api/v1/tasks/${taskId}`, jsonInit("DELETE")),
   taskResult: (taskId: string, signal?: AbortSignal) => request<ProductResult>(`/api/v1/tasks/${taskId}/result`, { signal }),
   presets: () => request<Preset[]>("/api/v1/presets"),
   presetResult: (presetId: string) => request<ProductResult>(`/api/v1/presets/${encodeURIComponent(presetId)}/result`),
-  createFromPreset: (presetId: string, mode: TaskMode) => request<Task>("/api/v1/tasks/from-preset", jsonInit("POST", { preset_id: presetId, mode })),
+  createFromPreset: (presetId: string, mode: TaskMode) => {
+    const body: CreateFromPresetRequest = { preset_id: presetId, mode };
+    return request<Task>("/api/v1/tasks/from-preset", jsonInit("POST", body));
+  },
   usage: () => request<AccountUsage>("/api/v1/account/usage"),
 };
 
 export function uploadTaskInput(taskId: string, slot: TaskSlot, file: File, onProgress: (progress: number) => void) {
-  return new Promise<Task>((resolve, reject) => {
+  const path: UploadTaskPath = { task_id: taskId, slot };
+  return new Promise<UploadTaskResponse>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("PUT", `/api/v1/tasks/${taskId}/inputs/${slot}`);
+    xhr.open("PUT", `/api/v1/tasks/${path.task_id}/inputs/${path.slot}`);
     xhr.withCredentials = true;
     xhr.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable && event.total > 0) onProgress(Math.round((event.loaded / event.total) * 100));
@@ -80,7 +110,7 @@ export function uploadTaskInput(taskId: string, slot: TaskSlot, file: File, onPr
       try { payload = xhr.responseText ? JSON.parse(xhr.responseText) : undefined; } catch { payload = undefined; }
       if (xhr.status >= 200 && xhr.status < 300) {
         onProgress(100);
-        resolve(payload as Task);
+        resolve(payload as UploadTaskResponse);
         return;
       }
       if (xhr.status === 401) notifySessionExpired();

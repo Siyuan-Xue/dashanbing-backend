@@ -14,6 +14,7 @@ from app.database import create_database_engine, create_tables
 from app.models import User
 from app.security import hash_password, normalize_identity, verify_password
 from app.services.identities import ensure_user_identities
+from app.services.deletions import drain_storage_deletions
 from app.services.presets import PresetCatalog
 from app.services.readiness import ReadinessService
 from app.services.storage import AnalysisStorage
@@ -66,6 +67,7 @@ def create_app(
         application.state.storage.root.mkdir(parents=True, exist_ok=True)
         if application.state.settings.auto_create_schema:
             create_tables(application.state.engine)
+        drain_storage_deletions(application.state.engine, application.state.storage)
         credentials_ready = _bootstrap_admin(application)
         application.state.readiness.set_database_credentials_ready(credentials_ready)
         if application.state.settings.worker_enabled:
