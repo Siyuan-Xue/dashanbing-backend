@@ -35,6 +35,6 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
     if not isinstance(username, str):
         raise _unauthorized()
     user = session.exec(select(User).where(User.username == username)).first()
-    if user is None:
+    if user is None or not user.is_active:
         raise _unauthorized()
     return user

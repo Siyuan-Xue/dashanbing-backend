@@ -38,6 +38,7 @@ def test_simulation_worker_completes_without_exposing_research_ids(tmp_path: Pat
             mode="quick",
             source_type="upload",
             input_manifest_json=json.dumps({}),
+            owner_id=1,
         )
         app.state.storage.prepare(analysis.id)
         with Session(app.state.engine) as session:
@@ -89,6 +90,7 @@ def test_preset_simulation_exports_only_five_public_review_videos(tmp_path: Path
         source_type="preset",
         preset_id="quick-demo",
         input_manifest_json="{}",
+        owner_id=1,
     )
 
     _simulate(app, analysis)
@@ -115,7 +117,7 @@ def test_late_cancel_after_success_becomes_canceled(tmp_path: Path, monkeypatch)
         auto_create_schema=True,
     )
     app = create_app(settings=settings)
-    analysis = Analysis(title="late cancel", input_manifest_json="{}")
+    analysis = Analysis(title="late cancel", input_manifest_json="{}", owner_id=1)
     analysis_id = analysis.id
     app.state.storage.prepare(analysis_id)
 
@@ -152,7 +154,7 @@ def test_cancel_cannot_be_overwritten_by_stale_stage_update(tmp_path: Path, monk
         auto_create_schema=True,
     )
     app = create_app(settings=settings)
-    analysis = Analysis(title="stage cancel race", input_manifest_json="{}")
+    analysis = Analysis(title="stage cancel race", input_manifest_json="{}", owner_id=1)
     analysis_id = analysis.id
     worker_has_read = threading.Event()
     release_worker = threading.Event()
@@ -292,7 +294,7 @@ def test_subprocess_finally_cleans_group_when_status_poll_raises(tmp_path: Path,
 
     monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create)
     monkeypatch.setattr("app.services.worker._cancel_requested", broken_poll)
-    analysis = Analysis(title="cleanup", input_manifest_json="{}")
+    analysis = Analysis(title="cleanup", input_manifest_json="{}", owner_id=1)
     app.state.storage.prepare(analysis.id)
 
     with TestClient(app):

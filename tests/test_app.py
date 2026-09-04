@@ -4,11 +4,12 @@ from pathlib import Path
 import jwt
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.config import AppSettings
 from app.main import create_app
-from app.models import User
+from app.models import Analysis, User
 from app.security import JWT_ALGORITHM, create_access_token, verify_password
 
 
@@ -165,8 +166,91 @@ def test_current_user_rejects_invalid_tokens(client: TestClient, configured_app,
     assert response.status_code == 401
 
 
-def test_no_registration_and_unknown_api_does_not_fall_back_to_spa(client: TestClient):
-    assert client.post("/auth/register", json={"username": "x", "password": "password"}).status_code in {404, 405}
+def test_registration_normalizes_identity_and_returns_a_public_user(client: TestClient):
+    """Catches storing unnormalized credentials or exposing the password hash."""
+    response = client.post(
+        "/api/v1/register",
+        json={"username": "  NewUser  ", "email": "  PERSON@Example.COM ", "password": "new-password"},
+    )
+
+    assert response.status_code == 201
+    assert response.json() == {
+        "id": 2,
+        "username": "newuser",
+        "email": "person@example.com",
+        "is_active": True,
+    }
+    assert "password" not in response.text
+
+
+def test_registration_rejects_duplicate_normalized_username_or_email(client: TestClient):
+    """Catches a case or whitespace variant creating a second account."""
+    first = {"username": "CourtCoach", "email": "coach@example.com", "password": "new-password"}
+    assert client.post("/api/v1/register", json=first).status_code == 201
+
+    duplicate_username = client.post(
+        "/api/v1/register",
+        json={"username": " courtcoach ", "email": "other@example.com", "password": "new-password"},
+    )
+    duplicate_email = client.post(
+        "/api/v1/register",
+        json={"username": "othercoach", "email": " COACH@example.COM ", "password": "new-password"},
+    )
+
+    assert duplicate_username.status_code == 409
+    assert duplicate_email.status_code == 409
+
+
+def test_login_accepts_normalized_email(client: TestClient):
+    """Catches looking up OAuth2's username field only as a username."""
+    assert client.post(
+        "/api/v1/register",
+        json={"username": "emailcoach", "email": "coach@example.com", "password": "new-password"},
+    ).status_code == 201
+
+    response = client.post(
+        "/api/v1/login/access-token",
+        data={"username": " COACH@EXAMPLE.COM ", "password": "new-password"},
+    )
+
+    assert response.status_code == 200
+    assert "httponly" in response.headers["set-cookie"].lower()
+    assert client.get("/api/v1/users/me").json()["username"] == "emailcoach"
+
+
+def test_login_rejects_an_inactive_user(client: TestClient, configured_app):
+    """Catches authenticating an account after it has been administratively disabled."""
+    app, _ = configured_app
+    assert client.post(
+        "/api/v1/register",
+        json={"username": "inactive", "email": "inactive@example.com", "password": "new-password"},
+    ).status_code == 201
+    with Session(app.state.engine) as session:
+        user = session.exec(select(User).where(User.username == "inactive")).one()
+        user.is_active = False
+        session.add(user)
+        session.commit()
+
+    response = client.post(
+        "/api/v1/login/access-token",
+        data={"username": "inactive@example.com", "password": "new-password"},
+    )
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+
+
+def test_analysis_owner_is_required(configured_app):
+    """Catches a new analysis silently falling back to the bootstrap tenant."""
+    app, _ = configured_app
+    with TestClient(app):
+        with Session(app.state.engine) as session:
+            session.add(Analysis(title="unowned", input_manifest_json="{}"))
+            with pytest.raises(IntegrityError):
+                session.commit()
+
+
+def test_unknown_api_does_not_fall_back_to_spa(client: TestClient):
     assert client.get("/api/v1/not-real").status_code == 404
 
 

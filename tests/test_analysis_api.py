@@ -91,7 +91,23 @@ def _login(client: TestClient) -> None:
     assert response.cookies.get("access_token")
 
 
-def test_bootstrap_login_uses_http_only_cookie_and_has_no_public_registration(client: TestClient):
+def _register_and_login(client: TestClient, username: str, email: str) -> str:
+    registered = client.post(
+        "/api/v1/register",
+        json={"username": username, "email": email, "password": "new-password"},
+    )
+    assert registered.status_code == 201
+    logged_in = client.post(
+        "/api/v1/login/access-token",
+        data={"username": email, "password": "new-password"},
+    )
+    assert logged_in.status_code == 200
+    token = logged_in.json()["access_token"]
+    client.cookies.clear()
+    return token
+
+
+def test_bootstrap_login_uses_http_only_cookie(client: TestClient):
     response = client.post(
         "/api/v1/login/access-token",
         data={"username": "admin", "password": "correct-password"},
@@ -100,7 +116,35 @@ def test_bootstrap_login_uses_http_only_cookie_and_has_no_public_registration(cl
     assert "httponly" in response.headers["set-cookie"].lower()
     assert "samesite=lax" in response.headers["set-cookie"].lower()
     assert client.get("/api/v1/users/me").json()["username"] == "admin"
-    assert client.post("/auth/register", json={"username": "new", "password": "password"}).status_code in {404, 405}
+
+
+def test_legacy_analysis_routes_are_isolated_between_users(client: TestClient):
+    """Catches any legacy analysis read or mutation leaking across tenant owners."""
+    first_token = _register_and_login(client, "firstcoach", "first@example.com")
+    first_headers = {"Authorization": f"Bearer {first_token}"}
+    created = client.post(
+        "/api/v1/analyses/preset",
+        json={"preset_id": "quick-demo", "mode": "quick"},
+        headers=first_headers,
+    )
+    assert created.status_code == 201
+    analysis_id = created.json()["id"]
+
+    second_token = _register_and_login(client, "secondcoach", "second@example.com")
+    second_headers = {"Authorization": f"Bearer {second_token}"}
+    assert client.get("/api/v1/analyses", headers=second_headers).json() == []
+
+    for request in (
+        lambda: client.get(f"/api/v1/analyses/{analysis_id}", headers=second_headers),
+        lambda: client.get(f"/api/v1/analyses/{analysis_id}/result", headers=second_headers),
+        lambda: client.get(f"/api/v1/analyses/{analysis_id}/media/phases", headers=second_headers),
+        lambda: client.post(f"/api/v1/analyses/{analysis_id}/cancel", headers=second_headers),
+        lambda: client.post(f"/api/v1/analyses/{analysis_id}/retry", headers=second_headers),
+        lambda: client.delete(f"/api/v1/analyses/{analysis_id}", headers=second_headers),
+    ):
+        assert request().status_code == 404
+
+    assert client.get("/api/v1/analyses", headers=first_headers).json()[0]["id"] == analysis_id
 
 
 def test_oversized_upload_is_rejected_before_multipart_parsing(client: TestClient):
@@ -268,6 +312,7 @@ def test_running_cancel_request_is_idempotent_until_worker_stops(client: TestCli
         title="running",
         status="perception",
         input_manifest_json="{}",
+        owner_id=1,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -293,6 +338,7 @@ def test_retry_rejects_expired_input_manifest(client: TestClient):
                 for name in ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04", "sync")
             }
         ),
+        owner_id=1,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -312,6 +358,7 @@ def test_retry_transaction_wins_race_with_retention_cleanup(client: TestClient, 
         title="retry-race",
         status="failed",
         input_manifest_json="{}",
+        owner_id=1,
         completed_at=now - timedelta(days=40),
     )
     root = client.app.state.storage.prepare(analysis.id)
@@ -395,6 +442,7 @@ def test_completed_analysis_media_uses_manifest_and_supports_range(client: TestC
         status="completed",
         progress=100,
         input_manifest_json="{}",
+        owner_id=1,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -448,6 +496,7 @@ def test_completed_analysis_camera_media_uses_original_inputs_not_annotated(
         status="completed",
         progress=100,
         input_manifest_json="{}",
+        owner_id=1,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)

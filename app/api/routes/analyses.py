@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.api.deps import get_current_user
 from app.database import get_session
-from app.models import Analysis, AnalysisPublic, PresetRerunRequest
+from app.models import Analysis, AnalysisPublic, PresetRerunRequest, User
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus, transition_status
 from app.services.media import MEDIA_FILES, ORIGINAL_CAMERA_FILES, remux_to_browser_mp4, resolve_review_media
 from app.services.results import ProductResult, build_product_result
@@ -21,7 +21,7 @@ from app.services.storage import (
 )
 
 
-router = APIRouter(prefix="/analyses", tags=["analyses"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/analyses", tags=["analyses"])
 
 LEGACY_MEDIA_FILES = {
     "cam_01": "cam_01_annotated.mp4",
@@ -32,8 +32,10 @@ LEGACY_MEDIA_FILES = {
 }
 
 
-def _analysis_or_404(analysis_id: str, session: Session) -> Analysis:
-    analysis = session.get(Analysis, analysis_id)
+def _analysis_or_404(analysis_id: str, current_user: User, session: Session) -> Analysis:
+    analysis = session.exec(
+        select(Analysis).where(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+    ).first()
     if analysis is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return analysis
@@ -66,12 +68,20 @@ def upload_analysis(
     cam_03: UploadFile = File(),
     cam_04: UploadFile = File(),
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ) -> Analysis:
     try:
         request.app.state.readiness.require_ready()
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
-    analysis = Analysis(title=title, mode=mode, source_type="upload", input_manifest_json="{}")
+    analysis = Analysis(
+        title=title,
+        mode=mode,
+        source_type="upload",
+        input_manifest_json="{}",
+        owner_id=current_user.id,
+        created_via="legacy_upload",
+    )
     storage = request.app.state.storage
     try:
         manifest = storage.save_uploads(
@@ -108,6 +118,7 @@ def rerun_preset(
     payload: PresetRerunRequest,
     request: Request,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ) -> Analysis:
     try:
         request.app.state.readiness.require_ready()
@@ -124,24 +135,44 @@ def rerun_preset(
         source_type="preset",
         preset_id=payload.preset_id,
         input_manifest_json=json.dumps(manifest, ensure_ascii=False),
+        owner_id=current_user.id,
+        created_via="legacy_preset",
     )
     request.app.state.storage.prepare_preset(analysis.id, manifest)
     return _commit(session, analysis)
 
 
 @router.get("", response_model=list[AnalysisPublic])
-def list_analyses(session: Session = Depends(get_session)) -> list[Analysis]:
-    return list(session.exec(select(Analysis).order_by(Analysis.created_at.desc())).all())
+def list_analyses(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> list[Analysis]:
+    return list(
+        session.exec(
+            select(Analysis)
+            .where(Analysis.owner_id == current_user.id)
+            .order_by(Analysis.created_at.desc())
+        ).all()
+    )
 
 
 @router.get("/{analysis_id}", response_model=AnalysisPublic)
-def get_analysis(analysis_id: str, session: Session = Depends(get_session)) -> Analysis:
-    return _analysis_or_404(analysis_id, session)
+def get_analysis(
+    analysis_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> Analysis:
+    return _analysis_or_404(analysis_id, current_user, session)
 
 
 @router.get("/{analysis_id}/result", response_model=ProductResult)
-def get_result(analysis_id: str, request: Request, session: Session = Depends(get_session)) -> ProductResult:
-    analysis = _analysis_or_404(analysis_id, session)
+def get_result(
+    analysis_id: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> ProductResult:
+    analysis = _analysis_or_404(analysis_id, current_user, session)
     if analysis.status != AnalysisStatus.completed:
         raise HTTPException(status_code=409, detail="Analysis is not completed")
     root = request.app.state.storage.analysis_root(analysis.id) / "output"
@@ -200,8 +231,14 @@ def _review_media_paths(analysis: Analysis, request: Request) -> dict[str, Path]
 
 
 @router.get("/{analysis_id}/media/{kind}")
-def analysis_media(analysis_id: str, kind: str, request: Request, session: Session = Depends(get_session)) -> FileResponse:
-    analysis = _analysis_or_404(analysis_id, session)
+def analysis_media(
+    analysis_id: str,
+    kind: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    analysis = _analysis_or_404(analysis_id, current_user, session)
     if analysis.status != AnalysisStatus.completed:
         raise HTTPException(status_code=409, detail="Analysis is not completed")
     if kind not in MEDIA_FILES:
@@ -224,9 +261,13 @@ def analysis_media(analysis_id: str, kind: str, request: Request, session: Sessi
 
 
 @router.post("/{analysis_id}/cancel", response_model=AnalysisPublic)
-def cancel_analysis(analysis_id: str, session: Session = Depends(get_session)) -> Analysis:
+def cancel_analysis(
+    analysis_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> Analysis:
     session.connection().exec_driver_sql("BEGIN IMMEDIATE")
-    analysis = _analysis_or_404(analysis_id, session)
+    analysis = _analysis_or_404(analysis_id, current_user, session)
     current = AnalysisStatus(analysis.status)
     if current == AnalysisStatus.cancel_requested:
         return analysis
@@ -244,6 +285,7 @@ def retry_analysis(
     analysis_id: str,
     request: Request,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ) -> Analysis:
     try:
         request.app.state.readiness.require_ready()
@@ -253,7 +295,7 @@ def retry_analysis(
     # Retention uses the same reservation and must re-check status after this
     # transaction commits, so it cannot delete inputs behind a queued retry.
     session.connection().exec_driver_sql("BEGIN IMMEDIATE")
-    analysis = _analysis_or_404(analysis_id, session)
+    analysis = _analysis_or_404(analysis_id, current_user, session)
     try:
         manifest = json.loads(analysis.input_manifest_json)
     except json.JSONDecodeError:
@@ -270,6 +312,7 @@ def retry_analysis(
     analysis.error_message = None
     analysis.started_at = None
     analysis.completed_at = None
+    analysis.retry_count += 1
     return _commit(session, analysis)
 
 
@@ -278,8 +321,9 @@ def delete_analysis(
     analysis_id: str,
     request: Request,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ) -> Response:
-    analysis = _analysis_or_404(analysis_id, session)
+    analysis = _analysis_or_404(analysis_id, current_user, session)
     if AnalysisStatus(analysis.status) in ACTIVE_STATUSES or analysis.status == AnalysisStatus.cancel_requested:
         raise HTTPException(status_code=409, detail="Running analysis must be canceled first")
     request.app.state.storage.delete(analysis.id)

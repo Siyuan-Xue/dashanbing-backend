@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from app.config import AppSettings
 from app.database import create_database_engine, create_tables
-from app.models import Analysis
+from app.models import Analysis, User
 from app.services.retention import RetentionService
 from app.services.storage import AnalysisStorage
 
@@ -23,10 +23,17 @@ def test_retention_cleans_runtime_tiers_but_never_read_only_presets(tmp_path: Pa
     create_tables(engine)
     storage = AnalysisStorage(settings)
     now = datetime.now(timezone.utc)
+    with Session(engine) as session:
+        owner = User(username="retention-owner", hashed_password="hash")
+        session.add(owner)
+        session.commit()
+        session.refresh(owner)
+        owner_id = owner.id
     old = Analysis(
         title="old",
         input_manifest_json=json.dumps({}),
         status="completed",
+        owner_id=owner_id,
         created_at=now - timedelta(days=200),
         completed_at=now - timedelta(days=190),
     )
@@ -34,6 +41,7 @@ def test_retention_cleans_runtime_tiers_but_never_read_only_presets(tmp_path: Pa
         title="recent",
         input_manifest_json=json.dumps({}),
         status="completed",
+        owner_id=owner_id,
         created_at=now - timedelta(days=40),
         completed_at=now - timedelta(days=20),
     )
@@ -41,6 +49,7 @@ def test_retention_cleans_runtime_tiers_but_never_read_only_presets(tmp_path: Pa
         title="raw-expired",
         input_manifest_json=json.dumps({}),
         status="completed",
+        owner_id=owner_id,
         created_at=now - timedelta(days=50),
         completed_at=now - timedelta(days=40),
     )
@@ -48,6 +57,7 @@ def test_retention_cleans_runtime_tiers_but_never_read_only_presets(tmp_path: Pa
         title="queued",
         input_manifest_json=json.dumps({}),
         status="queued",
+        owner_id=owner_id,
         created_at=now - timedelta(days=200),
     )
     with Session(engine) as session:

@@ -23,8 +23,8 @@ def test_startup_marks_active_jobs_interrupted_but_preserves_queue(tmp_path: Pat
     )
     app = create_app(settings=settings)
     with TestClient(app):
-        active = Analysis(title="active", status="perception", input_manifest_json="{}")
-        queued = Analysis(title="queued", status="queued", input_manifest_json="{}")
+        active = Analysis(title="active", status="perception", input_manifest_json="{}", owner_id=1)
+        queued = Analysis(title="queued", status="queued", input_manifest_json="{}", owner_id=1)
         with Session(app.state.engine) as session:
             session.add(active)
             session.add(queued)
@@ -117,7 +117,7 @@ def test_failed_startup_preflight_keeps_restored_queue_blocked(tmp_path: Path, m
     )
 
     with TestClient(app):
-        queued = Analysis(title="blocked", status="queued", input_manifest_json="{}")
+        queued = Analysis(title="blocked", status="queued", input_manifest_json="{}", owner_id=1)
         with Session(app.state.engine) as session:
             session.add(queued)
             session.commit()

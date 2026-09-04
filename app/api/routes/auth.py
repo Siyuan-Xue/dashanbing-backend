@@ -3,15 +3,34 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import or_
 from sqlmodel import Session, select
 
 from app.api.deps import get_current_user
 from app.database import get_session
-from app.models import Token, User, UserPublic
-from app.security import DUMMY_PASSWORD_HASH, create_access_token, verify_password
+from app.models import Token, User, UserPublic, UserRegistration
+from app.security import DUMMY_PASSWORD_HASH, create_access_token, hash_password, normalize_identity, verify_password
 
 
 router = APIRouter(tags=["authentication"])
+
+
+@router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
+def register(payload: UserRegistration, session: Session = Depends(get_session)) -> User:
+    existing = session.exec(
+        select(User).where(or_(User.username == payload.username, User.email == payload.email))
+    ).first()
+    if existing is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username or email is already registered")
+    user = User(
+        username=payload.username,
+        email=payload.email,
+        hashed_password=hash_password(payload.password),
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
 
 
 @router.post("/login/access-token", response_model=Token)
@@ -21,10 +40,13 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
 ) -> Token:
-    user = session.exec(select(User).where(User.username == form_data.username)).first()
+    identity = normalize_identity(form_data.username)
+    user = session.exec(
+        select(User).where(or_(User.username == identity, User.email == identity))
+    ).first()
     password_hash = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
     valid = verify_password(form_data.password, password_hash)
-    if user is None or not valid:
+    if user is None or not user.is_active or not valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
