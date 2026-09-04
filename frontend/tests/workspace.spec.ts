@@ -41,17 +41,23 @@ test("workspace shell has the fixed desktop rail and a usable phone drawer", asy
   await page.goto("/workspace/new");
   await expect(page.getByRole("heading", { name: "创建分析任务" })).toBeVisible();
   await expect(page.getByTestId("preset-card")).toHaveCount(4);
-  await expect(page.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/Siyuan-Xue/dashanbing-backend");
 
   if (testInfo.project.name === "mobile-chromium") {
     await expect(page.locator(".workspace-mobile-actions")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "工作台导航", exact: true })).toHaveCount(0);
     const before = await page.locator(".workspace-sidebar").boundingBox();
     expect(before).not.toBeNull();
     expect(before!.x + before!.width).toBeLessThanOrEqual(1);
     await page.getByRole("button", { name: "打开工作台菜单" }).click();
     const drawerNav = page.getByRole("navigation", { name: "工作台导航", exact: true });
     await expect(drawerNav).toBeVisible();
+    await expect(page.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/Siyuan-Xue/dashanbing-backend");
     await expect.poll(async () => (await page.locator(".workspace-sidebar").boundingBox())?.x).toBeGreaterThanOrEqual(0);
+    await expect(drawerNav.getByRole("link", { name: "创建任务" })).toBeFocused();
+    const drawerLinks = page.locator("#workspace-sidebar a");
+    await page.keyboard.press("Shift+Tab");
+    await expect(drawerLinks.last()).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(drawerNav.getByRole("link", { name: "创建任务" })).toBeFocused();
     await drawerNav.getByRole("link", { name: "任务列表" }).click();
     await expect(page).toHaveURL(/\/workspace\/tasks$/);
@@ -60,6 +66,7 @@ test("workspace shell has the fixed desktop rail and a usable phone drawer", asy
     await page.keyboard.press("Escape");
     await expect(page.getByRole("button", { name: "打开工作台菜单" })).toBeFocused();
   } else {
+    await expect(page.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/Siyuan-Xue/dashanbing-backend");
     const sidebar = await page.locator(".workspace-sidebar").boundingBox();
     expect(sidebar?.width).toBe(256);
     await expect(page.getByRole("navigation", { name: "工作台导航", exact: true })).toBeVisible();
@@ -115,6 +122,7 @@ test("staged browser upload recovers one failed slot and gates submission", asyn
   await page.goto("/workspace/new");
   const submit = page.getByRole("button", { name: "提交分析" });
   await expect(submit).toBeDisabled();
+  await page.getByLabel("任务标题").fill("周三投篮训练");
   await page.getByLabel("注册视频").setInputFiles({ name: "enroll.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
   await page.getByLabel("机位 1").setInputFiles({ name: "cam1.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
   await expect(page.getByRole("alert")).toContainText("Invalid video");

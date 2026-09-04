@@ -1,24 +1,43 @@
 import type { AccountUsage, Preset, ProductResult, Task, TaskMode, TaskPage, TaskSlot } from "./types";
+import { ApiError } from "../api";
+import type { ApiValidationIssue } from "../api";
+import { notifySessionExpired } from "../session";
 
-export class WorkspaceApiError extends Error {
-  constructor(public readonly status: number, message: string) {
-    super(message);
+export class WorkspaceApiError extends ApiError {
+  constructor(status: number, message: string, validationIssues: ApiValidationIssue[] = []) {
+    super(status, message, validationIssues);
     this.name = "WorkspaceApiError";
   }
 }
-async function messageFromResponse(response: Response) {
-  try {
-    const value = await response.json() as { detail?: unknown };
-    if (typeof value.detail === "string") return value.detail;
-  } catch {
-    // Preserve a stable fallback for HTML/proxy failures.
+
+function errorFromPayload(payload: unknown, fallback = "Request failed") {
+  if (typeof payload !== "object" || payload === null) return { message: fallback, validationIssues: [] as ApiValidationIssue[] };
+  const detail = (payload as { detail?: unknown }).detail;
+  if (typeof detail === "string") return { message: detail, validationIssues: [] as ApiValidationIssue[] };
+  if (Array.isArray(detail)) {
+    const issues = detail.flatMap((item): ApiValidationIssue[] => {
+      if (typeof item !== "object" || item === null) return [];
+      const issue = item as { loc?: unknown; type?: unknown };
+      const field = Array.isArray(issue.loc) ? issue.loc.at(-1) : undefined;
+      return typeof field === "string" && typeof issue.type === "string" ? [{ field, type: issue.type }] : [];
+    });
+    if (issues.length) return { message: fallback, validationIssues: issues };
   }
-  return "Request failed";
+  return { message: fallback, validationIssues: [] as ApiValidationIssue[] };
+}
+
+async function responseError(response: Response) {
+  try { return errorFromPayload(await response.json()); }
+  catch { return errorFromPayload(undefined); }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "include", ...init });
-  if (!response.ok) throw new WorkspaceApiError(response.status, await messageFromResponse(response));
+  if (!response.ok) {
+    if (response.status === 401) notifySessionExpired();
+    const error = await responseError(response);
+    throw new WorkspaceApiError(response.status, error.message, error.validationIssues);
+  }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
@@ -34,12 +53,12 @@ function jsonInit(method: string, body?: unknown): RequestInit {
 export const workspaceApi = {
   createTask: (title: string, mode: TaskMode) => request<Task>("/api/v1/tasks", jsonInit("POST", { title, mode })),
   submitTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/submit`, jsonInit("POST")),
-  getTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}`),
+  getTask: (taskId: string, signal?: AbortSignal) => request<Task>(`/api/v1/tasks/${taskId}`, { signal }),
   listTasks: (params: URLSearchParams) => request<TaskPage>(`/api/v1/tasks?${params}`),
   cancelTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/cancel`, jsonInit("POST")),
   retryTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/retry`, jsonInit("POST")),
   deleteTask: (taskId: string) => request<void>(`/api/v1/tasks/${taskId}`, jsonInit("DELETE")),
-  taskResult: (taskId: string) => request<ProductResult>(`/api/v1/tasks/${taskId}/result`),
+  taskResult: (taskId: string, signal?: AbortSignal) => request<ProductResult>(`/api/v1/tasks/${taskId}/result`, { signal }),
   presets: () => request<Preset[]>("/api/v1/presets"),
   presetResult: (presetId: string) => request<ProductResult>(`/api/v1/presets/${encodeURIComponent(presetId)}/result`),
   createFromPreset: (presetId: string, mode: TaskMode) => request<Task>("/api/v1/tasks/from-preset", jsonInit("POST", { preset_id: presetId, mode })),
@@ -64,9 +83,9 @@ export function uploadTaskInput(taskId: string, slot: TaskSlot, file: File, onPr
         resolve(payload as Task);
         return;
       }
-      const detail = typeof payload === "object" && payload !== null && typeof (payload as { detail?: unknown }).detail === "string"
-        ? (payload as { detail: string }).detail : "Upload failed";
-      reject(new WorkspaceApiError(xhr.status, detail));
+      if (xhr.status === 401) notifySessionExpired();
+      const error = errorFromPayload(payload, "Upload failed");
+      reject(new WorkspaceApiError(xhr.status, error.message, error.validationIssues));
     });
     const form = new FormData();
     form.append("file", file, file.name);

@@ -6,7 +6,7 @@ import { PresetCards } from "../components/PresetCards";
 import { WorkspaceState } from "../components/WorkspaceState";
 import { useLocale } from "../providers/LocaleProvider";
 import { useLoadable } from "../workspace/useLoadable";
-import { uploadTaskInput, workspaceApi } from "../workspace/api";
+import { uploadTaskInput, workspaceApi, WorkspaceApiError } from "../workspace/api";
 import { TASK_SLOTS } from "../workspace/types";
 import type { Task, TaskMode, TaskSlot } from "../workspace/types";
 import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
@@ -26,26 +26,35 @@ export function NewTaskPage() {
   const [title, setTitle] = useState("");
   const [mode, setMode] = useState<TaskMode>("quick");
   const [task, setTask] = useState<Task | null>(null);
+  const [creating, setCreating] = useState(false);
   const taskRef = useRef<Task | null>(null);
   const creatingRef = useRef<Promise<Task> | null>(null);
   const uploadQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [uploads, setUploads] = useState<Partial<Record<TaskSlot, UploadState>>>({});
   const [submitError, setSubmitError] = useState("");
+  const [titleError, setTitleError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const ensureTask = async () => {
     if (taskRef.current) return taskRef.current;
     if (!creatingRef.current) {
-      creatingRef.current = workspaceApi.createTask(title.trim() || wt("defaultTitle"), mode).then((created) => {
+      setCreating(true);
+      creatingRef.current = workspaceApi.createTask(title.trim(), mode).then((created) => {
         taskRef.current = created;
+        setTitle(created.title);
+        setMode(created.mode);
         setTask(created);
         return created;
-      }).finally(() => { creatingRef.current = null; });
+      }).finally(() => { creatingRef.current = null; setCreating(false); });
     }
     return creatingRef.current;
   };
 
   const upload = async (slot: TaskSlot, file: File) => {
+    const normalizedTitle = title.trim();
+    if (!normalizedTitle) { setTitleError(wt("titleRequired")); return; }
+    if (Array.from(normalizedTitle).length > 120) { setTitleError(wt("titleTooLong")); return; }
+    setTitleError("");
     setSubmitError("");
     setUploads((current) => ({ ...current, [slot]: { file, progress: 0, phase: "uploading" } }));
     try {
@@ -59,7 +68,15 @@ export function NewTaskPage() {
       setTask(updated);
       setUploads((current) => ({ ...current, [slot]: { file, progress: 100, phase: "success" } }));
     } catch (error) {
-      setUploads((current) => ({ ...current, [slot]: { file, progress: current[slot]?.progress || 0, phase: "error", error: error instanceof Error ? error.message : wt("uploadFailed") } }));
+      const message = error instanceof WorkspaceApiError && error.validationIssues.some((issue) => issue.field === "title" && issue.type === "string_too_long")
+        ? wt("titleTooLong") : error instanceof WorkspaceApiError && error.validationIssues.some((issue) => issue.field === "title" && (issue.type === "missing" || issue.type === "string_too_short"))
+          ? wt("titleRequired") : error instanceof Error ? error.message : wt("uploadFailed");
+      if (error instanceof WorkspaceApiError && error.validationIssues.some((issue) => issue.field === "title")) {
+        setTitleError(message);
+        setUploads((current) => { const next = { ...current }; delete next[slot]; return next; });
+      } else {
+        setUploads((current) => ({ ...current, [slot]: { file, progress: current[slot]?.progress || 0, phase: "error", error: message } }));
+      }
     }
   };
 
@@ -94,8 +111,8 @@ export function NewTaskPage() {
     <header className="workspace-page-header"><div><span className="page-eyebrow">NEW ANALYSIS</span><h1>{wt("newTitle")}</h1><p>{wt("newBody")}</p></div></header>
     <section className="create-panel">
       <div className="create-fields">
-        <label><span>{wt("taskTitle")}</span><input value={title} disabled={Boolean(task)} onChange={(event) => setTitle(event.target.value)} placeholder={wt("defaultTitle")}/></label>
-        <fieldset disabled={Boolean(task)}><legend>{wt("mode")}</legend><label><input type="radio" name="mode" checked={mode === "quick"} onChange={() => setMode("quick")}/><span><b>{wt("quick")}</b><small>5–15 min</small></span></label><label><input type="radio" name="mode" checked={mode === "full"} onChange={() => setMode("full")}/><span><b>{wt("full")}</b><small>20–45 min</small></span></label></fieldset>
+        <label><span>{wt("taskTitle")}</span><input value={title} required aria-invalid={Boolean(titleError)} disabled={creating || Boolean(task)} onChange={(event) => { setTitle(event.target.value); setTitleError(""); }} placeholder={wt("defaultTitle")}/></label>
+        <fieldset disabled={creating || Boolean(task)}><legend>{wt("mode")}</legend><label><input type="radio" name="mode" checked={mode === "quick"} onChange={() => setMode("quick")}/><span><b>{wt("quick")}</b><small>5–15 min</small></span></label><label><input type="radio" name="mode" checked={mode === "full"} onChange={() => setMode("full")}/><span><b>{wt("full")}</b><small>20–45 min</small></span></label></fieldset>
       </div>
       <div className="upload-grid">
         {TASK_SLOTS.map((slot) => {
@@ -115,7 +132,7 @@ export function NewTaskPage() {
           </article>;
         })}
       </div>
-      {submitError && <p className="inline-error" role="alert">{submitError}</p>}
+      {(titleError || submitError) && <p className="inline-error" role="alert">{titleError || submitError}</p>}
       <div className="create-submit"><span>{verified.size} / 5</span><button className="button button-primary" type="button" disabled={!canSubmit || submitting} onClick={() => void submit()}>{submitting ? wt("submitting") : wt("submit")} <Icon name="arrow"/></button></div>
     </section>
     <section className="workspace-section"><div className="section-heading compact"><span className="page-eyebrow">PRESETS</span><h2>{wt("presetHeading")}</h2><p>{wt("presetBody")}</p></div>{presetError ? <WorkspaceState title={wt("loadFailed")} body={presetError.message} onRetry={reloadPresets}/> : presets ? <PresetCards presets={presets}/> : <div className="loading-block" role="status"/>}</section>

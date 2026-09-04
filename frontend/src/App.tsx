@@ -8,7 +8,7 @@ import { HomePage } from "./pages/HomePage";
 import { NewTaskPage } from "./pages/NewTaskPage";
 import { ProtectedRouteScaffold } from "./pages/ProtectedRouteScaffold";
 import { SettingsPage } from "./pages/SettingsPage";
-import { TaskDetailPage } from "./pages/TaskDetailPage";
+import { TaskDetailRoute } from "./pages/TaskDetailPage";
 import { TaskListPage } from "./pages/TaskListPage";
 
 export default function App() {
@@ -23,7 +23,7 @@ export default function App() {
             <Route index element={<Navigate to="new" replace/>}/>
             <Route path="new" element={<NewTaskPage/>}/>
             <Route path="tasks" element={<TaskListPage/>}/>
-            <Route path="tasks/:taskId" element={<TaskDetailPage/>}/>
+            <Route path="tasks/:taskId" element={<TaskDetailRoute/>}/>
             <Route path="examples/:presetId" element={<ExampleDetailPage/>}/>
             <Route path="settings" element={<SettingsPage/>}/>
           </Route>

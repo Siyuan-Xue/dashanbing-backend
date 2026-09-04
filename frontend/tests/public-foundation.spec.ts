@@ -69,6 +69,8 @@ test("protected routing redirects back after a mocked cookie-auth login", async 
   await page.getByRole("button", { name: "登录" }).click();
 
   await expect(page).toHaveURL(/\/workspace\/tasks\?status=running$/);
+  const menu = page.getByRole("button", { name: "打开工作台菜单" });
+  if (await menu.isVisible()) await menu.click();
   await expect(page.getByRole("link", { name: "coach" })).toBeVisible();
 });
 

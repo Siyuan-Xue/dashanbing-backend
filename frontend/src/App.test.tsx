@@ -237,6 +237,7 @@ describe("authentication and protected routes", () => {
         expect(String(init?.body)).toBe("username=coach%40example.com&password=practice123");
         return Response.json({ access_token: "cookie-backed", token_type: "bearer" });
       }
+      if (url.startsWith("/api/v1/tasks?")) return Response.json({ items: [], total: 0, page: 1, page_size: 10 });
       return anonymousResponse();
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -262,6 +263,7 @@ describe("authentication and protected routes", () => {
         return Response.json({ id: 7, username: "coach", email: "coach@example.com", is_active: true });
       }
       if (url.endsWith("/api/v1/login/access-token")) return Response.json({ access_token: "cookie-backed", token_type: "bearer" });
+      if (url.startsWith("/api/v1/tasks?")) return Response.json({ items: [], total: 0, page: 1, page_size: 10 });
       return anonymousResponse();
     });
     vi.stubGlobal("fetch", fetchMock);

@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ApiError, authApi } from "../api";
 import type { AuthUser, Registration } from "../api";
+import { subscribeToSessionExpiry } from "../session";
 
 type AuthContextValue = {
   user: AuthUser | null; checking: boolean; authError: boolean; login: (identity: string, password: string) => Promise<AuthUser>;
@@ -14,6 +15,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [authError, setAuthError] = useState(false);
   const requestGeneration = useRef(0);
+
+  useLayoutEffect(() => subscribeToSessionExpiry(() => {
+    requestGeneration.current += 1;
+    setUser(null);
+    setChecking(false);
+    setAuthError(false);
+  }), []);
 
   const refresh = useCallback(async () => {
     const generation = ++requestGeneration.current;

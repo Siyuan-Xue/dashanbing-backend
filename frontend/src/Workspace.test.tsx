@@ -1,10 +1,13 @@
 import { act } from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import App from "./App";
+import { ResultWorkspace } from "./components/ResultWorkspace";
+import { LocaleProvider } from "./providers/LocaleProvider";
+import type { Task } from "./workspace/types";
 import "./styles.css";
 
 const currentUser = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
@@ -58,11 +61,16 @@ const productResult = {
 
 function LocationProbe() {
   const location = useLocation();
-  return <output data-testid="workspace-location">{location.pathname}{location.search}</output>;
+  const navigate = useNavigate();
+  return <><output data-testid="workspace-location">{location.pathname}{location.search}</output><button type="button" onClick={() => navigate(-1)}>History back</button></>;
 }
 
 function renderAt(path: string) {
   return render(<MemoryRouter initialEntries={[path]}><App/><LocationProbe/></MemoryRouter>);
+}
+
+function renderHistory(entries: string[], initialIndex: number) {
+  return render(<MemoryRouter initialEntries={entries} initialIndex={initialIndex}><App/><LocationProbe/></MemoryRouter>);
 }
 
 function json(value: unknown, init?: ResponseInit) {
@@ -102,6 +110,90 @@ afterEach(() => {
 });
 
 describe("workspace shell and staged creation", () => {
+  test("locks the title and mode while the first draft request is pending", async () => {
+    let resolveCreate!: (response: Response) => void;
+    const createResponse = new Promise<Response>((resolve) => { resolveCreate = resolve; });
+    installBaseFetch((url, init) => {
+      if (url.pathname === "/api/v1/tasks" && init?.method === "POST") return createResponse;
+    });
+    vi.stubGlobal("XMLHttpRequest", class {
+      upload = { addEventListener: () => undefined };
+      open() {}
+      addEventListener() {}
+      send() {}
+    });
+    const user = userEvent.setup();
+    renderAt("/workspace/new");
+    const title = await screen.findByLabelText("任务标题");
+    await user.type(title, "训练 A");
+    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "enroll.mp4", { type: "video/mp4" }));
+
+    expect(title).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /快速/ })).toBeDisabled();
+    resolveCreate(json(task({ title: "训练 A" }), { status: 201 }));
+  });
+
+  test("enforces the 120-code-point title boundary and localizes a first-upload 422", async () => {
+    const fetchMock = installBaseFetch((url, init) => {
+      if (url.pathname === "/api/v1/tasks" && init?.method === "POST") return new Response(JSON.stringify({ detail: [{ loc: ["body", "title"], type: "string_too_long", msg: "String should have at most 120 characters" }] }), { status: 422, headers: { "Content-Type": "application/json" } });
+    });
+    vi.stubGlobal("XMLHttpRequest", class {
+      upload = { addEventListener: () => undefined };
+      open() {}
+      addEventListener() {}
+      send() { throw new Error("upload must not start after draft validation fails"); }
+    });
+    const user = userEvent.setup();
+    renderAt("/workspace/new");
+    const title = await screen.findByLabelText("任务标题");
+    expect(title).toBeRequired();
+    expect(title).not.toHaveAttribute("maxlength");
+    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "missing-title.mp4", { type: "video/mp4" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("请输入任务标题");
+    expect(fetchMock.mock.calls.filter(([input, init]) => String(input).endsWith("/api/v1/tasks") && init?.method === "POST")).toHaveLength(0);
+    fireEvent.change(title, { target: { value: "🏀".repeat(121) } });
+    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "too-long.mp4", { type: "video/mp4" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("任务标题不能超过 120 个字符");
+    expect(fetchMock.mock.calls.filter(([input, init]) => String(input).endsWith("/api/v1/tasks") && init?.method === "POST")).toHaveLength(0);
+
+    fireEvent.change(title, { target: { value: "🏀".repeat(120) } });
+    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "boundary.mp4", { type: "video/mp4" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("任务标题不能超过 120 个字符");
+    expect(title).toBeEnabled();
+    expect(fetchMock.mock.calls.filter(([input, init]) => String(input).endsWith("/api/v1/tasks") && init?.method === "POST")).toHaveLength(1);
+  });
+
+  test("expires the authenticated session when a normal request returns 401", async () => {
+    const fetchMock = installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/account/usage") return new Response(JSON.stringify({ detail: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    });
+    renderAt("/workspace/settings");
+    await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/login?next=%2Fworkspace%2Fsettings"));
+    expect(fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/api/v1/users/me"))).toHaveLength(1);
+  });
+
+  test("expires the authenticated session when an upload returns 401", async () => {
+    const fetchMock = installBaseFetch((url, init) => {
+      if (url.pathname === "/api/v1/tasks" && init?.method === "POST") return json(task({ title: "训练 A" }), { status: 201 });
+    });
+    class UnauthorizedXhr {
+      status = 0;
+      responseText = "";
+      upload = { addEventListener: () => undefined };
+      listeners = new Map<string, () => void>();
+      open() {}
+      addEventListener(event: string, listener: () => void) { this.listeners.set(event, listener); }
+      send() { this.status = 401; this.responseText = JSON.stringify({ detail: "Not authenticated" }); queueMicrotask(() => this.listeners.get("load")?.()); }
+    }
+    vi.stubGlobal("XMLHttpRequest", UnauthorizedXhr);
+    const user = userEvent.setup();
+    renderAt("/workspace/new");
+    await user.type(await screen.findByLabelText("任务标题"), "训练 A");
+    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "enroll.mp4", { type: "video/mp4" }));
+    await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/login?next=%2Fworkspace%2Fnew"));
+    expect(fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/api/v1/users/me"))).toHaveLength(1);
+  });
+
   test("uses the persisted locale for upload labels on the first protected render", async () => {
     document.documentElement.lang = "zh";
     localStorage.setItem("dashanbing-locale", "en");
@@ -149,6 +241,7 @@ describe("workspace shell and staged creation", () => {
     const user = userEvent.setup();
     renderAt("/workspace/new");
     await screen.findByRole("heading", { name: "创建分析任务" });
+    await user.type(screen.getByLabelText("任务标题"), "训练 A");
     await user.upload(screen.getByLabelText("注册视频"), new File(["enroll"], "enroll.mp4", { type: "video/mp4" }));
     await user.upload(screen.getByLabelText("机位 1"), new File(["cam1"], "cam1.mp4", { type: "video/mp4" }));
     await flushPromises();
@@ -221,6 +314,7 @@ describe("workspace shell and staged creation", () => {
 
     const submit = screen.getByRole("button", { name: "提交分析" });
     expect(submit).toBeDisabled();
+    await user.type(screen.getByLabelText("任务标题"), "周三投篮训练");
     await user.upload(screen.getByLabelText("注册视频"), new File(["enroll"], "enroll.mp4", { type: "video/mp4" }));
     await user.upload(screen.getByLabelText("机位 1"), new File(["cam1"], "cam1.mp4", { type: "video/mp4" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Invalid video");
@@ -245,6 +339,108 @@ describe("workspace shell and staged creation", () => {
 });
 
 describe("task list workflows", () => {
+  test("re-queries filtered rows after lifecycle success and state conflict", async () => {
+    let failedStatus = "failed";
+    let queuedStatus = "queued";
+    let retryCalls = 0;
+    installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/tasks" && url.searchParams.get("page_size") !== "5") {
+        const filter = url.searchParams.get("status");
+        const items = filter === "failed" && failedStatus === "failed" ? [task({ id: "failed-1", status: "failed" })]
+          : filter === "queued" && queuedStatus === "queued" ? [task({ id: "queued-1", status: "queued" })] : [];
+        return json({ items, total: items.length, page: 1, page_size: 10 });
+      }
+      if (url.pathname === "/api/v1/tasks/failed-1/retry") {
+        retryCalls += 1;
+        failedStatus = "queued";
+        if (retryCalls === 1) return json(task({ id: "failed-1", status: "queued" }));
+        return new Response(JSON.stringify({ detail: "Task state changed" }), { status: 409, headers: { "Content-Type": "application/json" } });
+      }
+      if (url.pathname === "/api/v1/tasks/queued-1/cancel") {
+        queuedStatus = "canceled";
+        return json(task({ id: "queued-1", status: "canceled" }));
+      }
+    });
+    const user = userEvent.setup();
+    const first = renderAt("/workspace/tasks?status=failed&page=1&page_size=10");
+    await user.click(await screen.findByRole("button", { name: "重试周三投篮训练" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "确认重试" }));
+    expect(await screen.findByText("没有符合条件的任务")).toBeVisible();
+    first.unmount();
+
+    const second = renderAt("/workspace/tasks?status=queued&page=1&page_size=10");
+    await user.click(await screen.findByRole("button", { name: "取消周三投篮训练" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "确认取消" }));
+    expect(await screen.findByText("没有符合条件的任务")).toBeVisible();
+    second.unmount();
+
+    failedStatus = "failed";
+    renderAt("/workspace/tasks?status=failed&page=1&page_size=10");
+    await user.click(await screen.findByRole("button", { name: "重试周三投篮训练" }));
+    failedStatus = "queued";
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "确认重试" }));
+    expect(await screen.findByText("没有符合条件的任务")).toBeVisible();
+  });
+
+  test("moves to the previous page after deleting the only row on a later page", async () => {
+    let deleted = false;
+    installBaseFetch((url, init) => {
+      if (url.pathname === "/api/v1/tasks/last-row" && init?.method === "DELETE") { deleted = true; return new Response(null, { status: 204 }); }
+      if (url.pathname === "/api/v1/tasks" && url.searchParams.get("page_size") !== "5") {
+        const page = Number(url.searchParams.get("page") || 1);
+        if (page === 2 && !deleted) return json({ items: [task({ id: "last-row", status: "completed" })], total: 11, page: 2, page_size: 10 });
+        return json({ items: [task({ id: "page-one", title: "第一页任务", status: "completed" })], total: 10, page: 1, page_size: 10 });
+      }
+    });
+    const user = userEvent.setup();
+    renderAt("/workspace/tasks?page=2&page_size=10");
+    await user.click(await screen.findByRole("button", { name: "删除周三投篮训练" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "确认删除" }));
+
+    await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/workspace/tasks?page=1&page_size=10"));
+    expect(await screen.findByText("第一页任务")).toBeVisible();
+  });
+
+  test("synchronizes filter controls when browser history changes the URL", async () => {
+    installBaseFetch();
+    const user = userEvent.setup();
+    renderHistory([
+      "/workspace/tasks?q=first&status=failed&mode=full&page=1&page_size=10",
+      "/workspace/tasks?q=second&status=queued&mode=quick&page=2&page_size=10",
+    ], 1);
+    expect(await screen.findByRole("searchbox", { name: "搜索任务" })).toHaveValue("second");
+    expect(screen.getByLabelText("状态")).toHaveValue("queued");
+    await user.click(screen.getByRole("button", { name: "History back" }));
+    await waitFor(() => expect(screen.getByRole("searchbox", { name: "搜索任务" })).toHaveValue("first"));
+    expect(screen.getByLabelText("状态")).toHaveValue("failed");
+    expect(screen.getByLabelText("分析模式")).toHaveValue("full");
+  });
+
+  test("contains modal focus, closes on Escape, and restores the trigger", async () => {
+    installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/tasks" && url.searchParams.get("page_size") !== "5") return json({ items: [task({ id: "failed-1", status: "failed" })], total: 1, page: 1, page_size: 10 });
+    });
+    const user = userEvent.setup();
+    renderAt("/workspace/tasks");
+    const trigger = await screen.findByRole("button", { name: "重试周三投篮训练" });
+    await user.click(trigger);
+    const dialog = screen.getByRole("dialog", { name: "重试任务" });
+    expect(dialog).toHaveAttribute("aria-describedby", "confirm-message");
+    const cancel = within(dialog).getByRole("button", { name: "返回" });
+    const confirm = within(dialog).getByRole("button", { name: "确认重试" });
+    expect(cancel).toHaveFocus();
+    trigger.focus();
+    await user.keyboard("{Tab}");
+    expect(cancel).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(confirm).toHaveFocus();
+    await user.keyboard("{Tab}");
+    expect(cancel).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(dialog).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
   test("syncs filters and paging to the task query and confirms lifecycle actions", async () => {
     const failed = task({ id: "failed-1", status: "failed", error_message: "GPU unavailable" });
     const fetchMock = installBaseFetch((url, init) => {
@@ -270,14 +466,14 @@ describe("task list workflows", () => {
   });
 
   test("requires confirmation before cancel and delete and applies the returned lifecycle", async () => {
-    let current = task({ id: "queued-1", status: "queued", progress: 12 });
+    let current: ReturnType<typeof task> | null = task({ id: "queued-1", status: "queued", progress: 12 });
     const fetchMock = installBaseFetch((url, init) => {
-      if (url.pathname === "/api/v1/tasks" && !init?.method) return json({ items: [current], total: 1, page: 1, page_size: 10 });
+      if (url.pathname === "/api/v1/tasks" && !init?.method) return json({ items: current ? [current] : [], total: current ? 1 : 0, page: 1, page_size: 10 });
       if (url.pathname === "/api/v1/tasks/queued-1/cancel") {
         current = task({ id: "queued-1", status: "canceled", progress: 12 });
         return json(current);
       }
-      if (url.pathname === "/api/v1/tasks/queued-1" && init?.method === "DELETE") return new Response(null, { status: 204 });
+      if (url.pathname === "/api/v1/tasks/queued-1" && init?.method === "DELETE") { current = null; return new Response(null, { status: 204 }); }
     });
     const user = userEvent.setup();
     renderAt("/workspace/tasks");
@@ -295,6 +491,57 @@ describe("task list workflows", () => {
 });
 
 describe("task and example result workspaces", () => {
+  test("clears task A result immediately when same-route navigation starts task B and aborts both requests", async () => {
+    let resolveB!: (response: Response) => void;
+    const deferredB = new Promise<Response>((resolve) => { resolveB = resolve; });
+    let signalA: AbortSignal | undefined;
+    let signalAResult: AbortSignal | undefined;
+    let signalB: AbortSignal | undefined;
+    installBaseFetch((url, init) => {
+      if (url.pathname === "/api/v1/tasks" && url.searchParams.get("page_size") === "5") return json({ items: [task({ id: "task-b", title: "任务 B", status: "queued" })], total: 1, page: 1, page_size: 5 });
+      if (url.pathname === "/api/v1/tasks/task-a") { signalA = init?.signal || undefined; return json(task({ id: "task-a", title: "任务 A", status: "completed", progress: 100 })); }
+      if (url.pathname === "/api/v1/tasks/task-a/result") { signalAResult = init?.signal || undefined; return json(productResult); }
+      if (url.pathname === "/api/v1/tasks/task-b") { signalB = init?.signal || undefined; return deferredB; }
+    });
+    const user = userEvent.setup();
+    const rendered = renderAt("/workspace/tasks/task-a");
+    expect(await screen.findByRole("link", { name: "下载 JSON 结果" })).toBeVisible();
+    await user.click(screen.getByRole("link", { name: "任务 B" }));
+
+    expect(screen.queryByRole("link", { name: "下载 JSON 结果" })).not.toBeInTheDocument();
+    expect(screen.queryByTitle("阶段合成播放器")).not.toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在加载任务" })).toBeVisible();
+    expect(signalA?.aborted).toBe(true);
+    expect(signalAResult?.aborted).toBe(true);
+    resolveB(json(task({ id: "task-b", title: "任务 B", status: "queued", stage_message: "等待执行" })));
+    expect(await screen.findByRole("heading", { name: "任务 B" })).toBeVisible();
+    rendered.unmount();
+    expect(signalB?.aborted).toBe(true);
+  });
+
+  test("aborts the prior detail generation before retrying a failed result", async () => {
+    let resultCalls = 0;
+    let firstSignal: AbortSignal | undefined;
+    let secondSignal: AbortSignal | undefined;
+    const pendingResult = new Promise<Response>(() => {});
+    installBaseFetch((url, init) => {
+      if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "completed", progress: 100 }));
+      if (url.pathname === "/api/v1/tasks/task-1/result") {
+        resultCalls += 1;
+        if (resultCalls === 1) { firstSignal = init?.signal || undefined; return new Response(JSON.stringify({ detail: "Result unavailable" }), { status: 503, headers: { "Content-Type": "application/json" } }); }
+        secondSignal = init?.signal || undefined;
+        return pendingResult;
+      }
+    });
+    const user = userEvent.setup();
+    const rendered = renderAt("/workspace/tasks/task-1");
+    await user.click(await screen.findByRole("button", { name: "重试" }));
+    await waitFor(() => expect(resultCalls).toBe(2));
+    expect(firstSignal?.aborted).toBe(true);
+    rendered.unmount();
+    expect(secondSignal?.aborted).toBe(true);
+  });
+
   test("does not schedule another poll when an active task response arrives after unmount", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     let resolveDetail!: (response: Response) => void;
@@ -366,6 +613,61 @@ describe("task and example result workspaces", () => {
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/workspace/tasks/preset-task"));
     const call = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/v1/tasks/from-preset"));
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({ preset_id: "quick-demo", mode: "full" });
+  });
+
+  test.each([
+    ["draft", "任务尚未提交，可继续补充或替换视频。"],
+    ["uploading", "正在验证上传的视频，请等待当前文件完成。"],
+    ["queued", "任务已进入后台队列，可以离开页面后稍后回来。"],
+    ["running", "正在分析视频，进度会自动更新。"],
+    ["completed", "任务完成，但当前没有可展示的结果。"],
+    ["failed", "任务未完成，请查看错误后重试。"],
+    ["canceled", "任务已取消，可以从任务列表重新运行。"],
+    ["expired", "草稿已过期，请创建新任务。"],
+  ] as const)("shows an explicit %s empty-result message", (status, expected) => {
+    installBaseFetch();
+    render(<MemoryRouter><LocaleProvider><ResultWorkspace task={task({ status }) as Task} result={null}/></LocaleProvider></MemoryRouter>);
+    expect(screen.getByText(expected)).toBeVisible();
+  });
+
+  test("localizes preset, task metadata, action, and outcome identifiers without changing API values", async () => {
+    localStorage.setItem("dashanbing-locale", "en");
+    installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "completed", mode: "quick", source_type: "upload", progress: 100, completed_at: "2026-09-04T01:03:00Z" }));
+      if (url.pathname === "/api/v1/tasks/task-1/result") return json(productResult);
+    });
+    const user = userEvent.setup();
+    const detail = renderAt("/workspace/tasks/task-1");
+    expect(await screen.findAllByText("Completed")).toHaveLength(2);
+    expect(screen.queryByText("completed")).not.toBeInTheDocument();
+    expect(screen.getByText("Quick")).toBeVisible();
+    expect(screen.getByText("Upload")).toBeVisible();
+    await user.click(screen.getByRole("tab", { name: "Timeline" }));
+    expect(screen.getByText("Jump shot")).toBeVisible();
+    expect(screen.getByText(/Made/)).toBeVisible();
+    detail.unmount();
+
+    const newTask = renderAt("/workspace/new");
+    const cards = await screen.findAllByTestId("preset-card");
+    expect(within(cards[0]).getByRole("heading", { name: "Quick demo" })).toBeVisible();
+    expect(within(cards[0]).getByText("4 jump shots")).toBeVisible();
+    expect(within(cards[0]).getByText(/9.4 MIN · Quick/)).toBeVisible();
+    expect(within(cards[1]).getByRole("heading", { name: "Mixed actions" })).toBeVisible();
+    expect(within(cards[1]).getByText("Triple threat and jump shots")).toBeVisible();
+    expect(within(cards[1]).getByText(/26.7 MIN · Full/)).toBeVisible();
+    expect(within(cards[2]).getByRole("heading", { name: "Verified outcomes" })).toBeVisible();
+    expect(within(cards[2]).getByText("Free throws with verified shot outcomes")).toBeVisible();
+    expect(within(cards[2]).getByText(/30.9 MIN · Verified/)).toBeVisible();
+    expect(within(cards[3]).getByRole("heading", { name: "Layup demo" })).toBeVisible();
+    expect(within(cards[3]).getByText("6 layups")).toBeVisible();
+    expect(within(cards[3]).getByText(/14.3 MIN · Layup/)).toBeVisible();
+    expect(screen.queryByText("快速演示")).not.toBeInTheDocument();
+    newTask.unmount();
+
+    renderAt("/workspace/tasks");
+    expect(await screen.findByRole("heading", { name: "Tasks" })).toBeVisible();
+    expect(screen.getByRole("option", { name: "Failed" })).toHaveValue("failed");
+    expect(screen.getByRole("option", { name: "Quick" })).toHaveValue("quick");
   });
 });
 
