@@ -53,6 +53,40 @@ def test_same_origin_root_serves_the_built_frontend(client: TestClient):
     assert "<title>product</title>" in response.text
 
 
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/login",
+        "/register",
+        "/workspace/new",
+        "/workspace/tasks",
+        "/workspace/tasks/example-id",
+        "/api/docs",
+        "/api/docs/",
+        "/api/keys",
+        "/api/keys/",
+    ],
+)
+def test_same_origin_deep_links_serve_the_spa_without_server_redirects(
+    client: TestClient, path: str
+):
+    """Catches deployments that work through client navigation but 404 on refresh."""
+    response = client.get(path, follow_redirects=False)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert "<title>product</title>" in response.text
+
+
+def test_frontend_fallback_never_swallows_unknown_api_routes(client: TestClient):
+    """Catches an API typo returning index.html with HTTP 200."""
+    response = client.get("/api/v1/does-not-exist")
+
+    assert response.status_code == 404
+    assert response.headers["content-type"].startswith("application/json")
+    assert response.json() == {"detail": "Not found"}
+
+
 def test_first_start_bootstraps_one_argon2_admin(configured_app):
     app, _ = configured_app
     with TestClient(app):

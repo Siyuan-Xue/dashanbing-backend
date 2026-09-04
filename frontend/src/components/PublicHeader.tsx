@@ -17,7 +17,7 @@ export function PublicHeader() {
         <Brand />
         <nav className="public-nav" aria-label={t("mainNav")}>
           <NavLink to="/" end>{t("home")}</NavLink>
-          <Link to="/api/docs">{t("api")}</Link>
+          <NavLink to="/api/docs">{t("api")}</NavLink>
         </nav>
         <div className="header-actions">
           <button className="icon-button" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("themeLight") : t("themeDark")} title={theme === "dark" ? t("themeLight") : t("themeDark")}>

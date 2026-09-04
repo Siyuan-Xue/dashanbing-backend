@@ -106,7 +106,18 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## API
 
-Swagger 文档位于 <http://127.0.0.1:8000/docs>。主要接口：
+面向使用者的双语 API 指南位于 <http://127.0.0.1:8000/api/docs>，OpenAPI / Swagger 参考仍位于 <http://127.0.0.1:8000/docs>。在登录后的 <http://127.0.0.1:8000/api/keys> 创建服务端密钥；完整的 `dsb_live_...` 密钥只在创建成功时显示一次。
+
+新的集成应使用分阶段任务接口：
+
+- `POST /api/v1/tasks` 创建 `quick` 或 `full` 草稿；
+- `PUT /api/v1/tasks/{id}/inputs/{slot}` 依次上传 `enrollment_video` 与 `cam_01`–`cam_04`（multipart 字段名为 `file`）；
+- `POST /api/v1/tasks/{id}/submit` 提交，`GET /api/v1/tasks/{id}` 轮询；
+- `GET /api/v1/tasks/{id}/result` 和 `GET /api/v1/tasks/{id}/media/{kind}` 获取结果与复核媒体；
+- `POST /api/v1/tasks/{id}/cancel`、`POST /api/v1/tasks/{id}/retry`、`DELETE /api/v1/tasks/{id}` 管理生命周期；
+- `GET/POST /api/v1/api-keys`、`DELETE /api/v1/api-keys/{id}` 和 `GET /api/v1/account/usage` 管理密钥与配额。
+
+API 密钥请求使用 `Authorization: Bearer dsb_live_...`。浏览器继续使用 HttpOnly、SameSite=Lax Cookie；旧 `/api/v1/analyses` 接口保留一个兼容周期并返回弃用响应头。其他主要接口：
 
 - `POST /api/v1/login/access-token`、`POST /api/v1/logout`、`GET /api/v1/users/me`
 - `GET /api/v1/system/readiness`
@@ -116,7 +127,7 @@ Swagger 文档位于 <http://127.0.0.1:8000/docs>。主要接口：
 - `GET /api/v1/analyses/{id}/media/{kind}`（支持 HTTP Range）
 - `POST /api/v1/analyses/{id}/cancel`、`POST /api/v1/analyses/{id}/retry`、`DELETE /api/v1/analyses/{id}`
 
-认证令牌写入 HttpOnly、SameSite=Lax Cookie，视频 Range 请求会自然携带身份。Bearer 仅为 API 调试兼容保留。
+浏览器认证令牌写入 HttpOnly、SameSite=Lax Cookie，视频 Range 请求会自然携带身份。
 
 ## 验证
 
@@ -125,7 +136,14 @@ Swagger 文档位于 <http://127.0.0.1:8000/docs>。主要接口：
 ```bash
 uv run pytest -q
 uv run python scripts/validate_v3_presets.py
+cd frontend
+pnpm test
+pnpm run typecheck
+pnpm run build
+pnpm run test:e2e
 ```
+
+`pnpm run test:e2e` 包含 48 视图矩阵（6 个页面 × 桌面/手机 × 中/英 × 浅/深）。也可单独运行 `pnpm run test:e2e:visual`；截图写入被 Git 忽略的 `frontend/test-results/**/visual-matrix/`。
 
 数据库迁移：
 

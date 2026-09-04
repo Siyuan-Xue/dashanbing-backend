@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:visual": "playwright test tests/visual-matrix.spec.ts",
     "typecheck": "tsc -b --pretty false",
     "build": "pnpm run generate:api && tsc -b && vite build"
   },

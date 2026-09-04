@@ -165,7 +165,8 @@ def create_app(
 
     @application.get("/{path:path}", include_in_schema=False, response_model=None)
     def frontend_fallback(path: str):
-        if path.startswith("api/"):
+        normalized_path = path.rstrip("/")
+        if path.startswith("api/") and normalized_path not in {"api/docs", "api/keys"}:
             raise HTTPException(status_code=404, detail="Not found")
         index = frontend / "index.html"
         if index.is_file():

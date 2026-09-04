@@ -1,23 +1,12 @@
 import createClient from "openapi-fetch";
 
-import type { paths } from "./generated/schema";
+import type { components, paths } from "./generated/schema";
 
-// Generated contracts remain the source for staged-task APIs. Auth uses the
-// current server contract directly until the planned Task 6 schema refresh.
+// Generated contracts are the source for both staged-task and auth APIs.
 export const api = createClient<paths>({ credentials: "include" });
 
-export type AuthUser = {
-  id: number;
-  username: string;
-  email: string | null;
-  is_active: boolean;
-};
-
-export type Registration = {
-  username: string;
-  email: string;
-  password: string;
-};
+export type AuthUser = components["schemas"]["UserPublic"];
+export type Registration = components["schemas"]["UserRegistration"];
 
 export type ApiValidationIssue = {
   field: string;
