@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import App from "./App";
 import { ResultWorkspace } from "./components/ResultWorkspace";
 import { LocaleProvider } from "./providers/LocaleProvider";
+import { taskStageMessageLabel } from "./workspace/labels";
 import type { Task } from "./workspace/types";
 import "./styles.css";
 
@@ -720,6 +721,18 @@ describe("task and example result workspaces", () => {
     expect(await screen.findByRole("heading", { name: "Tasks" })).toBeVisible();
     expect(screen.getByRole("option", { name: "Failed" })).toHaveValue("failed");
     expect(screen.getByRole("option", { name: "Quick" })).toHaveValue("quick");
+  });
+
+  test("localizes known worker stage messages while preserving unknown backend detail", async () => {
+    installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "completed", progress: 100, stage_message: "Complete", completed_at: "2026-09-04T01:03:00Z" }));
+      if (url.pathname === "/api/v1/tasks/task-1/result") return json(productResult);
+    });
+    renderAt("/workspace/tasks/task-1");
+
+    await waitFor(() => expect(document.querySelector(".detail-progress small")).toHaveTextContent("已完成"));
+    expect(document.querySelector(".detail-progress small")).not.toHaveTextContent("Complete");
+    expect(taskStageMessageLabel("zh", "Worker handoff 7/9")).toBe("Worker handoff 7/9");
   });
 });
 

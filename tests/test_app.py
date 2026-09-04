@@ -21,6 +21,8 @@ def configured_app(tmp_path: Path):
     frontend = tmp_path / "frontend"
     frontend.mkdir()
     (frontend / "index.html").write_text("<!doctype html><title>product</title>", encoding="utf-8")
+    (frontend / "theme-bootstrap.js").write_text("window.__theme = true;", encoding="utf-8")
+    (frontend / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>", encoding="utf-8")
     settings = AppSettings(
         database_url=f"sqlite:///{tmp_path / 'app.db'}",
         runtime_root=tmp_path / "runtime",
@@ -65,6 +67,7 @@ def test_same_origin_root_serves_the_built_frontend(client: TestClient):
         "/api/docs/",
         "/api/keys",
         "/api/keys/",
+        "/api/",
     ],
 )
 def test_same_origin_deep_links_serve_the_spa_without_server_redirects(
@@ -76,6 +79,24 @@ def test_same_origin_deep_links_serve_the_spa_without_server_redirects(
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert "<title>product</title>" in response.text
+
+
+@pytest.mark.parametrize(
+    ("path", "content_type", "body"),
+    [
+        ("/theme-bootstrap.js", "application/javascript", "window.__theme = true;"),
+        ("/favicon.svg", "image/svg+xml", "<svg xmlns='http://www.w3.org/2000/svg'/>")
+    ],
+)
+def test_frontend_public_root_assets_are_served_as_their_declared_files(
+    client: TestClient, path: str, content_type: str, body: str
+):
+    response = client.get(path)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith(content_type)
+    assert response.headers["cache-control"] == "public, max-age=3600"
+    assert response.text == body
 
 
 def test_frontend_fallback_never_swallows_unknown_api_routes(client: TestClient):

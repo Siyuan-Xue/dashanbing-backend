@@ -49,6 +49,9 @@ describe("API center", () => {
     expect(screen.getAllByText("cam_04")[0]).toBeVisible();
     expect(screen.getByText("draft → uploading → queued → running → completed", { exact: true })).toBeVisible();
     expect(screen.getAllByText(/\/api\/v1\/tasks/).length).toBeGreaterThan(5);
+    expect(screen.getByText(/python3 -c/)).toBeVisible();
+    expect(screen.getByText(/while :; do/)).toBeVisible();
+    expect([...document.querySelectorAll(".api-code")].some(block => block.textContent?.includes("failed|canceled|expired"))).toBe(true);
     expect(screen.queryByText(/\/api\/v1\/analyses/)).not.toBeInTheDocument();
     expect(screen.queryByText("客户端")).not.toBeInTheDocument();
     expect(screen.queryByText("生态")).not.toBeInTheDocument();
@@ -74,6 +77,7 @@ describe("API center", () => {
 
     expect(await screen.findByRole("heading", { name: "API 管理" })).toBeVisible();
     expect(await screen.findByText("4 / 20")).toBeVisible();
+    expect(screen.getByText("24 小时 · 7 天 · 30 天 · 180 天")).toBeVisible();
     expect(screen.getByText("dsb_live_abcd12••••9xyz")).toBeVisible();
     expect(screen.queryByRole("button", { name: /复制 Production/ })).not.toBeInTheDocument();
     await operator.click(screen.getByRole("button", { name: "创建 API 密钥" }));
@@ -82,7 +86,7 @@ describe("API center", () => {
     await operator.click(within(createDialog).getByRole("button", { name: "创建密钥" }));
 
     const secretDialog = await screen.findByRole("dialog", { name: "保存新密钥" });
-    expect(within(secretDialog).getByText("dsb_live_only_once_123456")).toBeVisible();
+    expect((within(secretDialog).getByRole("textbox", { name: "新 API 密钥" }) as HTMLInputElement).value).toBe("dsb_live_only_once_123456");
     expect(within(secretDialog).getByRole("alert")).toHaveTextContent("只显示一次");
     await operator.click(within(secretDialog).getByRole("button", { name: "复制完整密钥" }));
     expect(writeText).toHaveBeenCalledWith("dsb_live_only_once_123456");
@@ -90,6 +94,86 @@ describe("API center", () => {
     await operator.click(within(secretDialog).getByRole("button", { name: "我已保存" }));
     expect(screen.queryByText("dsb_live_only_once_123456")).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/api-keys", expect.objectContaining({ method: "POST" }));
+  });
+
+  test("keeps a one-time secret keyboard-selectable after clipboard failure", async () => {
+    vi.stubGlobal("fetch", installFetch());
+    const operator = userEvent.setup();
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
+    renderAt("/api/keys");
+    await operator.click(await screen.findByRole("button", { name: "创建 API 密钥" }));
+    const createDialog = screen.getByRole("dialog", { name: "创建 API 密钥" });
+    await operator.type(within(createDialog).getByLabelText("密钥名称"), "CI runner");
+    await operator.click(within(createDialog).getByRole("button", { name: "创建密钥" }));
+
+    const secretDialog = await screen.findByRole("dialog", { name: "保存新密钥" });
+    await operator.click(within(secretDialog).getByRole("button", { name: "复制完整密钥" }));
+    const fallback = within(secretDialog).getByRole("textbox", { name: "新 API 密钥" }) as HTMLInputElement;
+    expect(fallback.value).toBe("dsb_live_only_once_123456");
+    await waitFor(() => expect(fallback).toHaveFocus());
+    expect(fallback.selectionStart).toBe(0);
+    expect(fallback.selectionEnd).toBe(fallback.value.length);
+  });
+
+  test("keeps API-key creation failures announced inside the active dialog", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = new URL(String(input), "http://localhost").pathname;
+      if (path === "/api/v1/users/me") return Response.json(user);
+      if (path === "/api/v1/account/usage") return Response.json(usage);
+      if (path === "/api/v1/api-keys" && init?.method === "POST") return Response.json({ detail: "Key quota reached" }, { status: 429 });
+      if (path === "/api/v1/api-keys") return Response.json(keys);
+      return Response.json({ detail: "Not found" }, { status: 404 });
+    }));
+    const operator = userEvent.setup();
+    renderAt("/api/keys");
+    await operator.click(await screen.findByRole("button", { name: "创建 API 密钥" }));
+    const dialog = screen.getByRole("dialog", { name: "创建 API 密钥" });
+    await operator.type(within(dialog).getByLabelText("密钥名称"), "CI runner");
+    await operator.click(within(dialog).getByRole("button", { name: "创建密钥" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Key quota reached");
+  });
+
+  test("keeps a revoke failure announced inside its confirmation dialog", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = new URL(String(input), "http://localhost").pathname;
+      if (path === "/api/v1/users/me") return Response.json(user);
+      if (path === "/api/v1/account/usage") return Response.json(usage);
+      if (path === "/api/v1/api-keys") return Response.json(keys);
+      if (path === "/api/v1/api-keys/active" && init?.method === "DELETE") return Response.json({ detail: "Already revoked" }, { status: 409 });
+      return Response.json({ detail: "Not found" }, { status: 404 });
+    }));
+    const operator = userEvent.setup();
+    renderAt("/api/keys");
+    await operator.click(await screen.findByRole("button", { name: "撤销 Production" }));
+    const dialog = screen.getByRole("dialog", { name: "撤销 API 密钥" });
+    await operator.click(within(dialog).getByRole("button", { name: "确认撤销" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Already revoked");
+  });
+
+  test("keeps a busy revoke dialog focusable and announces its pending state", async () => {
+    let resolveDelete: (() => void) | undefined;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = new URL(String(input), "http://localhost").pathname;
+      if (path === "/api/v1/users/me") return Response.json(user);
+      if (path === "/api/v1/account/usage") return Response.json(usage);
+      if (path === "/api/v1/api-keys") return Response.json(keys);
+      if (path === "/api/v1/api-keys/active" && init?.method === "DELETE") return new Promise<Response>(resolve => { resolveDelete = () => resolve(new Response(null, { status: 204 })); });
+      return Response.json({ detail: "Not found" }, { status: 404 });
+    }));
+    const operator = userEvent.setup();
+    renderAt("/api/keys");
+    await operator.click(await screen.findByRole("button", { name: "撤销 Production" }));
+    const dialog = screen.getByRole("dialog", { name: "撤销 API 密钥" });
+    await operator.click(within(dialog).getByRole("button", { name: "确认撤销" }));
+
+    expect(dialog).toHaveAttribute("aria-busy", "true");
+    expect(within(dialog).getByRole("status")).toHaveTextContent("正在撤销");
+    expect(within(dialog).getByRole("button", { name: "确认撤销" })).toBeDisabled();
+    await operator.keyboard("{Tab}");
+    expect(dialog).toHaveFocus();
+    resolveDelete?.();
   });
 
   test("requires confirmation before revoking a key and refreshes list and usage", async () => {

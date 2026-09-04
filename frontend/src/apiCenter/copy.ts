@@ -10,3 +10,12 @@ export const apiCopy = {
     keysTitle: "API Management", keysLead: "Create keys for server integrations and review the current account quotas.",
   },
 } as const;
+
+export function formatRetentionDuration(locale: "zh" | "en", value: string) {
+  const match = value.trim().match(/^(\d+)\s*(hours?|days?)$/i);
+  if (!match) return value;
+  const [, amount, rawUnit] = match;
+  const unit = rawUnit.toLowerCase().startsWith("hour") ? "hour" : "day";
+  if (locale === "zh") return `${amount} ${unit === "hour" ? "小时" : "天"}`;
+  return `${amount} ${unit}${amount === "1" ? "" : "s"}`;
+}

@@ -71,12 +71,24 @@ test("API management never offers a fake copy action and reveals create secret o
   await create.getByLabel("密钥名称").fill("CI");
   await create.getByRole("button", { name: "创建密钥" }).click();
   const reveal = page.getByRole("dialog", { name: "保存新密钥" });
-  await expect(reveal.getByText("dsb_live_once_visible_7890")).toBeVisible();
+  await expect(reveal.getByRole("textbox", { name: "新 API 密钥" })).toHaveValue("dsb_live_once_visible_7890");
   await reveal.getByRole("button", { name: "复制完整密钥" }).click();
   await expect(reveal.getByRole("status")).toHaveText("已复制");
   await reveal.getByRole("button", { name: "我已保存" }).click();
   await expect(page.getByText("dsb_live_once_visible_7890")).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("mobile API-key cards retain table headers and expose visible field labels", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-chromium", "Card labels are the phone presentation.");
+  await page.goto("/api/keys");
+  await expect(page.getByRole("heading", { name: "API 管理" })).toBeVisible();
+  const table = page.locator(".api-key-table");
+  await expect(table.getByRole("columnheader", { name: "名称" })).toHaveCount(1);
+  await expect(table.locator("thead")).not.toHaveCSS("display", "none");
+  const nameCell = table.getByRole("cell").first();
+  await expect(nameCell).toHaveAttribute("data-label", "名称");
+  expect(await nameCell.evaluate(node => getComputedStyle(node, "::before").content)).toContain("名称");
 });
 
 test("the mobile API navigation keeps keyboard focus inside the open drawer", async ({ page }, testInfo) => {

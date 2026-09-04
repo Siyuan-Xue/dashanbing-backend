@@ -33,6 +33,26 @@ const pages = [
 const locales = ["zh", "en"] as const;
 const themes = ["light", "dark"] as const;
 
+async function waitForRouteFixture(page: import("@playwright/test").Page, name: typeof pages[number][0], locale: typeof locales[number]) {
+  const zh = locale === "zh";
+  if (name === "home") return expect(page.getByRole("heading", { name: zh ? "让多路训练视频，变成可复盘的篮球洞察" : "Turn multi-angle training video into basketball insight you can review" })).toBeVisible();
+  if (name === "new") {
+    await expect(page.getByRole("heading", { name: zh ? "创建分析任务" : "Create analysis task" })).toBeVisible();
+    return expect(page.getByTestId("preset-card").first()).toBeVisible();
+  }
+  if (name === "list") {
+    await expect(page.locator(".task-list-page h1")).toHaveText(zh ? "任务列表" : "Tasks");
+    return expect(page.locator(".task-table tbody .task-title-link")).toHaveText(/Friday shooting session/);
+  }
+  if (name === "detail") {
+    await expect(page.getByRole("heading", { name: "Friday shooting session" })).toBeVisible();
+    return expect(page.locator(".detail-progress small")).toHaveText(zh ? "已完成" : "Complete");
+  }
+  if (name === "docs") return expect(page.getByRole("heading", { name: zh ? "大山冰 API 文档" : "DaShanBing API Docs" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: zh ? "API 管理" : "API Management" })).toBeVisible();
+  return expect(page.getByText("Production", { exact: true })).toBeVisible();
+}
+
 for (const [name, path] of pages) for (const locale of locales) for (const theme of themes) {
   test(`visual ${name} ${locale} ${theme}`, async ({ page }, testInfo) => {
     await page.addInitScript(({ locale, theme }) => {
@@ -41,7 +61,7 @@ for (const [name, path] of pages) for (const locale of locales) for (const theme
     }, { locale, theme });
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: theme });
     await page.goto(path);
-    await expect(page.locator("main")).toBeVisible();
+    await waitForRouteFixture(page, name, locale);
     await page.evaluate(() => document.fonts.ready);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const viewport = testInfo.project.name === "desktop-chromium" ? "1440x900" : "phone";

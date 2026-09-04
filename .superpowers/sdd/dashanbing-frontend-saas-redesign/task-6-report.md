@@ -19,31 +19,41 @@ The inherited API-center behavior tests were present before this handoff. The ne
 2. RED: `pnpm exec playwright test tests/api-center.spec.ts --project=mobile-chromium --grep 'keeps keyboard focus'` failed because `Shift+Tab` from the close button escaped the drawer rather than focusing API Management.
 3. GREEN: the API shell now traps both Tab directions within the drawer and restores the trigger on close. The same focused command passed (`1 passed`), followed by TypeScript verification.
 
+### Review round 1
+
+The review fixes used additional RED/GREEN coverage without weakening existing assertions:
+
+1. `tests/test_app.py` first failed for `/api/` (JSON 404) and root `theme-bootstrap.js` / `favicon.svg` (SPA HTML). The explicit, allow-listed `FileResponse` routes now pass with the declared bodies, media types, and `public, max-age=3600` cache policy while unknown API routes remain JSON 404s.
+2. `ApiCenter.test.tsx` first failed for an absent `python3` polling loop, raw Chinese retention units, no keyboard-selectable one-time secret, and modal-scoped create failure. The guide now waits for a terminal task state before fetching the result; known retention values are localized; the secret is a labelled read-only input that selects on clipboard rejection; and create/revoke failures remain in their dialogs.
+3. The busy-revoke test first failed because the dialog had no live status. It now asserts `aria-busy`, a localized `role=status`, disabled controls, and that Tab stays on the focusable dialog root while the request is pending.
+4. `Workspace.test.tsx` first failed because worker `Complete` was rendered unchanged in Chinese. Stable messages are now mapped per locale, while unknown server strings pass through unchanged.
+5. The first deterministic visual-matrix run found an ambiguous list readiness selector. It was replaced with route-specific list heading/table readiness, then the exact 48-case matrix passed. The runner has a fixed UTC timezone and each route waits for its controlled fixture before capture.
+
 ## Verification
 
-- Focused backend SPA fallback tests: `33 passed`.
-- Full backend suite: `142 passed`; it emitted only the nine existing Alembic `path_separator` deprecation warnings.
-- Full Vitest suite: `3 files, 57 passed`.
-- TypeScript: `pnpm run typecheck` exited 0.
-- Production build: `pnpm run build` exited 0; regenerated schema and emitted FastAPI's ignored SPA bundle (`78` modules transformed).
-- OpenAPI consistency: the checked-in JSON parsed identically to `create_app().openapi()`; generation of `schema.d.ts` completed successfully.
-- API-center Playwright: `4 passed` across desktop and phone.
-- Full Playwright: `70 passed, 4 intentional project-specific skips`.
+- Focused backend SPA fallback tests: `38 passed`.
+- Full backend suite: `145 passed`; it emitted only the nine existing Alembic `path_separator` deprecation warnings.
+- Full Vitest suite: `3 files, 62 passed`.
+- TypeScript: `pnpm exec tsc --noEmit` exited 0.
+- Production build: `pnpm build` exited 0; regenerated schema and emitted FastAPI's ignored SPA bundle (`78` modules transformed).
+- OpenAPI consistency: `uv run python scripts/export_openapi.py` and `pnpm run generate:api` completed; `git diff --exit-code -- openapi.json frontend/src/generated/schema.d.ts` exited 0.
+- API-center Playwright: `4 passed` on the mobile project, including mobile table header/label coverage.
+- Full Playwright: `71 passed, 5 intentional project-specific skips`.
 - Visual matrix: exactly `48 passed` captures: 6 pages (home/new/list/detail/docs/keys) × desktop 1440×900 and phone × zh/en × light/dark. Artifacts are intentionally ignored at `frontend/test-results/**/visual-matrix/`; the last matrix produced 48 PNGs there, all with controlled route fixtures and no user data or copied assets.
 - Visual/a11y scan covered centered desktop layout, sticky TOC, phone collapse, create/revoke modal semantics, contrast checks, keyboard drawer containment, and no horizontal overflow.
 - `git diff --check` exited 0.
 
-## Independent review follow-up
+## Review round 1 follow-up
 
-An independent final review found and verified four improvements before commit: API UI deep links now accept a trailing slash; API lifecycle docs correctly include `uploading` cancellation; the English upload step says `multipart field`; and all API-key dialog close paths restore their invoking control. The final Playwright fixture also waits for the authenticated API-management heading before its contrast probe, removing a phone-only async race without weakening any product assertion.
+All nine review findings are addressed: root Vite assets are allow-listed and cached correctly; the Curl walkthrough polls terminal status safely; README presents registration and `/tasks`; `/api/` deep-links to the SPA; API-key dialogs keep errors/live busy state/focus inside; clipboard fallback is keyboard usable; phone key cards retain semantic column headers and visible labels; the visual matrix has fixed timezone plus route-fixture readiness; Chinese retention durations and known worker progress messages are localized. The final browser run also retained no-overflow, sticky/collapsed navigation, modal, contrast, and keyboard assertions.
 
 `uv run python scripts/validate_v3_presets.py` remains unable to run in this checkout because the supplied local sample bundle is incomplete: `local-assets/sample-bundle/data/outputs/v3/group_04/report.json` is absent. This is independent of Task 6; the complete Python test suite above passed.
 
 ## Files
 
-- API routes/UI: `frontend/src/App.tsx`, `frontend/src/components/ApiShell.tsx`, `frontend/src/pages/ApiDocsPage.tsx`, `frontend/src/pages/ApiKeysPage.tsx`, `frontend/src/apiCenter/api.ts`, `frontend/src/apiCenter/copy.ts`, `frontend/src/styles.css`
+- API routes/UI: `frontend/src/App.tsx`, `frontend/src/components/ApiShell.tsx`, `frontend/src/pages/ApiDocsPage.tsx`, `frontend/src/pages/ApiKeysPage.tsx`, `frontend/src/apiCenter/api.ts`, `frontend/src/apiCenter/copy.ts`, `frontend/src/styles.css`, `frontend/src/workspace/labels.ts`, `frontend/src/pages/TaskDetailPage.tsx`
 - Contracts/integration: `openapi.json`, `frontend/src/generated/schema.d.ts`, `frontend/src/api.ts`, `frontend/vite.config.ts`, `app/main.py`
-- Tests/QA: `frontend/src/ApiCenter.test.tsx`, `frontend/tests/api-center.spec.ts`, `frontend/tests/visual-matrix.spec.ts`, `tests/test_app.py`
+- Tests/QA: `frontend/src/ApiCenter.test.tsx`, `frontend/src/Workspace.test.tsx`, `frontend/tests/api-center.spec.ts`, `frontend/tests/visual-matrix.spec.ts`, `frontend/playwright.config.ts`, `tests/test_app.py`
 - Documentation/tooling: `README.md`, `frontend/package.json`
 
 ## Self-review

@@ -16,6 +16,20 @@ const sourceLabels: Record<Locale, Record<string, string>> = {
   en: { upload: "Upload", preset: "Preset" },
 };
 
+// Worker progress messages are part of the API response.  Keep unknown values intact
+// so new server-side detail is never hidden, but translate the stable vocabulary used
+// by current workers in the opposite locale.
+const stageMessageLabels: Record<Locale, Record<string, string>> = {
+  zh: {
+    Draft: "草稿", Queued: "排队中", Running: "分析中", Complete: "已完成",
+    Completed: "已完成", Failed: "失败", Canceled: "已取消", Expired: "已过期",
+  },
+  en: {
+    "草稿": "Draft", "等待执行": "Queued", "分析中": "Running", "分析动作": "Analyzing actions",
+    "已完成": "Completed", "失败": "Failed", "已取消": "Canceled", "已过期": "Expired",
+  },
+};
+
 const actionLabels: Record<Locale, Record<ProductEvent["action_type"], string>> = {
   zh: { triple_threat: "三威胁", free_throw: "罚球", jump_shot: "跳投", layup: "上篮" },
   en: { triple_threat: "Triple threat", free_throw: "Free throw", jump_shot: "Jump shot", layup: "Layup" },
@@ -36,6 +50,7 @@ const presetLabels: Record<string, Record<Locale, { title: string; description: 
 export const taskStatusLabel = (locale: Locale, status: TaskStatus) => statusLabels[locale][status];
 export const taskModeLabel = (locale: Locale, mode: TaskMode) => modeLabels[locale][mode];
 export const taskSourceLabel = (locale: Locale, source: string) => sourceLabels[locale][source] || source;
+export const taskStageMessageLabel = (locale: Locale, message: string) => stageMessageLabels[locale][message] || message;
 export const actionLabel = (locale: Locale, action: ProductEvent["action_type"]) => actionLabels[locale][action];
 export const outcomeLabel = (locale: Locale, outcome: ProductEvent["result"]) => outcome ? outcomeLabels[locale][outcome] : "—";
 export const localizePreset = (locale: Locale, preset: Preset) => presetLabels[preset.id]?.[locale] || { title: preset.title, description: preset.description, tag: "" };

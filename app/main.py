@@ -154,6 +154,25 @@ def create_app(
     if assets.is_dir():
         application.mount("/assets", StaticFiles(directory=assets), name="frontend-assets")
 
+    def frontend_public_asset(name: str, media_type: str) -> FileResponse:
+        """Serve only the two root assets referenced by the built document."""
+        path = frontend / name
+        if not path.is_file():
+            raise HTTPException(status_code=404, detail="Not found")
+        return FileResponse(
+            path,
+            media_type=media_type,
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
+
+    @application.get("/theme-bootstrap.js", include_in_schema=False, response_model=None)
+    def theme_bootstrap() -> FileResponse:
+        return frontend_public_asset("theme-bootstrap.js", "application/javascript")
+
+    @application.get("/favicon.svg", include_in_schema=False, response_model=None)
+    def favicon() -> FileResponse:
+        return frontend_public_asset("favicon.svg", "image/svg+xml")
+
     @application.get("/healthz", include_in_schema=False)
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
@@ -166,7 +185,7 @@ def create_app(
     @application.get("/{path:path}", include_in_schema=False, response_model=None)
     def frontend_fallback(path: str):
         normalized_path = path.rstrip("/")
-        if path.startswith("api/") and normalized_path not in {"api/docs", "api/keys"}:
+        if path.startswith("api/") and normalized_path not in {"api", "api/docs", "api/keys"}:
             raise HTTPException(status_code=404, detail="Not found")
         index = frontend / "index.html"
         if index.is_file():

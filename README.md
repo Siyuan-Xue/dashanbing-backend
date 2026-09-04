@@ -1,6 +1,6 @@
 # 篮球课堂训练复盘（本地产品版）
 
-这是一个同机部署的 FastAPI + React 多机位篮球训练复盘产品。管理员上传 1 段 cam02 注册视频和 cam01–04 四路动作视频，系统串行使用一张 NVIDIA GPU 完成匿名参与者注册、四类动作识别、球轨投篮统计与复核视频导出，最终网页只绑定 `127.0.0.1:8000`。
+这是一个同机部署的 FastAPI + React 多机位篮球训练复盘产品。注册用户上传 1 段注册视频和四路动作视频，系统串行使用一张 NVIDIA GPU 完成匿名参与者注册、四类动作识别、球轨投篮统计与复核视频导出，最终网页只绑定 `127.0.0.1:8000`。
 
 首版公开动作只有：三威胁/突破、罚篮、跳投、上篮。传球、个人评分、3D 技术结论、关节角和科研诊断数据都不对外展示。动作次数与球轨出手次数来自两套检测结果，不保证一一对应。
 
@@ -52,7 +52,7 @@ cp deployment/sync.example.json local-assets/deployment/sync.json
 cp .env.example .env
 ```
 
-把 `sync.json` 中 cam01、cam02、cam04 相对 cam03 的固定偏移替换成部署现场实测值。cam03 必须保持 `0`。在首次启动前修改 `.env` 的管理员密码和至少 32 字符的随机 JWT 密钥；账号只在空数据库首次启动时创建，不提供公开注册。
+把 `sync.json` 中 cam01、cam02、cam04 相对 cam03 的固定偏移替换成部署现场实测值。cam03 必须保持 `0`。在首次启动前修改 `.env` 的管理员密码和至少 32 字符的随机 JWT 密钥；空数据库首次启动会创建管理员账户，其他用户可通过前端注册页面创建账户。
 
 ### 3. 构建与启动
 
@@ -117,15 +117,11 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 - `POST /api/v1/tasks/{id}/cancel`、`POST /api/v1/tasks/{id}/retry`、`DELETE /api/v1/tasks/{id}` 管理生命周期；
 - `GET/POST /api/v1/api-keys`、`DELETE /api/v1/api-keys/{id}` 和 `GET /api/v1/account/usage` 管理密钥与配额。
 
-API 密钥请求使用 `Authorization: Bearer dsb_live_...`。浏览器继续使用 HttpOnly、SameSite=Lax Cookie；旧 `/api/v1/analyses` 接口保留一个兼容周期并返回弃用响应头。其他主要接口：
+API 密钥请求使用 `Authorization: Bearer dsb_live_...`。浏览器继续使用 HttpOnly、SameSite=Lax Cookie。旧 `/api/v1/analyses` 仅在兼容期内保留并返回弃用响应头；新集成只应使用 `/tasks` 工作流。其他主要接口：
 
 - `POST /api/v1/login/access-token`、`POST /api/v1/logout`、`GET /api/v1/users/me`
 - `GET /api/v1/system/readiness`
 - `GET /api/v1/presets`、`GET /api/v1/presets/{id}/result`、`GET /api/v1/presets/{id}/media/{kind}`
-- `POST /api/v1/analyses/upload`、`POST /api/v1/analyses/preset`
-- `GET /api/v1/analyses`、`GET /api/v1/analyses/{id}`、`GET /api/v1/analyses/{id}/result`
-- `GET /api/v1/analyses/{id}/media/{kind}`（支持 HTTP Range）
-- `POST /api/v1/analyses/{id}/cancel`、`POST /api/v1/analyses/{id}/retry`、`DELETE /api/v1/analyses/{id}`
 
 浏览器认证令牌写入 HttpOnly、SameSite=Lax Cookie，视频 Range 请求会自然携带身份。
 
