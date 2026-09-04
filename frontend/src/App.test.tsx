@@ -1,9 +1,13 @@
+import { act } from "react";
+import type { ReactNode } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import App from "./App";
+import { ThemeProvider } from "./providers/ThemeProvider";
+import "./styles.css";
 
 const anonymousResponse = () =>
   new Response(JSON.stringify({ detail: "Not authenticated" }), {
@@ -23,6 +27,31 @@ function renderAt(path = "/") {
       <LocationProbe />
     </MemoryRouter>,
   );
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((next) => { resolve = next; });
+  return { promise, resolve };
+}
+
+function ThemeAtChildRender({ children }: { children?: ReactNode }) {
+  return <output data-testid="theme-at-child-render">{document.documentElement.dataset.theme || "unset"}{children}</output>;
+}
+
+function contrastRatio(foreground: string, background: string) {
+  const channel = (value: number) => {
+    const normalized = value / 255;
+    return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = (hex: string) => {
+    const value = hex.trim().replace("#", "");
+    const [red, green, blue] = [0, 2, 4].map((offset) => channel(Number.parseInt(value.slice(offset, offset + 2), 16)));
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+  const lighter = Math.max(luminance(foreground), luminance(background));
+  const darker = Math.min(luminance(foreground), luminance(background));
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 describe("public foundation", () => {
@@ -81,18 +110,77 @@ describe("public foundation", () => {
     await waitFor(() => expect(document.documentElement).toHaveAttribute("data-theme", "light"));
   });
 
+  test("applies first-visit system theme before descendants render", () => {
+    vi.mocked(matchMedia).mockImplementation((query: string) => ({
+      matches: query === "(prefers-color-scheme: dark)", media: query, onchange: null,
+      addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(),
+    }));
+
+    render(<ThemeProvider><ThemeAtChildRender /></ThemeProvider>);
+
+    expect(screen.getByTestId("theme-at-child-render")).toHaveTextContent("dark");
+  });
+
+  test("applies a persisted theme before descendants render", () => {
+    localStorage.setItem("dashanbing-theme", "dark");
+
+    render(<ThemeProvider><ThemeAtChildRender /></ThemeProvider>);
+
+    expect(screen.getByTestId("theme-at-child-render")).toHaveTextContent("dark");
+  });
+
+  test("keeps primary action text AA-readable in both themes", async () => {
+    const user = userEvent.setup();
+    renderAt();
+    await screen.findByRole("heading", { name: "让多路训练视频，变成可复盘的篮球洞察" });
+
+    for (const theme of ["light", "dark"] as const) {
+      if (document.documentElement.dataset.theme !== theme) {
+        await user.click(screen.getByRole("button", { name: theme === "dark" ? "切换到深色主题" : "切换到浅色主题" }));
+      }
+      const styles = getComputedStyle(document.documentElement);
+      const onBrand = styles.getPropertyValue("--on-brand");
+      const brand = styles.getPropertyValue("--brand");
+      const brandStrong = styles.getPropertyValue("--brand-strong");
+      expect({ onBrand, brand, brandStrong }).toEqual({
+        onBrand: expect.stringMatching(/^\s*#[0-9a-f]{6}\s*$/i),
+        brand: expect.stringMatching(/^\s*#[0-9a-f]{6}\s*$/i),
+        brandStrong: expect.stringMatching(/^\s*#[0-9a-f]{6}\s*$/i),
+      });
+      expect(contrastRatio(onBrand, brand)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(onBrand, brandStrong)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   test("switches locale and restores it on the next render", async () => {
     const user = userEvent.setup();
     const first = renderAt();
 
     await user.click(await screen.findByRole("button", { name: "English" }));
     expect(screen.getByRole("heading", { name: "Turn multi-angle training video into basketball insight you can review" })).toBeVisible();
+    expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "DaShanBing home" })).toBeVisible();
+    expect(screen.getByLabelText("DaShanBing logo")).toBeVisible();
+    expect(screen.getByLabelText("Wednesday shooting session")).toBeVisible();
+    expect(document.title).toBe("DaShanBing · Multi-camera basketball review");
+    expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+      "content",
+      "DaShanBing turns multi-camera basketball training video into reviewable action and shooting insight.",
+    );
     expect(document.documentElement.lang).toBe("en");
     expect(localStorage.getItem("dashanbing-locale")).toBe("en");
 
     first.unmount();
     renderAt();
     expect(await screen.findByRole("link", { name: "Home" })).toBeVisible();
+    expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
+    expect(document.title).toBe("DaShanBing · Multi-camera basketball review");
+  });
+
+  test("keeps the workspace preview decorative instead of exposing a dead action", async () => {
+    renderAt();
+    await screen.findByLabelText("周三投篮训练");
+    expect(screen.queryByRole("button", { name: "播放复盘预览" })).not.toBeInTheDocument();
   });
 });
 
@@ -107,6 +195,31 @@ describe("authentication and protected routes", () => {
       );
     });
     expect(screen.getByRole("heading", { name: "登录大山冰" })).toBeVisible();
+  });
+
+  test("announces authentication bootstrap while a protected route waits", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+    renderAt("/workspace/tasks");
+
+    const loading = screen.getAllByRole("status").find((element) => element.classList.contains("route-loading"));
+    expect(loading).toHaveTextContent("正在确认登录状态");
+  });
+
+  test.each([
+    ["server failure", vi.fn().mockResolvedValue(new Response("upstream failed", { status: 500 }))],
+    ["network failure", vi.fn().mockRejectedValue(new TypeError("Failed to fetch"))],
+    ["malformed response", vi.fn().mockResolvedValue(Response.json({ id: "not-a-user" }))],
+  ])("shows a localized retry instead of treating a %s as logged out", async (_label, fetchMock) => {
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/workspace/tasks?status=running");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("暂时无法确认登录状态");
+    expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks?status=running");
+
+    fetchMock.mockResolvedValueOnce(anonymousResponse());
+    await user.click(screen.getByRole("button", { name: "重试" }));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/login?next="));
   });
 
   test("logs in with username or email, refreshes cookie auth, and redirects back", async () => {
@@ -138,6 +251,38 @@ describe("authentication and protected routes", () => {
     expect(await screen.findByText("coach")).toBeVisible();
   });
 
+  test("a stale bootstrap response cannot overwrite a completed login", async () => {
+    const bootstrap = deferred<Response>();
+    let meCalls = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/v1/users/me")) {
+        meCalls += 1;
+        if (meCalls === 1) return bootstrap.promise;
+        return Response.json({ id: 7, username: "coach", email: "coach@example.com", is_active: true });
+      }
+      if (url.endsWith("/api/v1/login/access-token")) return Response.json({ access_token: "cookie-backed", token_type: "bearer" });
+      return anonymousResponse();
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/login?next=%2Fworkspace%2Ftasks");
+
+    await user.type(screen.getByLabelText("用户名或邮箱"), "coach");
+    await user.type(screen.getByLabelText("密码"), "practice123");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks"));
+    expect(await screen.findByText("coach")).toBeVisible();
+
+    await act(async () => {
+      bootstrap.resolve(anonymousResponse());
+      await bootstrap.promise;
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks");
+    expect(screen.getByText("coach")).toBeVisible();
+  });
+
   test("validates registration locally and surfaces a backend conflict", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       if (String(input).endsWith("/api/v1/register")) {
@@ -152,7 +297,14 @@ describe("authentication and protected routes", () => {
     const user = userEvent.setup();
     renderAt("/register");
 
-    await user.type(await screen.findByLabelText("用户名"), "ab");
+    expect(await screen.findByLabelText("用户名")).toHaveAttribute("required");
+    expect(screen.getByLabelText("用户名")).toHaveAttribute("maxlength", "50");
+    expect(screen.getByLabelText("邮箱")).toHaveAttribute("required");
+    expect(screen.getByLabelText("邮箱")).toHaveAttribute("maxlength", "255");
+    expect(screen.getByLabelText("密码")).toHaveAttribute("required");
+    expect(screen.getByLabelText("密码")).toHaveAttribute("maxlength", "128");
+
+    await user.type(screen.getByLabelText("用户名"), "ab");
     await user.type(screen.getByLabelText("邮箱"), "not-an-email");
     await user.type(screen.getByLabelText("密码"), "short");
     await user.click(screen.getByRole("button", { name: "创建账号" }));
@@ -168,5 +320,42 @@ describe("authentication and protected routes", () => {
     await user.click(screen.getByRole("button", { name: "创建账号" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("该用户名或邮箱已被注册");
+  });
+
+  test("shows localized required registration errors without calling the backend", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(anonymousResponse());
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/register");
+
+    await user.click(await screen.findByRole("button", { name: "创建账号" }));
+
+    expect(screen.getByText("请输入用户名")).toBeVisible();
+    expect(screen.getByText("请输入邮箱")).toBeVisible();
+    expect(screen.getByText("请输入密码")).toBeVisible();
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/v1/register", expect.anything());
+  });
+
+  test("maps backend registration field validation to localized field copy", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/api/v1/register")) {
+        return new Response(JSON.stringify({ detail: [{ loc: ["body", "username"], msg: "String should have at most 50 characters", type: "string_too_long" }] }), {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return anonymousResponse();
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/register");
+
+    await user.type(await screen.findByLabelText("用户名"), "coach");
+    await user.type(screen.getByLabelText("邮箱"), "coach@example.com");
+    await user.type(screen.getByLabelText("密码"), "practice123");
+    await user.click(screen.getByRole("button", { name: "创建账号" }));
+
+    expect(await screen.findByText("用户名不能超过 50 个字符")).toBeVisible();
+    expect(screen.queryByText("暂时无法完成请求，请稍后重试")).not.toBeInTheDocument();
   });
 });

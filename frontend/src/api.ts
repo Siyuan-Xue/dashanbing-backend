@@ -23,36 +23,53 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly fields: string[] = [],
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
-async function readError(response: Response) {
+async function readError(response: Response): Promise<{ message: string; fields: string[] }> {
   try {
     const payload = (await response.json()) as { detail?: unknown };
-    if (typeof payload.detail === "string") return payload.detail;
+    if (typeof payload.detail === "string") return { message: payload.detail, fields: [] };
     if (Array.isArray(payload.detail)) {
-      return payload.detail
-        .map((item) => (typeof item === "object" && item && "msg" in item ? String(item.msg) : ""))
-        .filter(Boolean)
-        .join("; ");
+      const details = payload.detail.filter((item): item is { msg?: unknown; loc?: unknown } => typeof item === "object" && item !== null);
+      const message = details.map((item) => typeof item.msg === "string" ? item.msg : "").filter(Boolean).join("; ");
+      const fields = details.flatMap((item) => Array.isArray(item.loc) ? item.loc.slice(-1).filter((field): field is string => typeof field === "string") : []);
+      if (message) return { message, fields };
     }
   } catch {
     // A non-JSON proxy error still receives a stable localized message in UI.
   }
-  return "Request failed";
+  return { message: "Request failed", fields: [] };
 }
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "include", ...init });
-  if (!response.ok) throw new ApiError(response.status, await readError(response));
+  if (!response.ok) {
+    const error = await readError(response);
+    throw new ApiError(response.status, error.message, error.fields);
+  }
   return response.json() as Promise<T>;
 }
 
+function isAuthUser(value: unknown): value is AuthUser {
+  if (typeof value !== "object" || value === null) return false;
+  const user = value as Record<string, unknown>;
+  return typeof user.id === "number"
+    && typeof user.username === "string"
+    && (typeof user.email === "string" || user.email === null)
+    && typeof user.is_active === "boolean";
+}
+
 export const authApi = {
-  me: () => jsonRequest<AuthUser>("/api/v1/users/me"),
+  me: async () => {
+    const user = await jsonRequest<unknown>("/api/v1/users/me");
+    if (!isAuthUser(user)) throw new ApiError(0, "Invalid user response");
+    return user;
+  },
   register: (registration: Registration) =>
     jsonRequest<AuthUser>("/api/v1/register", {
       method: "POST",
@@ -74,6 +91,9 @@ export const authApi = {
       method: "POST",
       credentials: "include",
     });
-    if (!response.ok) throw new ApiError(response.status, await readError(response));
+    if (!response.ok) {
+      const error = await readError(response);
+      throw new ApiError(response.status, error.message, error.fields);
+    }
   },
 };

@@ -57,3 +57,36 @@
 ## Known handoff note
 
 The repository's `openapi.json` predates Tasks 1–3. `frontend/src/api.ts` therefore keeps the generated client for existing/generated contracts and uses a narrow manually typed auth boundary for current endpoints. Task 6 remains responsible for final OpenAPI export and generated type refresh.
+
+## Review fix round 1
+
+### Fixes
+
+- Reworked auth bootstrap into a generation-guarded state transition. Only a real 401 becomes anonymous; network, 5xx, invalid JSON, and malformed user payloads become an operational auth error. Protected routes now show localized error/retry UI, and pending bootstrap exposes localized status text to assistive technology.
+- Invalidated pending bootstrap work when login, registration, logout, or a newer refresh starts. A deferred-response regression proves a late anonymous bootstrap cannot overwrite a completed login or keep the redirect destination loading.
+- Added light/dark `--on-brand` tokens and verified both primary and hover pairs at WCAG AA contrast. Dark mode retains the existing lavender brand colors with dark ink rather than failing white text.
+- Added a self-hosted, CSP-compatible head bootstrap (`/theme-bootstrap.js`) so stored/system theme is applied before the app and imported CSS render. The typed runtime theme helper keeps provider transitions and computed action tokens coherent.
+- Mirrored backend registration constraints exactly: required username/email/password, maxima 50/255/128, existing minima, localized required/max errors, and localized FastAPI 422 field mapping.
+- Localized the navigation landmark, brand/home accessible names and visible hierarchy, preview label, document title, and meta description. Metadata updates on locale changes and restores from persisted locale.
+- Replaced the nonfunctional preview play button with an `aria-hidden` decorative status glyph.
+- Expanded Playwright from static assertions to actual theme/locale clicks and reloads, client routing, deterministic mocked login plus redirect-back, and mobile action/overflow checks. The browser run also caught and fixed hidden mobile login/account accessible names.
+
+### RED evidence
+
+1. Component regressions before fixes: `pnpm test -- --reporter=verbose` produced `10 failed, 4 passed`. Failures directly covered first-render theme, missing contrast token, untranslated names/metadata, dead preview control, inaccessible loading status, auth operational errors, stale bootstrap login race, missing registration constraints, and generic 422 handling. A malformed `/users/me` case was added to the same operational-error matrix before implementation.
+2. First interactive browser run: `pnpm test:e2e` produced `5 failed, 4 passed, 1 skipped`. Besides two deliberately strict locator issues, mobile Chromium proved that CSS-hidden login/account text removed its accessible name; protected login therefore also lacked a visible named account action.
+
+### GREEN evidence
+
+- Focused component suite: `pnpm test` → `1 passed` file, `17 passed` tests.
+- Interactive browser suite: `PLAYWRIGHT_BROWSERS_PATH=/private/tmp/dashanbing-playwright-browsers-task4 pnpm test:e2e` → `9 passed, 1 intentionally skipped` across desktop Chromium and iPhone 13 Chromium. The skip is the desktop instance of a mobile-only geometry assertion; all shared behavior runs in both projects.
+- TypeScript: `pnpm run typecheck` → exit 0.
+- Production: `pnpm run build` → exit 0, Vite `56 modules transformed`, output emitted to `app/frontend`.
+- Diff hygiene: `git diff --check` → exit 0; generated schema remained unchanged.
+
+### Review self-check
+
+- Auth error classification is based on `ApiError.status === 401`; response-shape validation prevents a malformed 200 from masquerading as an authenticated user.
+- Every async auth state write is conditional on the current generation, including `finally`, so stale requests cannot clear a newer loading/session state.
+- Registration changes stop at the current auth contract; no workspace or API-center UI from Tasks 5/6 was added.
+- The external head theme bootstrap uses only same-origin JavaScript and no inline script, nonce, remote asset, or third-party dependency. Playwright used the already provisioned local Chromium cache at the path shown above; no unrelated browser was downloaded.

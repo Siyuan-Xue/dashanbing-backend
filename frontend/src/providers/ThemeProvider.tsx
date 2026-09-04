@@ -1,21 +1,18 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { applyTheme, bootstrapTheme } from "../theme";
+import type { Theme } from "../theme";
 
-export type Theme = "light" | "dark";
 type ThemeContextValue = { theme: Theme; setTheme: (theme: Theme) => void; toggleTheme: () => void };
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function initialTheme(): Theme {
-  const stored = localStorage.getItem("dashanbing-theme");
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(initialTheme);
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem("dashanbing-theme", theme);
-  }, [theme]);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const existing = document.documentElement.dataset.theme;
+    if (existing === "light" || existing === "dark") return existing;
+    return bootstrapTheme();
+  });
+  useEffect(() => applyTheme(theme), [theme]);
   const value = useMemo(() => ({ theme, setTheme, toggleTheme: () => setTheme((current) => current === "dark" ? "light" : "dark") }), [theme]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

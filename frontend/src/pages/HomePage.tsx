@@ -22,7 +22,7 @@ function WorkspacePreview() {
             <div className="court-grid" aria-hidden="true"><i/><i/><i/><i/></div>
             <span className="player-dot one"/><span className="player-dot two"/><span className="player-dot three"/>
             <span className="tracking-line"/>
-            <button aria-label="播放复盘预览" type="button"><Icon name="play" size={18}/></button>
+            <span className="preview-play" aria-hidden="true"><Icon name="play" size={18}/></span>
             <small>CAM 03 · 00:42</small>
           </div>
           <div className="preview-timeline"><span style={{ width: "68%" }}/><i style={{ left: "26%" }}/><i style={{ left: "51%" }}/><i style={{ left: "76%" }}/></div>

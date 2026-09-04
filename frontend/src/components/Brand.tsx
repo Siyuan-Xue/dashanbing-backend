@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useLocale } from "../providers/LocaleProvider";
 
 export function BrandMark({ size = 38, label }: { size?: number; label?: string }) {
   return (
@@ -14,5 +15,6 @@ export function BrandMark({ size = 38, label }: { size?: number; label?: string 
 }
 
 export function Brand() {
-  return <Link className="brand" to="/" aria-label="大山冰首页"><BrandMark label="大山冰标志"/><span className="brand-name"><strong>大山冰</strong><small>DaShanBing</small></span></Link>;
+  const { t } = useLocale();
+  return <Link className="brand" to="/" aria-label={t("brandHome")}><BrandMark label={t("brandMark")}/><span className="brand-name"><strong>{t("brandPrimary")}</strong><small>{t("brandSecondary")}</small></span></Link>;
 }

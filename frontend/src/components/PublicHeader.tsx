@@ -15,7 +15,7 @@ export function PublicHeader() {
     <header className="public-header">
       <div className="header-inner">
         <Brand />
-        <nav className="public-nav" aria-label="主导航">
+        <nav className="public-nav" aria-label={t("mainNav")}>
           <NavLink to="/" end>{t("home")}</NavLink>
           <Link to="/api/docs">{t("api")}</Link>
         </nav>
@@ -26,7 +26,7 @@ export function PublicHeader() {
           <button className="text-button language-button" type="button" onClick={toggleLocale} aria-label={t("language")}><Icon name="language"/><span>{t("language")}</span></button>
           <a className="icon-button github-button" href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label={t("github")} title={t("github")}><Icon name="github"/></a>
           <Link className="button button-outline header-cta" to="/workspace/new">{t("onlineUse")}</Link>
-          {user ? <Link className="account-link" to="/workspace/settings"><Icon name="user"/><span>{user.username}</span></Link> : <Link className="login-link" to="/login"><Icon name="user"/><span>{t("login")}</span></Link>}
+          {user ? <Link className="account-link" to="/workspace/settings" aria-label={user.username}><Icon name="user"/><span>{user.username}</span></Link> : <Link className="login-link" to="/login" aria-label={t("login")}><Icon name="user"/><span>{t("login")}</span></Link>}
         </div>
       </div>
     </header>

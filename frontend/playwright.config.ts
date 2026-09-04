@@ -6,6 +6,7 @@ export default defineConfig({
   reporter: "line",
   use: {
     baseURL: "http://127.0.0.1:5173",
+    colorScheme: "light",
     trace: "retain-on-failure",
   },
   projects: [

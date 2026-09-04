@@ -1,6 +1,8 @@
 export const copy = {
   zh: {
     home: "首页", api: "API", github: "GitHub", onlineUse: "在线使用", login: "登录", register: "注册", account: "账户",
+    mainNav: "主导航", brandHome: "大山冰首页", brandMark: "大山冰标志", brandPrimary: "大山冰", brandSecondary: "DaShanBing",
+    metaTitle: "大山冰 · 多机位篮球训练复盘", metaDescription: "大山冰将多路篮球训练视频转化为可复盘的动作与投篮洞察。",
     themeLight: "切换到浅色主题", themeDark: "切换到深色主题", language: "English",
     heroEyebrow: "多机位篮球训练复盘", heroTitle: "让多路训练视频，变成可复盘的篮球洞察",
     heroBody: "一次提交五路视频，系统会在后台排队完成分析。你可以离开页面，训练结束后稍后回来继续查看进度与证据。",
@@ -25,10 +27,15 @@ export const copy = {
     noAccount: "还没有账号？", hasAccount: "已经有账号？", goRegister: "立即注册", goLogin: "返回登录",
     identityRequired: "请输入用户名或邮箱", usernameShort: "用户名至少需要 3 个字符", emailInvalid: "请输入有效的邮箱地址",
     passwordShort: "密码至少需要 8 个字符", invalidCredentials: "用户名、邮箱或密码不正确", duplicateIdentity: "该用户名或邮箱已被注册",
-    requestFailed: "暂时无法完成请求，请稍后重试", routePreparing: "工作台基础已就绪", routePreparingBody: "此受保护页面将在下一阶段接入完整工作流。",
+    usernameRequired: "请输入用户名", usernameLong: "用户名不能超过 50 个字符", emailRequired: "请输入邮箱", emailLong: "邮箱不能超过 255 个字符",
+    passwordRequired: "请输入密码", passwordLong: "密码不能超过 128 个字符", requestFailed: "暂时无法完成请求，请稍后重试",
+    authChecking: "正在确认登录状态", authCheckFailed: "暂时无法确认登录状态", authCheckFailedBody: "网络或服务出现问题。请重试，我们不会把这次错误当作退出登录。", retry: "重试",
+    routePreparing: "工作台基础已就绪", routePreparingBody: "此受保护页面将在下一阶段接入完整工作流。",
   },
   en: {
     home: "Home", api: "API", github: "GitHub", onlineUse: "Online Use", login: "Log in", register: "Sign up", account: "Account",
+    mainNav: "Main navigation", brandHome: "DaShanBing home", brandMark: "DaShanBing logo", brandPrimary: "DaShanBing", brandSecondary: "大山冰",
+    metaTitle: "DaShanBing · Multi-camera basketball review", metaDescription: "DaShanBing turns multi-camera basketball training video into reviewable action and shooting insight.",
     themeLight: "Switch to light theme", themeDark: "Switch to dark theme", language: "中文",
     heroEyebrow: "Multi-camera basketball review", heroTitle: "Turn multi-angle training video into basketball insight you can review",
     heroBody: "Submit five videos once and analysis continues in the background queue. Leave the page, then come back later to review progress and evidence.",
@@ -53,7 +60,10 @@ export const copy = {
     noAccount: "New to DaShanBing?", hasAccount: "Already have an account?", goRegister: "Create one", goLogin: "Back to login",
     identityRequired: "Enter your username or email", usernameShort: "Username must be at least 3 characters", emailInvalid: "Enter a valid email address",
     passwordShort: "Password must be at least 8 characters", invalidCredentials: "The username, email, or password is incorrect",
-    duplicateIdentity: "That username or email is already registered", requestFailed: "We could not complete the request. Try again shortly.",
+    duplicateIdentity: "That username or email is already registered", usernameRequired: "Enter a username", usernameLong: "Username cannot exceed 50 characters",
+    emailRequired: "Enter an email address", emailLong: "Email cannot exceed 255 characters", passwordRequired: "Enter a password", passwordLong: "Password cannot exceed 128 characters",
+    requestFailed: "We could not complete the request. Try again shortly.", authChecking: "Checking your sign-in status",
+    authCheckFailed: "We could not confirm your sign-in status", authCheckFailedBody: "There may be a network or service problem. Retry without being signed out.", retry: "Retry",
     routePreparing: "Workspace foundation ready", routePreparingBody: "The complete workflow for this protected page arrives in the next phase.",
   },
 } as const;
