@@ -129,3 +129,44 @@ def test_task_input_migration_records_staged_upload_metadata(tmp_path: Path, mon
     }
     assert set(primary_key) == {"task_id", "slot"}
     assert foreign_keys[0]["referred_table"] == "analysis"
+
+
+def test_api_key_migration_creates_owner_scoped_non_plaintext_credentials(
+    tmp_path: Path,
+    monkeypatch,
+):
+    """Catches deployments missing the API-key verifier and lifecycle metadata."""
+    database_url = f"sqlite:///{tmp_path / 'api-key-migration.db'}"
+    monkeypatch.setenv("BASKETBALL_DATABASE_URL", database_url)
+    monkeypatch.setenv("BASKETBALL_ADMIN_USERNAME", "bootstrap")
+    config = _alembic_config()
+    command.upgrade(config, "20260903_0001")
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text("INSERT INTO user (id, username, hashed_password) VALUES (13, 'bootstrap', 'hash')")
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as connection:
+        columns = {column["name"]: column for column in inspect(connection).get_columns("api_key")}
+        foreign_keys = inspect(connection).get_foreign_keys("api_key")
+        indexes = inspect(connection).get_indexes("api_key")
+
+    assert set(columns) == {
+        "id",
+        "owner_id",
+        "name",
+        "digest",
+        "prefix",
+        "last_four",
+        "created_at",
+        "expires_at",
+        "last_used_at",
+        "revoked_at",
+    }
+    assert columns["owner_id"]["nullable"] is False
+    assert columns["digest"]["nullable"] is False
+    assert foreign_keys[0]["referred_table"] == "user"
+    assert any(index["column_names"] == ["digest"] and index["unique"] for index in indexes)

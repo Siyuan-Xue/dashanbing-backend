@@ -50,6 +50,81 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class ApiKey(SQLModel, table=True):
+    __tablename__ = "api_key"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True, max_length=36)
+    owner_id: int = Field(foreign_key="user.id", nullable=False, index=True)
+    name: str = Field(min_length=1, max_length=80)
+    digest: str = Field(max_length=64, nullable=False, unique=True, index=True)
+    prefix: str = Field(max_length=16, nullable=False)
+    last_four: str = Field(max_length=4, nullable=False)
+    created_at: datetime = Field(default_factory=utc_now, nullable=False)
+    expires_at: datetime = Field(nullable=False, index=True)
+    last_used_at: datetime | None = Field(default=None)
+    revoked_at: datetime | None = Field(default=None, index=True)
+
+
+class ApiKeyCreate(SQLModel):
+    name: str = Field(min_length=1, max_length=80)
+    expires_in_days: int = Field(default=90, ge=1, le=3650)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
+class ApiKeyPublic(SQLModel):
+    id: str
+    name: str
+    prefix: str
+    last_four: str
+    status: Literal["active", "expired", "revoked"]
+    created_at: datetime
+    expires_at: datetime
+    last_used_at: datetime | None
+    revoked_at: datetime | None
+
+    @field_serializer(
+        "created_at",
+        "expires_at",
+        "last_used_at",
+        "revoked_at",
+        when_used="json",
+    )
+    def serialize_api_key_datetime(self, value: datetime | None) -> str | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+class ApiKeyCreated(ApiKeyPublic):
+    secret: str = Field(repr=False)
+
+
+class UsageQuota(SQLModel):
+    used: int = Field(ge=0)
+    limit: int = Field(gt=0)
+
+
+class RetentionDescriptions(SQLModel):
+    drafts: str
+    enrollment_data: str
+    raw_inputs: str
+    results: str
+
+
+class AccountUsage(SQLModel):
+    submitted_today: UsageQuota
+    unfinished_tasks: UsageQuota
+    drafts: UsageQuota
+    active_api_keys: UsageQuota
+    retention: RetentionDescriptions
+
+
 class Analysis(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     title: str = Field(min_length=1, max_length=120)

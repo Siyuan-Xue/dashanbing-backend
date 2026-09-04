@@ -1,4 +1,7 @@
+import hashlib
+import hmac
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -14,6 +17,7 @@ DUMMY_PASSWORD_HASH = (
 )
 password_hash = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token", auto_error=False)
+API_KEY_PREFIX = "dsb_live_"
 
 
 def normalize_identity(value: str) -> str:
@@ -26,6 +30,14 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return password_hash.verify(password, hashed_password)
+
+
+def create_api_key_secret() -> str:
+    return f"{API_KEY_PREFIX}{secrets.token_urlsafe(32)}"
+
+
+def api_key_digest(secret: str, key: str) -> str:
+    return hmac.new(key.encode(), secret.encode(), hashlib.sha256).hexdigest()
 
 
 def create_access_token(

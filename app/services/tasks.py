@@ -207,7 +207,20 @@ def enforce_daily_submission_quota(
     session: Session,
     owner_id: int,
 ) -> None:
-    start, end = _utc_day_bounds()
+    if count_daily_submissions(session, owner_id) >= MAX_DAILY_SUBMISSIONS:
+        raise HTTPException(
+            status_code=429,
+            detail="Daily submission quota exceeded (maximum 20 per UTC day)",
+        )
+
+
+def count_daily_submissions(
+    session: Session,
+    owner_id: int,
+    *,
+    now: datetime | None = None,
+) -> int:
+    start, end = _utc_day_bounds(now)
     event_count = session.exec(
         select(func.count())
         .select_from(SubmissionEvent)
@@ -230,11 +243,7 @@ def enforce_daily_submission_quota(
             Analysis.id.not_in(ledger_task_ids),
         )
     ).one()
-    if event_count + unledgered_count >= MAX_DAILY_SUBMISSIONS:
-        raise HTTPException(
-            status_code=429,
-            detail="Daily submission quota exceeded (maximum 20 per UTC day)",
-        )
+    return event_count + unledgered_count
 
 
 def record_submission(

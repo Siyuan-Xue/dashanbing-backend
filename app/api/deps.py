@@ -1,10 +1,12 @@
+from datetime import datetime, timezone
+
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import User
-from app.security import JWT_ALGORITHM
+from app.models import ApiKey, User
+from app.security import API_KEY_PREFIX, JWT_ALGORITHM, api_key_digest
 
 
 def _unauthorized() -> HTTPException:
@@ -16,12 +18,15 @@ def _unauthorized() -> HTTPException:
 
 
 def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
-    token = request.cookies.get("access_token")
     authorization = request.headers.get("Authorization", "")
-    if token is None and authorization.lower().startswith("bearer "):
+    if authorization.lower().startswith("bearer "):
         token = authorization[7:].strip()
+    else:
+        token = request.cookies.get("access_token")
     if not token:
         raise _unauthorized()
+    if token.startswith(API_KEY_PREFIX):
+        return _get_api_key_user(request, session, token)
     try:
         payload = jwt.decode(
             token,
@@ -38,3 +43,25 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
     if user is None or not user.is_active:
         raise _unauthorized()
     return user
+
+
+def _get_api_key_user(request: Request, session: Session, secret: str) -> User:
+    digest = api_key_digest(secret, request.app.state.settings.jwt_secret_key)
+    now = datetime.now(timezone.utc)
+    session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+    api_key = session.exec(select(ApiKey).where(ApiKey.digest == digest)).first()
+    if api_key is None or api_key.revoked_at is not None or _aware(api_key.expires_at) <= now:
+        session.rollback()
+        raise _unauthorized()
+    user = session.get(User, api_key.owner_id)
+    if user is None or not user.is_active:
+        session.rollback()
+        raise _unauthorized()
+    api_key.last_used_at = now
+    session.add(api_key)
+    session.commit()
+    return user
+
+
+def _aware(value: datetime) -> datetime:
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
