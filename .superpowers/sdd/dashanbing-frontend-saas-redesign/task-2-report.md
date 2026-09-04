@@ -217,3 +217,70 @@ Result: full suite `112 passed, 7 warnings in 8.75s`; whitespace validation exit
 - Recovery chooses the newest marker per slot, so a stale committed marker cannot make a newer pending replacement look committed. It preserves the previous rule for old pending-only artifacts according to task state.
 - Legacy delete now uses the same lock ordering, owner-scoped reload, and predicate serialization as new delete. The race test verifies ordering rather than only checking static status values.
 - No quota, public status, worker/result/media, API-key, or frontend behavior changed in this round.
+
+## Fix Round 3 — database-correlated upload commit evidence
+
+### Finding fixed
+
+- Added nullable private `TaskInput.upload_operation_id` metadata and Alembic revision `20260904_0006`. Every staged install already has a UUID in its filesystem marker name; the upload route now persists that same UUID with the filename, size, path, validation state, and draft transition in the single metadata transaction.
+- Startup recovery now loads each task input's committed operation UUID. If publishing `.pending` to `.committed` failed after the database commit, recovery recognizes a newest pending marker whose UUID matches the database row as committed, preserves the new destination, and removes the old backup and artifacts even if the task was later canceled.
+- A pending marker whose UUID does not match the database row remains uncommitted. Existing interrupted-upload recovery therefore still restores the prior file and metadata rather than accepting an install whose database transaction did not commit.
+- Legacy/new deletion behavior is unchanged in this round.
+
+### Covering tests
+
+- `test_restart_uses_committed_metadata_when_marker_publication_fails`
+- Extended `test_task_input_migration_records_staged_upload_metadata` to require the deployed `upload_operation_id` column.
+- Preserved recovery coverage: `test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel`, `test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts`, and `test_app_restart_recovers_upload_artifacts_when_worker_is_disabled`. The last test now includes a pending marker whose UUID differs from the previously committed row, proving restart still rolls the uncommitted file back.
+
+### RED evidence
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_restart_uses_committed_metadata_when_marker_publication_fails \
+  tests/test_migrations.py::test_task_input_migration_records_staged_upload_metadata
+```
+
+Result: `2 failed, 2 warnings in 0.77s`. The behavioral regression restored `old` over the committed `new` file after cancellation/restart, and the migration assertion showed `upload_operation_id` was absent.
+
+### GREEN evidence
+
+The same focused command passed: `2 passed, 2 warnings in 0.70s`.
+
+Recovery branch verification:
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_restart_uses_committed_metadata_when_marker_publication_fails \
+  tests/test_tasks_api.py::test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel \
+  tests/test_tasks_api.py::test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts \
+  tests/test_supervisor.py::test_app_restart_recovers_upload_artifacts_when_worker_is_disabled
+```
+
+Result: `4 passed in 0.69s`.
+
+Covering integration command:
+
+```sh
+.venv/bin/pytest -q tests/test_tasks_api.py tests/test_migrations.py tests/test_supervisor.py
+```
+
+Result: `31 passed, 7 warnings in 4.06s`.
+
+Full verification:
+
+```sh
+.venv/bin/pytest -q
+.venv/bin/python -m compileall -q app migrations
+.venv/bin/alembic heads
+git diff --check
+```
+
+Result: full suite `113 passed, 7 warnings in 8.58s`; compile and whitespace checks exited 0, and Alembic reports the single head `20260904_0006`. All warnings remain the pre-existing Alembic `path_separator` deprecation.
+
+### Fix-round self-review
+
+- The operation UUID is backend-only and is intentionally omitted from `TaskInputPublic`; no API response contract changed.
+- UUID comparison uses the newest marker for a slot, preventing an older stranded committed/pending operation from classifying a newer uncommitted install.
+- Existing migrated and preset inputs have a null operation UUID and retain status-based legacy recovery behavior. New staged uploads use 32-character UUID hex values matching the new column bound.
+- The operation UUID is written before the database commit and is never updated during marker publication, so recovery evidence does not depend on the fallible post-commit rename.

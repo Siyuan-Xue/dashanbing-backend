@@ -55,15 +55,22 @@ class AnalysisSupervisor:
             analyses = session.exec(select(Analysis)).all()
             changed = False
             for analysis in analyses:
-                valid_slots = set(
+                inputs = list(
                     session.exec(
-                        select(TaskInput.slot).where(TaskInput.task_id == analysis.id)
+                        select(TaskInput).where(TaskInput.task_id == analysis.id)
                     ).all()
                 )
+                valid_slots = {item.slot for item in inputs}
+                committed_operations = {
+                    item.slot: item.upload_operation_id
+                    for item in inputs
+                    if item.upload_operation_id is not None
+                }
                 self.app.state.storage.recover_task_input_uploads(
                     analysis.id,
                     status=analysis.status,
                     valid_slots=valid_slots,
+                    committed_operations=committed_operations,
                 )
                 if analysis.status == AnalysisStatus.uploading:
                     analysis.status = AnalysisStatus.draft

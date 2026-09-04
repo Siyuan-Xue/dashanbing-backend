@@ -80,6 +80,7 @@ class TaskInput(SQLModel, table=True):
     original_filename: str = Field(max_length=255)
     byte_size: int = Field(ge=0)
     validation_state: str = Field(default="valid", max_length=32)
+    upload_operation_id: str | None = Field(default=None, max_length=32)
     path: str = Field(sa_column=Column(Text, nullable=False))
     created_at: datetime = Field(default_factory=utc_now, nullable=False)
     updated_at: datetime = Field(default_factory=utc_now, nullable=False)

@@ -262,6 +262,7 @@ def upload_task_input(
                 original_filename=Path(file.filename or "upload").name[:255],
                 byte_size=installed.byte_size,
                 validation_state="valid",
+                upload_operation_id=installed.operation_id,
                 path=str(installed.destination),
                 created_at=now,
                 updated_at=now,
@@ -270,6 +271,7 @@ def upload_task_input(
             item.original_filename = Path(file.filename or "upload").name[:255]
             item.byte_size = installed.byte_size
             item.validation_state = "valid"
+            item.upload_operation_id = installed.operation_id
             item.path = str(installed.destination)
             item.updated_at = now
         task.status = "draft"

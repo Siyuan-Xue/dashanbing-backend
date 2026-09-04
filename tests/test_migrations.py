@@ -122,6 +122,7 @@ def test_task_input_migration_records_staged_upload_metadata(tmp_path: Path, mon
         "original_filename",
         "byte_size",
         "validation_state",
+        "upload_operation_id",
         "path",
         "created_at",
         "updated_at",

@@ -623,6 +623,46 @@ def test_restart_keeps_committed_replacement_after_finalize_interruption_and_can
     assert item.byte_size == len(_mkv(b"new"))
 
 
+def test_restart_uses_committed_metadata_when_marker_publication_fails(
+    client: TestClient,
+    monkeypatch,
+):
+    task_id = _create(client).json()["id"]
+    assert _upload(client, task_id, "cam_01", _mkv(b"old"), "old.mkv").status_code == 200
+    input_root = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
+    destination = input_root / "cam_01.mkv"
+
+    def fail_commit_marker(_installed) -> None:
+        raise OSError("simulated committed-marker rename failure")
+
+    monkeypatch.setattr(
+        client.app.state.storage,
+        "mark_task_input_committed",
+        fail_commit_marker,
+    )
+    replaced = _upload(client, task_id, "cam_01", _mkv(b"new"), "new.mkv")
+    assert replaced.status_code == 200
+    assert destination.read_bytes() == _mkv(b"new")
+    assert list(input_root.glob(".cam_01-*.pending"))
+
+    canceled = client.post(f"/api/v1/tasks/{task_id}/cancel")
+    assert canceled.status_code == 200
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert destination.read_bytes() == _mkv(b"new")
+    assert [path for path in input_root.iterdir() if path.name.startswith(".cam_01")] == []
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "canceled"
+    assert item.original_filename == "new.mkv"
+    assert item.byte_size == len(_mkv(b"new"))
+    assert item.upload_operation_id is not None
+
+
 def test_legacy_upload_does_not_hold_the_database_writer_during_media_io(
     client: TestClient,
     monkeypatch,

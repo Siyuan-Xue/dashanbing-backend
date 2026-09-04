@@ -101,6 +101,7 @@ def test_app_restart_recovers_upload_artifacts_when_worker_is_disabled(tmp_path:
         destination.replace(backup)
         destination.write_bytes(b"new")
         (root / ".cam_01-restart.tmp").write_bytes(b"partial")
+        (root / ".cam_01-restart.pending").write_text("cam_01", encoding="utf-8")
         with Session(app.state.engine) as session:
             session.add(task)
             session.add(
@@ -110,6 +111,7 @@ def test_app_restart_recovers_upload_artifacts_when_worker_is_disabled(tmp_path:
                     original_filename="old.mkv",
                     byte_size=3,
                     validation_state="valid",
+                    upload_operation_id="prior-operation",
                     path=str(destination),
                 )
             )

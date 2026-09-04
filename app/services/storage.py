@@ -50,6 +50,7 @@ class InstalledUpload:
     byte_size: int
     backup: Path | None
     marker: Path
+    operation_id: str
 
 
 def looks_like_video_header(header: bytes) -> bool:
@@ -220,7 +221,13 @@ class AnalysisStorage:
                     destination.replace(backup)
                     installed_backup = backup
                 temporary.replace(destination)
-                return InstalledUpload(destination, byte_size, installed_backup, marker)
+                return InstalledUpload(
+                    destination,
+                    byte_size,
+                    installed_backup,
+                    marker,
+                    operation_id,
+                )
             except Exception:
                 temporary.unlink(missing_ok=True)
                 if backup.exists():
@@ -238,6 +245,7 @@ class AnalysisStorage:
             byte_size=upload.byte_size,
             backup=upload.backup,
             marker=committed_marker,
+            operation_id=upload.operation_id,
         )
 
     @staticmethod
@@ -259,6 +267,7 @@ class AnalysisStorage:
         *,
         status: str,
         valid_slots: set[str],
+        committed_operations: dict[str, str] | None = None,
     ) -> None:
         input_root = self.analysis_root(analysis_id) / "input"
         if not input_root.is_dir():
@@ -276,8 +285,16 @@ class AnalysisStorage:
                 key=lambda path: path.stat().st_mtime_ns,
                 default=None,
             )
+            marker_operation_id = None
+            if latest_marker is not None:
+                marker_operation_id = latest_marker.name.removeprefix(
+                    f".{slot}-"
+                ).removesuffix(latest_marker.suffix)
             committed = (
                 latest_marker is not None and latest_marker.suffix == ".committed"
+            ) or (
+                marker_operation_id is not None
+                and marker_operation_id == (committed_operations or {}).get(slot)
             ) or status not in {"uploading", "canceled"}
             destination = input_root / filename
             if committed:
