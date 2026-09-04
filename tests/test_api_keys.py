@@ -1,16 +1,17 @@
 import hashlib
 import hmac
-from datetime import datetime, timezone
+import threading
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import inspect, text
+from sqlalchemy import event, inspect, text
 from sqlmodel import Session
 
 from app.config import AppSettings
 from app.main import create_app
-from app.models import Analysis, ApiKeyCreated, SubmissionEvent
+from app.models import Analysis, ApiKey, ApiKeyCreated, SubmissionEvent
 
 
 @pytest.fixture
@@ -221,6 +222,130 @@ def test_api_key_authenticates_task_access_and_updates_last_used(client: TestCli
             text("SELECT last_used_at FROM api_key WHERE id = :id").bindparams(id=key["id"])
         ).one()
     assert last_used_at is not None
+
+
+def test_api_key_expiring_while_auth_waits_for_writer_lock_is_rejected(client: TestClient):
+    """Catches checking expiry against a timestamp captured before lock contention."""
+    key = _create_key(client, "Contended key")
+    client.cookies.clear()
+    lock_attempted = threading.Event()
+    result = {}
+
+    def notice_write_reservation(
+        _connection,
+        _cursor,
+        statement: str,
+        _parameters,
+        _context,
+        _executemany,
+    ) -> None:
+        if statement.strip().upper() == "BEGIN IMMEDIATE":
+            lock_attempted.set()
+
+    locking_session = Session(client.app.state.engine)
+    locking_session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+    event.listen(client.app.state.engine, "before_cursor_execute", notice_write_reservation)
+
+    def authenticate() -> None:
+        result["response"] = client.get(
+            "/api/v1/users/me",
+            headers={"Authorization": f"Bearer {key['secret']}"},
+        )
+
+    thread = threading.Thread(target=authenticate)
+    try:
+        thread.start()
+        assert lock_attempted.wait(timeout=3)
+        expiry_boundary = datetime.now(timezone.utc)
+        stored_key = locking_session.get(ApiKey, key["id"])
+        assert stored_key is not None
+        stored_key.expires_at = expiry_boundary
+        stored_key.last_used_at = expiry_boundary
+        locking_session.add(stored_key)
+        locking_session.commit()
+        thread.join(timeout=3)
+    finally:
+        event.remove(client.app.state.engine, "before_cursor_execute", notice_write_reservation)
+        if locking_session.in_transaction():
+            locking_session.rollback()
+        locking_session.close()
+
+    assert not thread.is_alive()
+    assert result["response"].status_code == 401
+    with Session(client.app.state.engine) as session:
+        stored_key = session.get(ApiKey, key["id"])
+        persisted_last_used = stored_key.last_used_at
+    if persisted_last_used.tzinfo is None:
+        persisted_last_used = persisted_last_used.replace(tzinfo=timezone.utc)
+    assert persisted_last_used == expiry_boundary
+
+
+def test_api_key_last_used_timestamp_never_moves_backward(client: TestClient):
+    """Catches a delayed or clock-skewed authentication overwriting newer use metadata."""
+    key = _create_key(client, "Monotonic key")
+    future_last_used = datetime.now(timezone.utc).replace(microsecond=0) + timedelta(days=1)
+    with Session(client.app.state.engine) as session:
+        stored_key = session.get(ApiKey, key["id"])
+        stored_key.last_used_at = future_last_used
+        session.add(stored_key)
+        session.commit()
+
+    client.cookies.clear()
+    response = client.get(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {key['secret']}"},
+    )
+
+    assert response.status_code == 200
+    with Session(client.app.state.engine) as session:
+        stored_key = session.get(ApiKey, key["id"])
+        persisted_last_used = stored_key.last_used_at
+    if persisted_last_used.tzinfo is None:
+        persisted_last_used = persisted_last_used.replace(tzinfo=timezone.utc)
+    assert persisted_last_used == future_last_used
+
+
+def test_api_key_in_access_token_cookie_is_never_accepted(client: TestClient):
+    """Catches treating an ambient browser cookie as API-key bearer authentication."""
+    key = _create_key(client, "Cookie key")
+    client.cookies.clear()
+    client.cookies.set("access_token", key["secret"], path="/")
+
+    response = client.get("/api/v1/users/me")
+
+    assert response.status_code == 401
+
+
+def test_any_malformed_authorization_header_rejects_without_cookie_fallback(
+    client: TestClient,
+):
+    """Catches malformed explicit credentials silently falling back to a valid cookie."""
+    login = client.post(
+        "/api/v1/login/access-token",
+        data={"username": "admin", "password": "correct-password"},
+    )
+    assert login.status_code == 200
+    jwt_token = login.json()["access_token"]
+    malformed_headers = [
+        "",
+        "Basic Zm9vOmJhcg==",
+        "Bearer",
+        "Bearer ",
+        "Bearer not-a-jwt",
+        f"Bearer  {jwt_token}",
+        f"Bearer\t{jwt_token}",
+    ]
+
+    statuses = [
+        client.get(
+            "/api/v1/users/me",
+            headers={"Authorization": authorization},
+        ).status_code
+        for authorization in malformed_headers
+    ]
+
+    assert statuses == [401] * len(malformed_headers)
+    assert client.get("/api/v1/users/me").status_code == 200
 
 
 def test_account_usage_uses_owner_scoped_server_side_counts(client: TestClient):

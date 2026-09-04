@@ -18,15 +18,17 @@ def _unauthorized() -> HTTPException:
 
 
 def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
-    authorization = request.headers.get("Authorization", "")
-    if authorization.lower().startswith("bearer "):
-        token = authorization[7:].strip()
+    authorization = request.headers.get("Authorization")
+    if authorization is not None:
+        token = _bearer_token(authorization)
+        if token is None:
+            raise _unauthorized()
+        if token.startswith(API_KEY_PREFIX):
+            return _get_api_key_user(request, session, token)
     else:
         token = request.cookies.get("access_token")
     if not token:
         raise _unauthorized()
-    if token.startswith(API_KEY_PREFIX):
-        return _get_api_key_user(request, session, token)
     try:
         payload = jwt.decode(
             token,
@@ -45,11 +47,20 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
     return user
 
 
+def _bearer_token(authorization: str) -> str | None:
+    if len(authorization) < 8 or authorization[:7].lower() != "bearer ":
+        return None
+    token = authorization[7:]
+    if not token or any(character.isspace() for character in token):
+        return None
+    return token
+
+
 def _get_api_key_user(request: Request, session: Session, secret: str) -> User:
     digest = api_key_digest(secret, request.app.state.settings.jwt_secret_key)
-    now = datetime.now(timezone.utc)
     session.connection().exec_driver_sql("BEGIN IMMEDIATE")
     api_key = session.exec(select(ApiKey).where(ApiKey.digest == digest)).first()
+    now = datetime.now(timezone.utc)
     if api_key is None or api_key.revoked_at is not None or _aware(api_key.expires_at) <= now:
         session.rollback()
         raise _unauthorized()
@@ -57,8 +68,9 @@ def _get_api_key_user(request: Request, session: Session, secret: str) -> User:
     if user is None or not user.is_active:
         session.rollback()
         raise _unauthorized()
-    api_key.last_used_at = now
-    session.add(api_key)
+    if api_key.last_used_at is None or _aware(api_key.last_used_at) < now:
+        api_key.last_used_at = now
+        session.add(api_key)
     session.commit()
     return user
 

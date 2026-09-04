@@ -94,3 +94,59 @@ Result: compile and whitespace checks exited 0; the complete Python suite passed
 - Usage values are calculated on the server and filtered by the authenticated owner. Deleted submitted tasks remain counted through immutable ledger rows, matching quota enforcement.
 - The daily-quota enforcement function now delegates to the same counting helper used by account usage, preventing the UI and admission logic from drifting.
 - No task, worker, result/media, upload, retention-deletion, legacy response, or frontend behavior was otherwise changed.
+
+## Review Fix Round 1 — lock-time expiry and credential-source preservation
+
+### Findings fixed
+
+- Moved the API-key authentication time sample until after `BEGIN IMMEDIATE` succeeds and the key row is loaded. Expiry is now evaluated against the time of the protected lifecycle check, so a request that waits behind another writer cannot authenticate a key that expires during the wait.
+- Made `last_used_at` monotonic. Authentication updates it only when the newly sampled time is later than the stored value, preventing delayed work or a backward wall-clock adjustment from overwriting newer audit metadata.
+- Preserved credential source through classification. Every present `Authorization` header is authoritative and must be exactly one case-insensitive `Bearer` scheme, one ASCII space, and one whitespace-free token; malformed, empty, Basic, tab-separated, and extra-space forms return the common 401 without cookie fallback.
+- Restricted API keys to syntactically valid Bearer headers. The `access_token` cookie now always enters the JWT decoder, so a valid `dsb_live_...` value placed in a cookie cannot authenticate. Valid JWT Bearer still overrides a cookie, and an absent header still allows the existing JWT cookie flow.
+
+### RED evidence
+
+Command:
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_api_keys.py::test_api_key_expiring_while_auth_waits_for_writer_lock_is_rejected \
+  tests/test_api_keys.py::test_api_key_last_used_timestamp_never_moves_backward \
+  tests/test_api_keys.py::test_api_key_in_access_token_cookie_is_never_accepted \
+  tests/test_api_keys.py::test_any_malformed_authorization_header_rejects_without_cookie_fallback
+```
+
+Result against `284f7e6`: `4 failed in 0.89s`. The contended request returned 200 after the lock holder expired the key, the delayed authentication replaced a future `last_used_at` with an older timestamp, the API-key cookie returned 200, and the malformed-header matrix exposed cookie fallbacks.
+
+### GREEN evidence
+
+- Contention and monotonic timestamp slice: `2 passed in 0.62s`.
+- Cookie-only/API-header parser slice plus existing JWT/API-key precedence and task-access regressions: `4 passed in 0.90s`.
+- Covering authentication command:
+
+```sh
+.venv/bin/pytest -q tests/test_api_keys.py tests/test_app.py
+```
+
+Result: `39 passed in 3.19s`.
+
+### Final review-round verification
+
+Command:
+
+```sh
+.venv/bin/python -m compileall -q app migrations
+.venv/bin/alembic heads
+.venv/bin/pytest -q
+git diff --check
+```
+
+Result: compilation and whitespace checks exited 0; Alembic reported the single head `20260904_0007`; the complete Python suite passed `132 passed, 9 warnings in 9.63s`. Warnings remain the known Alembic `path_separator` deprecation only.
+
+### Review-round self-review
+
+- The contention test uses a real SQLite writer reservation and a SQLAlchemy event only to observe the competing `BEGIN IMMEDIATE` attempt. The lock holder commits an expiry boundary and later `last_used_at`; no production behavior is mocked.
+- Time is sampled after the only potentially blocking authentication operation and immediately before lifecycle checks. Revocation and inactive-owner checks remain inside the same serialized path.
+- The monotonic update compares timezone-normalized values, preserving compatibility with SQLite's naive datetime round trips.
+- Header parsing retains case-insensitive `Bearer` compatibility while rejecting all whitespace inside or around the token. No malformed explicit credential can inherit ambient cookie authority.
+- Changes are limited to the common auth dependency, its behavioral regressions, and this report; API routes, persistence schema, quotas, tasks, and frontend files are unchanged.
