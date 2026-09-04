@@ -79,7 +79,7 @@ Mac 只运行 API、前端与模拟引擎测试：
 
 ```bash
 uv sync --dev
-python scripts/export_openapi.py
+uv run python scripts/export_openapi.py
 cd frontend
 pnpm install
 pnpm run build

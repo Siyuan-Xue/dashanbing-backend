@@ -35,6 +35,7 @@ const themes = ["light", "dark"] as const;
 
 async function waitForRouteFixture(page: import("@playwright/test").Page, name: typeof pages[number][0], locale: typeof locales[number]) {
   const zh = locale === "zh";
+  await expect(page.locator(".account-link, .workspace-account").filter({ hasText: "coach" })).toBeVisible();
   if (name === "home") return expect(page.getByRole("heading", { name: zh ? "让多路训练视频，变成可复盘的篮球洞察" : "Turn multi-angle training video into basketball insight you can review" })).toBeVisible();
   if (name === "new") {
     await expect(page.getByRole("heading", { name: zh ? "创建分析任务" : "Create analysis task" })).toBeVisible();
@@ -52,6 +53,19 @@ async function waitForRouteFixture(page: import("@playwright/test").Page, name: 
   await expect(page.getByRole("heading", { name: zh ? "API 管理" : "API Management" })).toBeVisible();
   return expect(page.getByText("Production", { exact: true })).toBeVisible();
 }
+
+test("public visual readiness waits for delayed authenticated header identity", async ({ page }) => {
+  let authFulfilled = false;
+  await page.route("**/api/v1/users/me", async route => {
+    await new Promise(resolve => setTimeout(resolve, 125));
+    authFulfilled = true;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) });
+  });
+  await page.goto("/");
+  await waitForRouteFixture(page, "home", "zh");
+  expect(authFulfilled).toBe(true);
+  await expect(page.locator(".account-link, .workspace-account").filter({ hasText: "coach" })).toBeVisible();
+});
 
 for (const [name, path] of pages) for (const locale of locales) for (const theme of themes) {
   test(`visual ${name} ${locale} ${theme}`, async ({ page }, testInfo) => {

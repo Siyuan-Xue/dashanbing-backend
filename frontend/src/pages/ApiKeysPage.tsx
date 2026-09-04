@@ -49,9 +49,22 @@ export function ApiKeysPage() {
   const [notice, setNotice] = useState("");
   const [modalError, setModalError] = useState("");
   const modalTrigger = useRef<HTMLElement | null>(null);
+  const createButton = useRef<HTMLButtonElement>(null);
+  const keyListHeading = useRef<HTMLHeadingElement>(null);
   const secretInput = useRef<HTMLInputElement>(null);
+  const [restoreAfterRefresh, setRestoreAfterRefresh] = useState(false);
 
-  const restoreModalTrigger = () => requestAnimationFrame(() => modalTrigger.current?.focus());
+  const restoreModalTrigger = () => requestAnimationFrame(() => {
+    const trigger = modalTrigger.current;
+    if (trigger?.isConnected && !(trigger instanceof HTMLButtonElement && trigger.disabled)) { trigger.focus(); return; }
+    if (createButton.current?.isConnected && !createButton.current.disabled) { createButton.current.focus(); return; }
+    keyListHeading.current?.focus();
+  });
+  useEffect(() => {
+    if (!restoreAfterRefresh) return;
+    restoreModalTrigger();
+    setRestoreAfterRefresh(false);
+  }, [keys, restoreAfterRefresh, usage]);
   const closeCreating = () => { if (busy) return; setCreating(false); setModalError(""); restoreModalTrigger(); };
   const closeSecret = () => { setSecret(null); restoreModalTrigger(); };
   const closeRevoke = (force = false) => { if (busy && !force) return; setRevoke(null); setModalError(""); restoreModalTrigger(); };
@@ -87,9 +100,9 @@ export function ApiKeysPage() {
     setBusy(true); setModalError("");
     try {
       await apiCenterApi.revokeKey(revoke.id);
-      closeRevoke(true); setNotice(locale === "zh" ? "密钥已撤销" : "Key revoked");
+      setRevoke(null); setModalError(""); setNotice(locale === "zh" ? "密钥已撤销" : "Key revoked");
       const [nextKeys, nextUsage] = await Promise.all([apiCenterApi.keys(), apiCenterApi.usage()]);
-      setKeys(nextKeys); setUsage(nextUsage);
+      setKeys(nextKeys); setUsage(nextUsage); setRestoreAfterRefresh(true);
     } catch (cause) { setModalError(failureMessage(cause)); }
     finally { setBusy(false); }
   }
@@ -106,7 +119,7 @@ export function ApiKeysPage() {
     {notice && <p className="api-notice" role="status">{notice}</p>}
     {loading ? <p role="status">{locale === "zh" ? "正在加载 API 数据…" : "Loading API data…"}</p> : <>
       <section aria-labelledby="usage-title"><div className="api-section-heading"><div><h2 id="usage-title">{locale === "zh" ? "账户用量" : "Account usage"}</h2><p>{locale === "zh" ? "当前 Beta 配额按账户隔离。" : "Current beta quotas are isolated by account."}</p></div></div><div className="api-quota-grid">{quotaCards.map(([label, quota]) => <article key={label}><span>{label}</span><strong>{quota.used} / {quota.limit}</strong><i><b style={{ width: `${Math.min(100, quota.used / quota.limit * 100)}%` }}/></i></article>)}</div></section>
-      <section aria-labelledby="key-list-title"><div className="api-section-heading"><div><h2 id="key-list-title">{locale === "zh" ? `API 密钥 (${usage?.active_api_keys.used ?? 0}/5)` : `API keys (${usage?.active_api_keys.used ?? 0}/5)`}</h2><p>{locale === "zh" ? "默认 90 天有效，最多五个活动密钥。列表不保存完整密钥。" : "Keys last 90 days by default, with at most five active keys. Full secrets are not retained in this list."}</p></div><button className="button button-primary" type="button" disabled={(usage?.active_api_keys.used ?? 0) >= 5} onClick={event => { modalTrigger.current = event.currentTarget; setModalError(""); setCreating(true); }}><Icon name="plus"/>{locale === "zh" ? "创建 API 密钥" : "Create API key"}</button></div>
+      <section aria-labelledby="key-list-title"><div className="api-section-heading"><div><h2 ref={keyListHeading} id="key-list-title" tabIndex={-1}>{locale === "zh" ? `API 密钥 (${usage?.active_api_keys.used ?? 0}/5)` : `API keys (${usage?.active_api_keys.used ?? 0}/5)`}</h2><p>{locale === "zh" ? "默认 90 天有效，最多五个活动密钥。列表不保存完整密钥。" : "Keys last 90 days by default, with at most five active keys. Full secrets are not retained in this list."}</p></div><button ref={createButton} className="button button-primary" type="button" disabled={(usage?.active_api_keys.used ?? 0) >= 5} onClick={event => { modalTrigger.current = event.currentTarget; setModalError(""); setCreating(true); }}><Icon name="plus"/>{locale === "zh" ? "创建 API 密钥" : "Create API key"}</button></div>
         <div className="api-key-table-wrap"><table className="api-key-table"><thead><tr><th>{locale === "zh" ? "名称" : "Name"}</th><th>{locale === "zh" ? "密钥" : "Key"}</th><th>{locale === "zh" ? "状态" : "Status"}</th><th>{locale === "zh" ? "创建 / 到期" : "Created / expires"}</th><th>{locale === "zh" ? "操作" : "Action"}</th></tr></thead><tbody>{keys.map(key => <tr key={key.id}><td data-label={locale === "zh" ? "名称" : "Name"}><strong>{key.name}</strong></td><td data-label={locale === "zh" ? "密钥" : "Key"}><code>{key.prefix}••••{key.last_four}</code></td><td data-label={locale === "zh" ? "状态" : "Status"}><span className={`key-status ${key.status}`}>{locale === "zh" ? ({active:"活动",expired:"已过期",revoked:"已撤销"} as const)[key.status] : key.status}</span></td><td data-label={locale === "zh" ? "创建 / 到期" : "Created / expires"}><span>{formatDate(key.created_at, locale)}</span><small>{formatDate(key.expires_at, locale)}</small></td><td data-label={locale === "zh" ? "操作" : "Action"}>{key.status !== "revoked" ? <button className="table-action action-delete" type="button" aria-label={`${locale === "zh" ? "撤销" : "Revoke"} ${key.name}`} onClick={event => { modalTrigger.current = event.currentTarget; setModalError(""); setRevoke(key); }}><Icon name="trash" size={15}/>{locale === "zh" ? "撤销" : "Revoke"}</button> : "—"}</td></tr>)}</tbody></table></div>
       </section>
       {usage && <section className="api-retention" aria-labelledby="retention-title"><h2 id="retention-title">{locale === "zh" ? "数据保留" : "Data retention"}</h2><p>{locale === "zh" ? "草稿 / 注册数据 / 原始输入 / 结果" : "Drafts / enrollment / raw inputs / results"}</p><strong>{formatRetentionDuration(locale, usage.retention.drafts)} · {formatRetentionDuration(locale, usage.retention.enrollment_data)} · {formatRetentionDuration(locale, usage.retention.raw_inputs)} · {formatRetentionDuration(locale, usage.retention.results)}</strong></section>}

@@ -23,12 +23,30 @@ const stageMessageLabels: Record<Locale, Record<string, string>> = {
   zh: {
     Draft: "草稿", Queued: "排队中", Running: "分析中", Complete: "已完成",
     Completed: "已完成", Failed: "失败", Canceled: "已取消", Expired: "已过期",
+    "Draft expired": "草稿已过期", "Upload interrupted; replace the slot to continue": "上传中断；请替换该槽位后继续",
+    "Service restarted; task interrupted. Retry with the original inputs.": "服务重启，任务已中断；可从原输入重试",
+    "Registering anonymous participants": "注册匿名参与者", "Person detection and anonymous tracking": "人体感知与匿名跟踪",
+    "Ball and hoop tracking": "篮球与篮筐跟踪", "Multi-camera time synchronization": "多机位时间同步",
+    "Action recognition": "动作识别", "Shot outcome detection": "投篮命中判定", "Exporting analysis results": "导出分析结果",
+    "Generating review video": "生成复核视频", "Analysis complete": "分析完成", "Analysis failed": "分析失败", "Canceling": "正在取消",
   },
   en: {
     "草稿": "Draft", "等待执行": "Queued", "分析中": "Running", "分析动作": "Analyzing actions",
     "已完成": "Completed", "失败": "Failed", "已取消": "Canceled", "已过期": "Expired",
+    "草稿已过期": "Draft expired", "上传中断；请替换该槽位后继续": "Upload interrupted; replace the slot to continue",
+    "服务重启，任务已中断；可从原输入重试": "Service restarted; task interrupted. Retry with the original inputs.",
+    "注册匿名参与者": "Registering anonymous participants", "人体感知与匿名跟踪": "Person detection and anonymous tracking",
+    "篮球与篮筐跟踪": "Ball and hoop tracking", "多机位时间同步": "Multi-camera time synchronization",
+    "动作识别": "Action recognition", "投篮命中判定": "Shot outcome detection", "导出分析结果": "Exporting analysis results",
+    "生成复核视频": "Generating review video", "分析完成": "Analysis complete", "分析失败": "Analysis failed", "正在取消": "Canceling",
   },
 };
+
+const stageSlots = {
+  enrollment_video: { zh: "注册视频", en: "enrollment video" },
+  cam_01: { zh: "机位 1", en: "camera 1" }, cam_02: { zh: "机位 2", en: "camera 2" },
+  cam_03: { zh: "机位 3", en: "camera 3" }, cam_04: { zh: "机位 4", en: "camera 4" },
+} as const;
 
 const actionLabels: Record<Locale, Record<ProductEvent["action_type"], string>> = {
   zh: { triple_threat: "三威胁", free_throw: "罚球", jump_shot: "跳投", layup: "上篮" },
@@ -50,7 +68,16 @@ const presetLabels: Record<string, Record<Locale, { title: string; description: 
 export const taskStatusLabel = (locale: Locale, status: TaskStatus) => statusLabels[locale][status];
 export const taskModeLabel = (locale: Locale, mode: TaskMode) => modeLabels[locale][mode];
 export const taskSourceLabel = (locale: Locale, source: string) => sourceLabels[locale][source] || source;
-export const taskStageMessageLabel = (locale: Locale, message: string) => stageMessageLabels[locale][message] || message;
+export const taskStageMessageLabel = (locale: Locale, message: string) => {
+  const validating = /^Validating (enrollment_video|cam_0[1-4])$/.exec(message);
+  if (validating) return locale === "zh" ? `正在验证${stageSlots[validating[1] as keyof typeof stageSlots].zh}` : message;
+  const localizedValidation = /^正在验证(注册视频|机位 [1-4])$/.exec(message);
+  if (localizedValidation && locale === "en") {
+    const slot = Object.entries(stageSlots).find(([, labels]) => labels.zh === localizedValidation[1]);
+    return slot ? `Validating ${slot[0]}` : message;
+  }
+  return stageMessageLabels[locale][message] || message;
+};
 export const actionLabel = (locale: Locale, action: ProductEvent["action_type"]) => actionLabels[locale][action];
 export const outcomeLabel = (locale: Locale, outcome: ProductEvent["result"]) => outcome ? outcomeLabels[locale][outcome] : "—";
 export const localizePreset = (locale: Locale, preset: Preset) => presetLabels[preset.id]?.[locale] || { title: preset.title, description: preset.description, tag: "" };

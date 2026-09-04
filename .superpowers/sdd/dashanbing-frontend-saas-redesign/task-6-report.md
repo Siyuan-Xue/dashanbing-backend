@@ -47,6 +47,12 @@ The review fixes used additional RED/GREEN coverage without weakening existing a
 
 All nine review findings are addressed: root Vite assets are allow-listed and cached correctly; the Curl walkthrough polls terminal status safely; README presents registration and `/tasks`; `/api/` deep-links to the SPA; API-key dialogs keep errors/live busy state/focus inside; clipboard fallback is keyboard usable; phone key cards retain semantic column headers and visible labels; the visual matrix has fixed timezone plus route-fixture readiness; Chinese retention durations and known worker progress messages are localized. The final browser run also retained no-overflow, sticky/collapsed navigation, modal, contrast, and keyboard assertions.
 
+## Review round 2 follow-up
+
+The API-key modal now restores focus only to a connected, enabled invoking control. When a successful fifth key creation disables that control it moves focus to the stable API-key heading; when a revocation removes its row action it moves focus to the enabled create control after refreshed data renders. Controlled Chromium tests cover both flows. Visual readiness now waits for the authenticated `coach` identity in either public or workspace header, with a delayed-auth regression, before all 48 captures. Worker stage localization covers every currently emitted worker, task, supervisor, cancellation, restart, expiry, and dynamic `Validating {slot}` value; both TaskDetailPage and ResultWorkspace use the same safe-fallback helper. The API guide now states the copyable `python3 -m pip install requests` prerequisite in both languages, and README invokes the project exporter with `uv run python`.
+
+Final review-round verification: 145 backend tests passed (nine existing Alembic warnings), 63 Vitest tests passed, TypeScript and production build passed, OpenAPI/schema generation had no drift, and the full Playwright suite passed 74 tests with 6 intentional project-specific skips. The visual-matrix test produced exactly 48 unique PNG captures at `frontend/test-results/**/visual-matrix/` plus two non-capture delayed-auth regressions.
+
 `uv run python scripts/validate_v3_presets.py` remains unable to run in this checkout because the supplied local sample bundle is incomplete: `local-assets/sample-bundle/data/outputs/v3/group_04/report.json` is absent. This is independent of Task 6; the complete Python test suite above passed.
 
 ## Files

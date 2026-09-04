@@ -734,6 +734,27 @@ describe("task and example result workspaces", () => {
     expect(document.querySelector(".detail-progress small")).not.toHaveTextContent("Complete");
     expect(taskStageMessageLabel("zh", "Worker handoff 7/9")).toBe("Worker handoff 7/9");
   });
+
+  test("localizes real worker stages in both the task header and media state", async () => {
+    localStorage.setItem("dashanbing-locale", "en");
+    installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "running", progress: 20, stage_message: "人体感知与匿名跟踪" }));
+    });
+    const english = renderAt("/workspace/tasks/task-1");
+    await waitFor(() => expect(document.querySelector(".detail-progress small")).toHaveTextContent("Person detection and anonymous tracking"));
+    expect(document.querySelector(".media-placeholder b")).toHaveTextContent("Person detection and anonymous tracking");
+    english.unmount();
+
+    localStorage.setItem("dashanbing-locale", "zh");
+    expect(taskStageMessageLabel("zh", "Validating cam_01")).toBe("正在验证机位 1");
+    expect(taskStageMessageLabel("zh", "Draft expired")).toBe("草稿已过期");
+    installBaseFetch((url) => {
+      if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "running", progress: 20, stage_message: "Validating cam_01" }));
+    });
+    renderAt("/workspace/tasks/task-1");
+    await waitFor(() => expect(document.querySelector(".detail-progress small")).toHaveTextContent("正在验证机位 1"));
+    expect(document.querySelector(".media-placeholder b")).toHaveTextContent("正在验证机位 1");
+  });
 });
 
 describe("workspace settings", () => {

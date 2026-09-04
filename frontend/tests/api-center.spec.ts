@@ -79,6 +79,46 @@ test("API management never offers a fake copy action and reveals create secret o
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("restores focus to a live API-key target after state-changing success", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "Controlled Chromium focus coverage.");
+  let active = 4;
+  let rows = Array.from({ length: 4 }, (_, index) => ({ ...key, id: `key-${index}`, name: `Key ${index}`, last_four: `00${index}` }));
+  await page.route("**/api/v1/**", async route => {
+    const { pathname } = new URL(route.request().url());
+    if (pathname === "/api/v1/users/me") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) });
+    if (pathname === "/api/v1/account/usage") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...usage, active_api_keys: { used: active, limit: 5 } }) });
+    if (pathname === "/api/v1/api-keys" && route.request().method() === "POST") {
+      active = 5;
+      rows = [...rows, { ...key, id: "key-5", name: "Fifth", last_four: "0005" }];
+      return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ...key, id: "key-5", name: "Fifth", secret: "dsb_live_fifth_once" }) });
+    }
+    if (pathname === "/api/v1/api-keys") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(rows) });
+    if (pathname === "/api/v1/api-keys/key-0" && route.request().method() === "DELETE") {
+      active = 3;
+      rows = rows.map(item => item.id === "key-0" ? { ...item, status: "revoked" } : item);
+      return route.fulfill({ status: 204 });
+    }
+    return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: "Not found" }) });
+  });
+
+  await page.goto("/api/keys");
+  await page.getByRole("button", { name: "创建 API 密钥" }).click();
+  const create = page.getByRole("dialog", { name: "创建 API 密钥" });
+  await create.getByLabel("密钥名称").fill("Fifth");
+  await create.getByRole("button", { name: "创建密钥" }).click();
+  await page.getByRole("dialog", { name: "保存新密钥" }).getByRole("button", { name: "我已保存" }).click();
+  await expect(page.getByRole("heading", { name: /API 密钥 \(5\/5\)/ })).toBeFocused();
+  await expect(page.getByRole("button", { name: "创建 API 密钥" })).toBeDisabled();
+
+  active = 1;
+  rows = [{ ...key, id: "key-0", name: "Key 0" }];
+  await page.reload();
+  await page.getByRole("button", { name: "撤销 Key 0" }).click();
+  await page.getByRole("dialog", { name: "撤销 API 密钥" }).getByRole("button", { name: "确认撤销" }).click();
+  await expect(page.getByRole("button", { name: "创建 API 密钥" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "撤销 Key 0" })).toHaveCount(0);
+});
+
 test("mobile API-key cards retain table headers and expose visible field labels", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium", "Card labels are the phone presentation.");
   await page.goto("/api/keys");

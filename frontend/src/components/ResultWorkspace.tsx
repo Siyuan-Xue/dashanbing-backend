@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useLocale } from "../providers/LocaleProvider";
-import { actionLabel, outcomeLabel } from "../workspace/labels";
+import { actionLabel, outcomeLabel, taskStageMessageLabel } from "../workspace/labels";
 import type { ProductResult, Task } from "../workspace/types";
 import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 
@@ -28,7 +28,7 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
     <section className="result-media-panel">
       <div className="media-tabs" role="tablist" aria-label={wt("mediaViews")}>{mediaKinds.map((kind) => <button key={kind} role="tab" aria-selected={mediaKind === kind} disabled={result ? !result.media[kind] : false} onClick={() => setMediaKind(kind)}>{mediaLabels[kind]}</button>)}</div>
       <div className="media-stage">
-        {result?.media[mediaKind] ? <video key={result.media[mediaKind]} controls preload="metadata" src={result.media[mediaKind]} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><span className="court-lines" aria-hidden="true"/><div>{task && ["queued", "running"].includes(task.status) ? <><span className="analysis-orbit"/><b>{task.stage_message}</b><p>{task.progress}% · {statusMessage}</p></> : <><span aria-hidden="true">▶</span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
+        {result?.media[mediaKind] ? <video key={result.media[mediaKind]} controls preload="metadata" src={result.media[mediaKind]} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><span className="court-lines" aria-hidden="true"/><div>{task && ["queued", "running"].includes(task.status) ? <><span className="analysis-orbit"/><b>{taskStageMessageLabel(locale, task.stage_message)}</b><p>{task.progress}% · {statusMessage}</p></> : <><span aria-hidden="true">▶</span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
       </div>
     </section>
     <section className="result-insights-panel">
@@ -38,7 +38,7 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
           {rightTab === "summary" && <div className="result-summary"><div className="result-stat-grid"><article><span>{wt("attempts")}</span><b>{result.shots.attempts}</b></article><article><span>{wt("makes")}</span><b>{result.shots.makes}</b></article><article><span>{wt("participants")}</span><b>{result.registered_participant_count}</b></article><article><span>{wt("actionsCount")}</span><b>{result.events.length}</b></article></div><div className="make-rate"><span><b>{Math.round((result.shots.make_rate || 0) * 100)}%</b><small>MAKE RATE</small></span></div><div className="action-breakdown">{Object.entries(result.action_counts).map(([name, count]) => <div key={name}><span>{actionLabel(locale, name as keyof typeof result.action_counts)}</span><b>{count}</b></div>)}</div>{result.warnings.map((warning) => <p className="result-warning" key={warning}>{warning}</p>)}<p className="result-disclaimer">{result.disclaimer}</p></div>}
           {rightTab === "timeline" && <ol className="event-timeline">{result.events.length ? result.events.map((event) => <li key={event.event_index}><time>{(event.time_ms / 1000).toFixed(1)}s</time><span><b>{actionLabel(locale, event.action_type)}</b><small>{outcomeLabel(locale, event.result)} · {(event.start_ms / 1000).toFixed(1)}–{(event.end_ms / 1000).toFixed(1)}s</small></span></li>) : <li>{wt("emptyResult")}</li>}</ol>}
           {rightTab === "json" && <pre className="result-json">{JSON.stringify(result, null, 2)}</pre>}
-        </> : <div className="inline-result-state"><b>{task?.stage_message || wt("emptyResult")}</b><p>{task ? statusMessage : wt("emptyResult")}</p></div>}
+        </> : <div className="inline-result-state"><b>{task ? taskStageMessageLabel(locale, task.stage_message) : wt("emptyResult")}</b><p>{task ? statusMessage : wt("emptyResult")}</p></div>}
       </div>
       {result && downloadUrl && <a className="result-download" href={downloadUrl} download aria-label={wt("downloadJson")}><span>JSON</span>{wt("downloadJson")} <b aria-hidden="true">↓</b></a>}
     </section>

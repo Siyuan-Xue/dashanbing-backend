@@ -51,6 +51,7 @@ describe("API center", () => {
     expect(screen.getAllByText(/\/api\/v1\/tasks/).length).toBeGreaterThan(5);
     expect(screen.getByText(/python3 -c/)).toBeVisible();
     expect(screen.getByText(/while :; do/)).toBeVisible();
+    expect(screen.getByText("运行前执行：python3 -m pip install requests")).toBeVisible();
     expect([...document.querySelectorAll(".api-code")].some(block => block.textContent?.includes("failed|canceled|expired"))).toBe(true);
     expect(screen.queryByText(/\/api\/v1\/analyses/)).not.toBeInTheDocument();
     expect(screen.queryByText("客户端")).not.toBeInTheDocument();
@@ -64,6 +65,7 @@ describe("API center", () => {
     renderAt("/api/docs");
 
     expect(await screen.findByRole("heading", { name: "DaShanBing API Docs" })).toBeVisible();
+    expect(screen.getByText("Before running: python3 -m pip install requests")).toBeVisible();
     expect(screen.getByText(/multipart field/, { selector: "li" })).toBeVisible();
     expect(screen.getByText(/draft, uploading, queued, or running tasks/)).toBeVisible();
   });
