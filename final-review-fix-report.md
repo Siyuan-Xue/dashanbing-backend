@@ -32,9 +32,11 @@ and aligning the bilingual UI and documentation with the real backend.
      inside the configured analysis root; corrupted IDs, targets, and escaping
      symlinks are refused.
    - Root cleanup is permitted only after the analysis row is gone or the draft
-     is `expired`; tier cleanup is permitted only for terminal tasks. Retry is
-     refused while a committed root/input deletion is pending, preventing a
-     retry/retention race.
+     is `expired`; tier cleanup is permitted only for terminal tasks. Every
+     committed deletion row is a generation fence: both task and legacy retry
+     are refused until all cleanup for that analysis has been acknowledged.
+     This includes enrollment, data, and engine-output cleanup, which can write
+     new generation data even when the retained upload manifest is still valid.
    - Startup reconciliation drains the outbox before bootstrap. The operation is
      idempotent, so every ordering remains recoverable: rollback before commit
      leaves storage untouched; commit before cleanup leaves durable work;
@@ -44,7 +46,10 @@ and aligning the bilingual UI and documentation with the real backend.
      draft expiry, cleanup failure/retry, restart reconciliation, the
      filesystem-before-ack crash point, path confinement, and a gated slow
      recursive removal during which API-key authentication completes its audit
-     write before cleanup is released.
+     write before cleanup is released. A deterministic follow-up regression
+     pauses after the cleanup safety check for enrollment, data, and
+     engine-output targets; both retry APIs remain failed with retry count zero,
+     then succeed only after the old cleanup is removed and acknowledged.
 
 3. **Registration validation**
    - Identity before-validators normalize strings only. Numeric and object JSON
@@ -104,7 +109,8 @@ strings remained untranslated; and compile-time generated-contract equality
 failed against the handwritten workspace DTOs. The corresponding focused suites
 then passed before the complete matrix below.
 
-- Backend: `uv run pytest -q` — **167 passed**, 11 Alembic deprecation warnings.
+- Backend: `uv run pytest -q` — **173 passed**, 11 Alembic deprecation warnings.
+- Focused deletion/retention/task/legacy retry suites — **65 passed**.
 - Frontend: `pnpm test` — **66 passed** across 4 files.
 - TypeScript: `pnpm run typecheck` — passed.
 - Production build: `pnpm run build` — passed; 79 modules transformed.
@@ -125,6 +131,14 @@ then passed before the complete matrix below.
   excludes ignored local assets, so the validator was pointed at the same
   repository's existing `local-assets/sample-bundle/data` checkout.
 - `git diff --check` — passed.
+
+The concurrency follow-up first failed in all six target/route combinations:
+each formerly omitted target returned 200 and committed `queued` while cleanup
+was paused after its safety check. After using every pending outbox row as the
+retry fence, all six return the route's explicit cleanup-pending 409, preserve
+the failed generation, allow cleanup acknowledgement, and then retry normally.
+No frontend source or generated contract changed in this follow-up, so the
+existing frontend, build, Playwright, and visual evidence above remains current.
 
 ## Residual concerns
 

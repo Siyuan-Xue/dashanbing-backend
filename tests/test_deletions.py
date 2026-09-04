@@ -1,3 +1,4 @@
+import json
 import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -9,6 +10,8 @@ from sqlmodel import Session, select
 from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis, StorageDeletion
+from app.services.deletions import drain_storage_deletions
+from app.services.tasks import TASK_SLOTS, add_task_inputs_from_manifest
 
 
 def _settings(tmp_path: Path) -> AppSettings:
@@ -50,6 +53,29 @@ def _draft_with_storage(client: TestClient) -> tuple[str, Path]:
     task_id = response.json()["id"]
     root = client.app.state.storage.prepare(task_id)
     (root / "input" / "payload.mkv").write_bytes(b"payload")
+    return task_id, root
+
+
+def _retryable_failed_task(client: TestClient) -> tuple[str, Path]:
+    task_id, root = _draft_with_storage(client)
+    manifest: dict[str, str] = {}
+    for slot in TASK_SLOTS:
+        path = root / "input" / f"{slot}.mp4"
+        path.write_bytes(slot.encode())
+        manifest[slot] = str(path)
+    sync = root / "input" / "sync.json"
+    sync.write_text("{}", encoding="utf-8")
+    manifest["sync"] = str(sync)
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        assert task is not None
+        task.status = "failed"
+        task.stage_message = "Analysis failed"
+        task.completed_at = datetime.now(timezone.utc)
+        task.input_manifest_json = json.dumps(manifest)
+        session.add(task)
+        add_task_inputs_from_manifest(session, task_id, manifest)
+        session.commit()
     return task_id, root
 
 
@@ -285,3 +311,97 @@ def test_fixed_tier_cleanup_refuses_symlink_redirection_within_analysis_root(
 
     assert protected.read_text(encoding="utf-8") == "keep"
     assert (root / "input").is_symlink()
+
+
+@pytest.mark.parametrize(
+    ("retry_endpoint", "pending_detail"),
+    [
+        (
+            "/api/v1/tasks/{task_id}/retry",
+            "Pending storage cleanup must finish before retry",
+        ),
+        (
+            "/api/v1/analyses/{task_id}/retry",
+            "存储清理完成前无法重试",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    ("target", "target_parts"),
+    [
+        ("enrollment", ("data", "enrollment")),
+        ("data", ("data",)),
+        ("engine_output", ("engine-output",)),
+    ],
+)
+def test_every_pending_cleanup_fences_task_and_legacy_retry_until_acknowledged(
+    client: TestClient,
+    monkeypatch,
+    retry_endpoint: str,
+    pending_detail: str,
+    target: str,
+    target_parts: tuple[str, ...],
+):
+    """Catches retry racing any cleanup target after its safety check."""
+    monkeypatch.setattr(client.app.state.readiness, "require_ready", lambda: None)
+    task_id, root = _retryable_failed_task(client)
+    cleanup_target = root.joinpath(*target_parts)
+    cleanup_target.mkdir(parents=True, exist_ok=True)
+    (cleanup_target / "old-generation.bin").write_bytes(b"old")
+    with Session(client.app.state.engine) as session:
+        session.add(StorageDeletion(analysis_id=task_id, target=target))
+        session.commit()
+
+    cleanup_reached_removal = threading.Event()
+    allow_cleanup = threading.Event()
+    original_cleanup = client.app.state.storage.remove_deletion_target
+
+    def cleanup_after_safety_check(analysis_id: str, cleanup_target_name: str) -> None:
+        cleanup_reached_removal.set()
+        assert allow_cleanup.wait(timeout=3)
+        original_cleanup(analysis_id, cleanup_target_name)
+
+    monkeypatch.setattr(
+        client.app.state.storage,
+        "remove_deletion_target",
+        cleanup_after_safety_check,
+        raising=False,
+    )
+    cleanup_thread = threading.Thread(
+        target=drain_storage_deletions,
+        args=(client.app.state.engine, client.app.state.storage),
+    )
+    cleanup_thread.start()
+    assert cleanup_reached_removal.wait(timeout=3)
+
+    response = client.post(retry_endpoint.format(task_id=task_id))
+    with Session(client.app.state.engine) as session:
+        task_during_cleanup = session.get(Analysis, task_id)
+        assert task_during_cleanup is not None
+        status_during_cleanup = task_during_cleanup.status
+        retry_count_during_cleanup = task_during_cleanup.retry_count
+        pending_during_cleanup = session.get(StorageDeletion, (task_id, target))
+
+    allow_cleanup.set()
+    cleanup_thread.join(timeout=3)
+    assert not cleanup_thread.is_alive()
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": pending_detail}
+    assert status_during_cleanup == "failed"
+    assert retry_count_during_cleanup == 0
+    assert pending_during_cleanup is not None
+    assert not cleanup_target.exists()
+    with Session(client.app.state.engine) as session:
+        assert session.get(StorageDeletion, (task_id, target)) is None
+
+    retried = client.post(retry_endpoint.format(task_id=task_id))
+    assert retried.status_code == 200
+    assert retried.json()["status"] == "queued"
+    cleanup_target.mkdir(parents=True, exist_ok=True)
+    new_generation = cleanup_target / "new-generation.bin"
+    new_generation.write_bytes(b"new")
+
+    drain_storage_deletions(client.app.state.engine, client.app.state.storage)
+
+    assert new_generation.read_bytes() == b"new"

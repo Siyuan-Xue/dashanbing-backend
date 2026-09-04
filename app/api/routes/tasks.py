@@ -24,7 +24,7 @@ from app.services.deletions import (
     ANALYSIS_ROOT,
     drain_storage_deletions,
     enqueue_storage_deletion,
-    has_pending_input_deletion,
+    has_pending_storage_deletion,
 )
 from app.services.media import (
     MEDIA_FILES,
@@ -480,8 +480,11 @@ def retry_task(
     task = task_or_404(task_id, current_user.id, session)
     if task.status not in {"failed", "canceled", "interrupted"}:
         raise HTTPException(status_code=409, detail="Only failed or canceled tasks can be retried")
-    if has_pending_input_deletion(session, task.id):
-        raise HTTPException(status_code=409, detail="Original task inputs are expired or incomplete")
+    if has_pending_storage_deletion(session, task.id):
+        raise HTTPException(
+            status_code=409,
+            detail="Pending storage cleanup must finish before retry",
+        )
     manifest = valid_manifest(task, session)
     if manifest is None or "sync" not in manifest:
         raise HTTPException(status_code=409, detail="Original task inputs are expired or incomplete")

@@ -30,7 +30,6 @@ ENGINE_OUTPUT: DeletionTarget = "engine_output"
 DELETION_TARGETS = frozenset(
     {ANALYSIS_ROOT, ENROLLMENT, INPUT, DATA, ENGINE_OUTPUT}
 )
-_RETRY_BLOCKING_TARGETS = frozenset({ANALYSIS_ROOT, INPUT})
 _deletion_lock = threading.Lock()
 
 
@@ -52,13 +51,10 @@ def enqueue_storage_deletion(
         session.add(StorageDeletion(analysis_id=analysis_id, target=target))
 
 
-def has_pending_input_deletion(session: Session, analysis_id: str) -> bool:
-    """Keep retry from racing a committed raw-input cleanup request."""
+def has_pending_storage_deletion(session: Session, analysis_id: str) -> bool:
+    """Keep retry from racing any committed cleanup generation."""
     return session.exec(
-        select(StorageDeletion.analysis_id).where(
-            StorageDeletion.analysis_id == analysis_id,
-            StorageDeletion.target.in_(_RETRY_BLOCKING_TARGETS),
-        )
+        select(StorageDeletion.analysis_id).where(StorageDeletion.analysis_id == analysis_id)
     ).first() is not None
 
 

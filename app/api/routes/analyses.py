@@ -15,7 +15,7 @@ from app.services.deletions import (
     ANALYSIS_ROOT,
     drain_storage_deletions,
     enqueue_storage_deletion,
-    has_pending_input_deletion,
+    has_pending_storage_deletion,
 )
 from app.services.media import (
     MEDIA_FILES,
@@ -361,8 +361,8 @@ def retry_analysis(
     analysis = _analysis_or_404(analysis_id, current_user, session)
     enforce_unfinished_quota(session, current_user.id)
     enforce_daily_submission_quota(session, current_user.id)
-    if has_pending_input_deletion(session, analysis.id):
-        raise HTTPException(status_code=409, detail="原输入已过期或不完整，无法重试")
+    if has_pending_storage_deletion(session, analysis.id):
+        raise HTTPException(status_code=409, detail="存储清理完成前无法重试")
     try:
         manifest = json.loads(analysis.input_manifest_json)
     except json.JSONDecodeError:
