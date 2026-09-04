@@ -3,7 +3,8 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import or_
+from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.api.deps import get_current_user
@@ -15,10 +16,25 @@ from app.security import DUMMY_PASSWORD_HASH, create_access_token, hash_password
 router = APIRouter(tags=["authentication"])
 
 
+def _normalized_identity_clause(identity: str):
+    return or_(
+        func.lower(func.trim(User.username)) == identity,
+        func.lower(func.trim(User.email)) == identity,
+    )
+
+
+def _conflicting_identity_clause(username: str, email: str):
+    identities = [username, email]
+    return or_(
+        func.lower(func.trim(User.username)).in_(identities),
+        func.lower(func.trim(User.email)).in_(identities),
+    )
+
+
 @router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
 def register(payload: UserRegistration, session: Session = Depends(get_session)) -> User:
     existing = session.exec(
-        select(User).where(or_(User.username == payload.username, User.email == payload.email))
+        select(User).where(_conflicting_identity_clause(payload.username, payload.email))
     ).first()
     if existing is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username or email is already registered")
@@ -28,7 +44,14 @@ def register(payload: UserRegistration, session: Session = Depends(get_session))
         hashed_password=hash_password(payload.password),
     )
     session.add(user)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError as error:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email is already registered",
+        ) from error
     session.refresh(user)
     return user
 
@@ -42,7 +65,7 @@ def login(
 ) -> Token:
     identity = normalize_identity(form_data.username)
     user = session.exec(
-        select(User).where(or_(User.username == identity, User.email == identity))
+        select(User).where(_normalized_identity_clause(identity))
     ).first()
     password_hash = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
     valid = verify_password(form_data.password, password_hash)

@@ -4,6 +4,7 @@ from pathlib import Path
 import jwt
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
@@ -199,6 +200,80 @@ def test_registration_rejects_duplicate_normalized_username_or_email(client: Tes
 
     assert duplicate_username.status_code == 409
     assert duplicate_email.status_code == 409
+
+
+def test_registration_rejects_an_email_matching_an_existing_username(client: TestClient):
+    """Catches an ambiguous login identity spanning username and email fields."""
+    assert client.post(
+        "/api/v1/register",
+        json={"username": "identity", "email": "owner@example.com", "password": "new-password"},
+    ).status_code == 201
+
+    response = client.post(
+        "/api/v1/register",
+        json={"username": "othercoach", "email": " IDENTITY ", "password": "new-password"},
+    )
+
+    assert response.status_code == 409
+
+
+def test_registration_returns_conflict_when_a_duplicate_wins_the_insert_race(
+    client: TestClient,
+    configured_app,
+):
+    """Catches surfacing a database uniqueness race as a 500 response."""
+    app, _ = configured_app
+    inserted = False
+
+    def insert_competing_user(session, _flush_context, _instances) -> None:
+        nonlocal inserted
+        if inserted or not any(
+            isinstance(item, User) and item.username == "racingcoach" for item in session.new
+        ):
+            return
+        inserted = True
+        with Session(app.state.engine) as competing_session:
+            competing_session.add(
+                User(
+                    username="racingcoach",
+                    email="racing@example.com",
+                    hashed_password="other-hash",
+                )
+            )
+            competing_session.commit()
+
+    event.listen(Session, "before_flush", insert_competing_user)
+    try:
+        response = client.post(
+            "/api/v1/register",
+            json={"username": "racingcoach", "email": "racing@example.com", "password": "new-password"},
+        )
+    finally:
+        event.remove(Session, "before_flush", insert_competing_user)
+
+    assert response.status_code == 409
+
+
+def test_mixed_case_bootstrap_username_can_log_in(tmp_path: Path):
+    """Catches normalizing OAuth input differently from bootstrap account storage."""
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'mixed-case-bootstrap.db'}",
+        runtime_root=tmp_path / "runtime",
+        admin_username="Local_Admin",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+
+    with TestClient(create_app(settings=settings)) as bootstrap_client:
+        response = bootstrap_client.post(
+            "/api/v1/login/access-token",
+            data={"username": "LOCAL_admin", "password": "correct-password"},
+        )
+
+    assert response.status_code == 200
 
 
 def test_login_accepts_normalized_email(client: TestClient):

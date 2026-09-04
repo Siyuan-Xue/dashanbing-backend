@@ -53,3 +53,52 @@ Final result: `82 passed, 2 warnings in 4.39s`. The two warnings are the same Al
 - Confirmed migration order is add nullable owner → backfill configured bootstrap admin → enforce non-null FK, with a real old-schema upgrade test.
 - Confirmed analysis creation in application code always supplies `owner_id`; direct test fixtures now do likewise except the deliberate required-owner failure test.
 - No Task 2 deprecation headers or delegation behavior were added, per the preflight ruling.
+
+## Fix Round 1 — identity collision, bootstrap normalization, and insert-race handling
+
+### Findings fixed
+
+- Registration now tests both proposed normalized identities against both stored identity fields. An email can no longer equal another account's username (and the symmetric username/email collision is also rejected).
+- Login uses the same trimmed/lowercase SQL lookup for username and email, allowing existing mixed-case bootstrap rows to authenticate with normalized form input. Newly bootstrapped admin usernames are stored normalized, while existing bootstrap rows are validated with normalized comparison for compatibility.
+- `register` now catches commit-time `IntegrityError`, rolls the session back, and returns the same HTTP 409 duplicate response as the precheck.
+
+### Covering tests added
+
+- `test_registration_rejects_an_email_matching_an_existing_username`
+- `test_registration_returns_conflict_when_a_duplicate_wins_the_insert_race`
+- `test_mixed_case_bootstrap_username_can_log_in`
+
+### RED/GREEN evidence
+
+Initial RED command:
+
+```sh
+uv run pytest tests/test_app.py::test_registration_rejects_an_email_matching_an_existing_username tests/test_app.py::test_registration_returns_conflict_when_a_duplicate_wins_the_insert_race tests/test_app.py::test_mixed_case_bootstrap_username_can_log_in -q
+```
+
+Result: `3 failed in 0.71s` — the cross-field registration returned 201, the forced real uniqueness race returned 500, and mixed-case bootstrap login returned 401.
+
+The same focused command then passed: `3 passed in 0.66s`.
+
+Covering verification:
+
+```sh
+uv run pytest tests/test_app.py
+```
+
+Result: `23 passed in 1.93s`.
+
+Full verification:
+
+```sh
+uv run pytest
+```
+
+Result: `85 passed, 2 warnings in 4.69s`. The two warnings are Alembic's existing `path_separator` configuration deprecation.
+
+### Files changed in this round
+
+- `app/api/routes/auth.py`
+- `app/main.py`
+- `tests/test_app.py`
+- `.superpowers/sdd/dashanbing-frontend-saas-redesign/task-1-report.md`
