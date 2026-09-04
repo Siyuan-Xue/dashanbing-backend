@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from sqlmodel import Session, select
 
-from app.models import Analysis
+from app.models import Analysis, TaskInput
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus
 
 
@@ -55,6 +55,16 @@ class AnalysisSupervisor:
             analyses = session.exec(select(Analysis)).all()
             changed = False
             for analysis in analyses:
+                valid_slots = set(
+                    session.exec(
+                        select(TaskInput.slot).where(TaskInput.task_id == analysis.id)
+                    ).all()
+                )
+                self.app.state.storage.recover_task_input_uploads(
+                    analysis.id,
+                    status=analysis.status,
+                    valid_slots=valid_slots,
+                )
                 if analysis.status == AnalysisStatus.uploading:
                     analysis.status = AnalysisStatus.draft
                     analysis.stage_message = "Upload interrupted; replace the slot to continue"

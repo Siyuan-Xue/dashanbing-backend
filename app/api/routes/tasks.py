@@ -32,13 +32,14 @@ from app.services.tasks import (
     DRAFT_STATUSES,
     RUNNING_STATUSES,
     TASK_SLOTS,
-    TERMINAL_TASK_STATUSES,
     add_task_inputs_from_manifest,
     begin_write,
     delete_task_inputs,
     enforce_daily_submission_quota,
     enforce_unfinished_quota,
     expire_drafts,
+    record_submission,
+    task_can_be_deleted,
     task_inputs,
     task_or_404,
     task_public,
@@ -71,6 +72,20 @@ def _storage_error(error: Exception) -> HTTPException:
     if isinstance(error, VideoProbeUnavailable):
         return HTTPException(status_code=503, detail=str(error))
     raise error
+
+
+def _restore_uploading_task(session: Session, task_id: str, owner_id: int) -> None:
+    try:
+        begin_write(session)
+        task = task_or_404(task_id, owner_id, session)
+        if task.status == "uploading":
+            task.status = "draft"
+            task.stage_message = "Draft"
+            _commit(session, task)
+        else:
+            session.commit()
+    except Exception:
+        session.rollback()
 
 
 @router.post("", response_model=TaskPublic, status_code=status.HTTP_201_CREATED)
@@ -137,6 +152,7 @@ def create_task_from_preset(
     session.add(task)
     session.flush()
     add_task_inputs_from_manifest(session, task.id, manifest, now=now)
+    record_submission(session, task, kind="initial", submitted_at=now)
     request.app.state.storage.prepare_preset(task.id, manifest)
     _commit(session, task)
     return task_public(task, session)
@@ -229,43 +245,52 @@ def upload_task_input(
             raise _storage_error(error) from error
         raise
 
-    begin_write(session)
-    task = task_or_404(task_id, current_user.id, session)
-    if task.status != "uploading":
-        session.rollback()
-        request.app.state.storage.rollback_task_input(installed)
-        raise HTTPException(status_code=409, detail="Task changed state while the input was uploading")
-    now = utc_now()
-    item = session.get(TaskInput, (task.id, slot))
-    if item is None:
-        item = TaskInput(
-            task_id=task.id,
-            slot=slot,
-            original_filename=Path(file.filename or "upload").name[:255],
-            byte_size=installed.byte_size,
-            validation_state="valid",
-            path=str(installed.destination),
-            created_at=now,
-            updated_at=now,
-        )
-    else:
-        item.original_filename = Path(file.filename or "upload").name[:255]
-        item.byte_size = installed.byte_size
-        item.validation_state = "valid"
-        item.path = str(installed.destination)
-        item.updated_at = now
-    task.status = "draft"
-    task.stage_message = "Draft"
-    task.updated_at = now
-    session.add(item)
-    session.add(task)
     try:
+        begin_write(session)
+        task = task_or_404(task_id, current_user.id, session)
+        if task.status != "uploading":
+            raise HTTPException(
+                status_code=409,
+                detail="Task changed state while the input was uploading",
+            )
+        now = utc_now()
+        item = session.get(TaskInput, (task.id, slot))
+        if item is None:
+            item = TaskInput(
+                task_id=task.id,
+                slot=slot,
+                original_filename=Path(file.filename or "upload").name[:255],
+                byte_size=installed.byte_size,
+                validation_state="valid",
+                path=str(installed.destination),
+                created_at=now,
+                updated_at=now,
+            )
+        else:
+            item.original_filename = Path(file.filename or "upload").name[:255]
+            item.byte_size = installed.byte_size
+            item.validation_state = "valid"
+            item.path = str(installed.destination)
+            item.updated_at = now
+        task.status = "draft"
+        task.stage_message = "Draft"
+        task.updated_at = now
+        session.add(item)
+        session.add(task)
         session.commit()
     except Exception:
         session.rollback()
-        request.app.state.storage.rollback_task_input(installed)
+        try:
+            request.app.state.storage.rollback_task_input(installed)
+        finally:
+            _restore_uploading_task(session, task_id, current_user.id)
         raise
-    request.app.state.storage.finalize_task_input(installed)
+    try:
+        request.app.state.storage.finalize_task_input(installed)
+    except OSError:
+        # The committed database state is authoritative; startup recovery
+        # safely removes a stranded backup/marker after an interrupted cleanup.
+        pass
     session.refresh(task)
     return task_public(task, session)
 
@@ -291,7 +316,7 @@ def submit_task(
     missing = [slot for slot in TASK_SLOTS if slot not in by_slot]
     if missing:
         raise HTTPException(status_code=409, detail=f"Missing valid task inputs: {', '.join(missing)}")
-    enforce_daily_submission_quota(session, current_user.id, task=task)
+    enforce_daily_submission_quota(session, current_user.id)
     manifest = {slot: by_slot[slot].path for slot in TASK_SLOTS}
     try:
         completed_manifest = request.app.state.storage.prepare_task_submission(task.id, manifest)
@@ -301,7 +326,7 @@ def submit_task(
     task.input_manifest_json = json.dumps(completed_manifest, ensure_ascii=False)
     task.status = AnalysisStatus.queued
     task.stage_message = "等待执行"
-    task.submitted_at = now
+    record_submission(session, task, kind="initial", submitted_at=now)
     task.updated_at = now
     _commit(session, task)
     return task_public(task, session)
@@ -429,7 +454,7 @@ def retry_task(
     if manifest is None or "sync" not in manifest:
         raise HTTPException(status_code=409, detail="Original task inputs are expired or incomplete")
     enforce_unfinished_quota(session, current_user.id)
-    enforce_daily_submission_quota(session, current_user.id, task=task)
+    enforce_daily_submission_quota(session, current_user.id)
     now = utc_now()
     task.status = AnalysisStatus.queued
     task.progress = 0
@@ -439,7 +464,7 @@ def retry_task(
     task.error_message = None
     task.started_at = None
     task.completed_at = None
-    task.submitted_at = now
+    record_submission(session, task, kind="retry", submitted_at=now)
     task.retry_count += 1
     _commit(session, task)
     return task_public(task, session)
@@ -455,7 +480,7 @@ def delete_task(
     expire_drafts(session, current_user.id, request.app.state.storage)
     begin_write(session)
     task = task_or_404(task_id, current_user.id, session)
-    if task.status not in TERMINAL_TASK_STATUSES and task.status != "draft":
+    if not task_can_be_deleted(task.status):
         raise HTTPException(status_code=409, detail="Task must be canceled before deletion")
     request.app.state.storage.delete(task.id)
     delete_task_inputs(session, task.id)

@@ -90,3 +90,78 @@ Result: compile and whitespace checks exited 0; full suite `102 passed, 7 warnin
 - Result and media payloads reuse the existing builders/allowlists, with only generated URLs changed to `/api/v1/tasks/...`.
 - Retention explicitly removes child metadata before deleting task rows in auto-created SQLite schemas, while the migration also declares `ON DELETE CASCADE` for deployed databases.
 - No API-key or frontend work was included.
+
+## Fix Round 1 — durable quota events, crash-safe replacement, and legacy lifecycle
+
+### Findings fixed
+
+- Added an immutable `submission_event` ledger. Initial submissions and every retry append an event in the same short SQLite write transaction as the task state change. Daily quota counting uses these retained events, so hard deletion cannot refund usage and repeated retries cannot overwrite their history. A compatibility fallback counts any unledgered `Analysis.submitted_at` rows, and migration `20260904_0005` backfills existing submissions.
+- Extended staged replacement into a recoverable filesystem transaction. Each validated install now carries a pending marker and optional backup; every exception from post-install writer acquisition through task reload, input lookup, and commit rolls the file back before restoring task state. Startup scans pending/temp/backup artifacts, restores uncommitted replacements, finalizes committed replacements, removes partial first uploads, and runs even when the worker is disabled.
+- Shortened legacy upload database admission. It performs fast preliminary quota checks, releases the read transaction during five-file streaming/ffprobe work, then takes `BEGIN IMMEDIATE`, rechecks both quotas authoritatively, records metadata plus the submission event, and commits. A late quota loss removes the uploaded task root.
+- Unified deletion eligibility through `task_can_be_deleted`. Both APIs allow deletion only for drafts or terminal tasks; legacy calls can no longer delete `uploading` or `queued` staged tasks.
+- Closed `TaskPublic.status` to the exact public `Literal` and replaced pass-through mapping with an exhaustive `AnalysisStatus` map. Unknown internal values now fail instead of leaking through the public API/OpenAPI contract.
+
+### Covering tests
+
+- `test_deleting_submitted_tasks_does_not_refund_the_daily_quota`
+- `test_retry_consumes_a_new_daily_submission_at_the_limit`
+- `test_post_install_database_failure_restores_the_prior_slot`
+- `test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts`
+- `test_app_restart_recovers_upload_artifacts_when_worker_is_disabled`
+- `test_legacy_upload_does_not_hold_the_database_writer_during_media_io`
+- `test_legacy_delete_obeys_staged_task_lifecycle_rules`
+- `test_task_status_schema_is_closed_and_unknown_internal_states_fail`
+- Extended `test_identity_migration_backfills_existing_analyses_before_making_owner_required` for ledger backfill.
+- Updated the existing legacy upload lifecycle test to require cancel-before-delete after retry queues the task.
+
+### RED evidence
+
+```sh
+UV_CACHE_DIR=/tmp/task2-uv-cache uv run --offline pytest \
+  tests/test_tasks_api.py::test_deleting_submitted_tasks_does_not_refund_the_daily_quota \
+  tests/test_tasks_api.py::test_retry_consumes_a_new_daily_submission_at_the_limit \
+  tests/test_tasks_api.py::test_post_install_database_failure_restores_the_prior_slot \
+  tests/test_tasks_api.py::test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts \
+  tests/test_tasks_api.py::test_legacy_upload_does_not_hold_the_database_writer_during_media_io \
+  tests/test_tasks_api.py::test_legacy_delete_obeys_staged_task_lifecycle_rules \
+  tests/test_tasks_api.py::test_task_status_schema_is_closed_and_unknown_internal_states_fail \
+  tests/test_migrations.py::test_identity_migration_backfills_existing_analyses_before_making_owner_required -q
+```
+
+Result: `8 failed, 2 warnings in 2.20s`. Failures showed HTTP 201 after twenty deleted submissions, HTTP 200 for a retry at the limit, the new replacement left installed after a database error, restart left the replacement/backup/temp intact, a concurrent writer missed the 500ms bound, legacy delete returned 204 for `uploading`, the OpenAPI status had no enum, and `submission_event` did not exist.
+
+The worker-disabled app-restart regression was then isolated and failed `1 failed in 0.53s`: reopening the application left the task in `uploading`.
+
+### GREEN evidence
+
+The same eight-test focused command passed: `8 passed, 2 warnings in 1.48s`.
+
+The restart-specific command passed: `1 passed in 0.48s`.
+
+Covering integration command:
+
+```sh
+UV_CACHE_DIR=/tmp/task2-uv-cache uv run --offline pytest \
+  tests/test_tasks_api.py tests/test_analysis_api.py tests/test_supervisor.py \
+  tests/test_retention.py tests/test_migrations.py -q
+```
+
+Result: `49 passed, 7 warnings in 5.50s`.
+
+Final verification:
+
+```sh
+UV_CACHE_DIR=/tmp/task2-uv-cache uv run --offline python -m compileall -q app migrations
+UV_CACHE_DIR=/tmp/task2-uv-cache uv run --offline pytest -q
+git diff --check
+```
+
+Result: compile and whitespace checks exited 0; full suite `110 passed, 7 warnings in 8.13s`. All warnings remain the pre-existing Alembic `path_separator` deprecation.
+
+### Fix-round self-review
+
+- Submission events deliberately have no task foreign key, so task/retention deletion preserves quota history; they retain an owner foreign key for tenant accounting.
+- Every quota-producing endpoint performs quota check plus event insert under `BEGIN IMMEDIATE`. Only legacy media I/O runs outside that transaction, with a mandatory second check before commit.
+- Recovery distinguishes uncommitted `uploading`/concurrently `canceled` operations from committed draft/queued states. It restores the newest backup, removes partial untracked destinations, and deletes pending/temp artifacts without changing `TaskInput` metadata.
+- Database exceptions after file installation cannot skip file rollback; status restoration is attempted in a `finally` path, and restart recovery handles database unavailability that persists beyond the request.
+- Legacy and new deletion routes call the same eligibility predicate. Existing legacy result/media/ownership/deprecation behavior is unchanged.

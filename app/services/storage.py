@@ -49,6 +49,7 @@ class InstalledUpload:
     destination: Path
     byte_size: int
     backup: Path | None
+    marker: Path
 
 
 def looks_like_video_header(header: bytes) -> bool:
@@ -187,8 +188,10 @@ class AnalysisStorage:
         with self._upload_lock:
             root = self.prepare(analysis_id)
             destination = root / "input" / UPLOAD_NAMES[slot]
-            temporary = root / "input" / f".{slot}-{uuid4().hex}.tmp"
-            backup = root / "input" / f".{slot}-{uuid4().hex}.bak"
+            operation_id = uuid4().hex
+            temporary = root / "input" / f".{slot}-{operation_id}.tmp"
+            backup = root / "input" / f".{slot}-{operation_id}.bak"
+            marker = root / "input" / f".{slot}-{operation_id}.pending"
             total_bytes = existing_bytes
             byte_size = 0
             max_bytes = int(self.settings.max_upload_size_gb * 1024**3)
@@ -211,29 +214,68 @@ class AnalysisStorage:
                 if first_chunk:
                     raise InvalidVideoUpload(_invalid_video_message(UPLOAD_TITLES[slot]))
                 self.video_probe(temporary, UPLOAD_TITLES[slot])
+                marker.write_text(slot, encoding="utf-8")
                 installed_backup = None
                 if destination.exists():
                     destination.replace(backup)
                     installed_backup = backup
                 temporary.replace(destination)
-                return InstalledUpload(destination, byte_size, installed_backup)
+                return InstalledUpload(destination, byte_size, installed_backup, marker)
             except Exception:
                 temporary.unlink(missing_ok=True)
                 if backup.exists():
                     destination.unlink(missing_ok=True)
                     backup.replace(destination)
+                marker.unlink(missing_ok=True)
                 raise
 
     @staticmethod
     def finalize_task_input(upload: InstalledUpload) -> None:
         if upload.backup is not None:
             upload.backup.unlink(missing_ok=True)
+        upload.marker.unlink(missing_ok=True)
 
     @staticmethod
     def rollback_task_input(upload: InstalledUpload) -> None:
         upload.destination.unlink(missing_ok=True)
         if upload.backup is not None and upload.backup.exists():
             upload.backup.replace(upload.destination)
+        upload.marker.unlink(missing_ok=True)
+
+    def recover_task_input_uploads(
+        self,
+        analysis_id: str,
+        *,
+        status: str,
+        valid_slots: set[str],
+    ) -> None:
+        input_root = self.analysis_root(analysis_id) / "input"
+        if not input_root.is_dir():
+            return
+        committed = status not in {"uploading", "canceled"}
+        for slot, filename in UPLOAD_NAMES.items():
+            temporary_files = list(input_root.glob(f".{slot}-*.tmp"))
+            backup_files = sorted(
+                input_root.glob(f".{slot}-*.bak"),
+                key=lambda path: path.stat().st_mtime_ns,
+            )
+            marker_files = list(input_root.glob(f".{slot}-*.pending"))
+            destination = input_root / filename
+            if committed:
+                for backup in backup_files:
+                    backup.unlink(missing_ok=True)
+            elif backup_files:
+                destination.unlink(missing_ok=True)
+                latest = backup_files.pop()
+                latest.replace(destination)
+                for backup in backup_files:
+                    backup.unlink(missing_ok=True)
+            elif slot not in valid_slots and (
+                status == "uploading" or marker_files or temporary_files
+            ):
+                destination.unlink(missing_ok=True)
+            for artifact in (*temporary_files, *marker_files):
+                artifact.unlink(missing_ok=True)
 
     def prepare_task_submission(self, analysis_id: str, manifest: dict[str, str]) -> dict[str, str]:
         root = self.prepare(analysis_id)

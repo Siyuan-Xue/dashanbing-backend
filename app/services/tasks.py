@@ -8,7 +8,14 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.models import Analysis, TaskInput, TaskInputPublic, TaskPublic
+from app.models import (
+    Analysis,
+    SubmissionEvent,
+    TaskInput,
+    TaskInputPublic,
+    TaskPublic,
+    TaskPublicStatus,
+)
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus
 
 
@@ -36,16 +43,32 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def aware(value: datetime) -> datetime:
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+PUBLIC_STATUS_BY_INTERNAL: dict[AnalysisStatus, TaskPublicStatus] = {
+    AnalysisStatus.draft: "draft",
+    AnalysisStatus.uploading: "uploading",
+    AnalysisStatus.queued: "queued",
+    AnalysisStatus.running: "running",
+    AnalysisStatus.registering: "running",
+    AnalysisStatus.perception: "running",
+    AnalysisStatus.ball_tracking: "running",
+    AnalysisStatus.synchronizing: "running",
+    AnalysisStatus.action_recognition: "running",
+    AnalysisStatus.outcome_detection: "running",
+    AnalysisStatus.exporting: "running",
+    AnalysisStatus.visualizing: "running",
+    AnalysisStatus.cancel_requested: "running",
+    AnalysisStatus.completed: "completed",
+    AnalysisStatus.failed: "failed",
+    AnalysisStatus.canceled: "canceled",
+    AnalysisStatus.interrupted: "failed",
+    AnalysisStatus.expired: "expired",
+}
+if set(PUBLIC_STATUS_BY_INTERNAL) != set(AnalysisStatus):
+    raise RuntimeError("Every internal analysis status must have a public task status")
 
 
-def public_status(value: str) -> str:
-    if value in RUNNING_STATUSES:
-        return "running"
-    if value == AnalysisStatus.interrupted.value:
-        return "failed"
-    return value
+def public_status(value: str) -> TaskPublicStatus:
+    return PUBLIC_STATUS_BY_INTERNAL[AnalysisStatus(value)]
 
 
 def task_or_404(task_id: str, owner_id: int, session: Session) -> Analysis:
@@ -183,29 +206,59 @@ def _utc_day_bounds(now: datetime | None = None) -> tuple[datetime, datetime]:
 def enforce_daily_submission_quota(
     session: Session,
     owner_id: int,
-    *,
-    task: Analysis | None = None,
 ) -> None:
     start, end = _utc_day_bounds()
-    count = session.exec(
+    event_count = session.exec(
+        select(func.count())
+        .select_from(SubmissionEvent)
+        .where(
+            SubmissionEvent.owner_id == owner_id,
+            SubmissionEvent.submitted_at >= start,
+            SubmissionEvent.submitted_at < end,
+        )
+    ).one()
+    ledger_task_ids = select(SubmissionEvent.task_id).where(
+        SubmissionEvent.owner_id == owner_id
+    )
+    unledgered_count = session.exec(
         select(func.count())
         .select_from(Analysis)
         .where(
             Analysis.owner_id == owner_id,
             Analysis.submitted_at >= start,
             Analysis.submitted_at < end,
+            Analysis.id.not_in(ledger_task_ids),
         )
     ).one()
-    already_counted = bool(
-        task
-        and task.submitted_at
-        and start <= aware(task.submitted_at) < end
-    )
-    if count >= MAX_DAILY_SUBMISSIONS and not already_counted:
+    if event_count + unledgered_count >= MAX_DAILY_SUBMISSIONS:
         raise HTTPException(
             status_code=429,
             detail="Daily submission quota exceeded (maximum 20 per UTC day)",
         )
+
+
+def record_submission(
+    session: Session,
+    task: Analysis,
+    *,
+    kind: str,
+    submitted_at: datetime | None = None,
+) -> datetime:
+    timestamp = submitted_at or utc_now()
+    task.submitted_at = timestamp
+    session.add(
+        SubmissionEvent(
+            task_id=task.id,
+            owner_id=task.owner_id,
+            kind=kind,
+            submitted_at=timestamp,
+        )
+    )
+    return timestamp
+
+
+def task_can_be_deleted(status: str) -> bool:
+    return status == AnalysisStatus.draft.value or status in TERMINAL_TASK_STATUSES
 
 
 def valid_manifest(task: Analysis, session: Session) -> dict[str, str] | None:

@@ -246,10 +246,14 @@ def test_upload_creates_isolated_queued_job_and_supports_cancel_retry_delete(cli
 
     canceled = client.post(f"/api/v1/analyses/{analysis_id}/cancel")
     retried = client.post(f"/api/v1/analyses/{analysis_id}/retry")
+    queued_delete = client.delete(f"/api/v1/analyses/{analysis_id}")
+    canceled_again = client.post(f"/api/v1/analyses/{analysis_id}/cancel")
     deleted = client.delete(f"/api/v1/analyses/{analysis_id}")
 
     assert canceled.json()["status"] == "canceled"
     assert retried.json()["status"] == "queued"
+    assert queued_delete.status_code == 409
+    assert canceled_again.json()["status"] == "canceled"
     assert deleted.status_code == 204
     assert not job_root.exists()
 

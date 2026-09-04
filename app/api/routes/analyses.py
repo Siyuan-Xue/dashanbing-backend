@@ -26,6 +26,8 @@ from app.services.tasks import (
     enforce_daily_submission_quota,
     enforce_unfinished_quota,
     expire_drafts,
+    record_submission,
+    task_can_be_deleted,
 )
 
 
@@ -83,7 +85,8 @@ def upload_analysis(
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
     expire_drafts(session, current_user.id, request.app.state.storage)
-    begin_write(session)
+    # Fail fast when already over quota, then reserve again after media I/O.
+    # The authoritative transaction must remain short so workers can update.
     enforce_unfinished_quota(session, current_user.id)
     enforce_daily_submission_quota(session, current_user.id)
     analysis = Analysis(
@@ -92,7 +95,7 @@ def upload_analysis(
         source_type="upload",
         input_manifest_json="{}",
         owner_id=current_user.id,
-        submitted_at=datetime.now(timezone.utc),
+        submitted_at=None,
         created_via="legacy_upload",
     )
     storage = request.app.state.storage
@@ -108,6 +111,10 @@ def upload_analysis(
             },
         )
         analysis.input_manifest_json = json.dumps(manifest, ensure_ascii=False)
+        session.rollback()
+        begin_write(session)
+        enforce_unfinished_quota(session, current_user.id)
+        enforce_daily_submission_quota(session, current_user.id)
         session.add(analysis)
         session.flush()
         add_task_inputs_from_manifest(
@@ -122,6 +129,7 @@ def upload_analysis(
                 "cam_04": cam_04.filename or "cam_04.mkv",
             },
         )
+        record_submission(session, analysis, kind="initial")
         return _commit(session, analysis)
     except InvalidVideoUpload as error:
         storage.delete(analysis.id)
@@ -174,6 +182,7 @@ def rerun_preset(
     session.add(analysis)
     session.flush()
     add_task_inputs_from_manifest(session, analysis.id, manifest)
+    record_submission(session, analysis, kind="initial", submitted_at=analysis.submitted_at)
     request.app.state.storage.prepare_preset(analysis.id, manifest)
     return _commit(session, analysis)
 
@@ -334,7 +343,7 @@ def retry_analysis(
     session.connection().exec_driver_sql("BEGIN IMMEDIATE")
     analysis = _analysis_or_404(analysis_id, current_user, session)
     enforce_unfinished_quota(session, current_user.id)
-    enforce_daily_submission_quota(session, current_user.id, task=analysis)
+    enforce_daily_submission_quota(session, current_user.id)
     try:
         manifest = json.loads(analysis.input_manifest_json)
     except json.JSONDecodeError:
@@ -351,7 +360,7 @@ def retry_analysis(
     analysis.error_message = None
     analysis.started_at = None
     analysis.completed_at = None
-    analysis.submitted_at = datetime.now(timezone.utc)
+    record_submission(session, analysis, kind="retry")
     analysis.retry_count += 1
     return _commit(session, analysis)
 
@@ -364,7 +373,7 @@ def delete_analysis(
     current_user: User = Depends(get_current_user),
 ) -> Response:
     analysis = _analysis_or_404(analysis_id, current_user, session)
-    if AnalysisStatus(analysis.status) in ACTIVE_STATUSES or analysis.status == AnalysisStatus.cancel_requested:
+    if not task_can_be_deleted(analysis.status):
         raise HTTPException(status_code=409, detail="Running analysis must be canceled first")
     request.app.state.storage.delete(analysis.id)
     delete_task_inputs(session, analysis.id)

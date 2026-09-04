@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis, TaskInput
+from app.api.routes import tasks as task_routes
 from app.services.retention import RetentionService
 
 
@@ -473,3 +474,208 @@ def test_new_retry_supports_a_migrated_legacy_task_without_task_input_rows(clien
     assert retried.status_code == 200
     assert retried.json()["status"] == "queued"
     assert retried.json()["retry_count"] == 1
+
+
+def test_deleting_submitted_tasks_does_not_refund_the_daily_quota(client: TestClient):
+    for index in range(20):
+        created = client.post(
+            "/api/v1/tasks/from-preset",
+            json={"preset_id": "quick-demo", "mode": "quick"},
+        )
+        assert created.status_code == 201, index
+        task_id = created.json()["id"]
+        with Session(client.app.state.engine) as session:
+            task = session.get(Analysis, task_id)
+            task.status = "completed"
+            task.completed_at = datetime.now(timezone.utc)
+            session.add(task)
+            session.commit()
+        assert client.delete(f"/api/v1/tasks/{task_id}").status_code == 204
+
+    limited = client.post(
+        "/api/v1/tasks/from-preset",
+        json={"preset_id": "quick-demo", "mode": "quick"},
+    )
+    assert limited.status_code == 429
+
+
+def test_retry_consumes_a_new_daily_submission_at_the_limit(client: TestClient):
+    now = datetime.now(timezone.utc)
+    with Session(client.app.state.engine) as session:
+        for index in range(19):
+            session.add(
+                Analysis(
+                    title=f"prior-{index}",
+                    status="completed",
+                    input_manifest_json="{}",
+                    owner_id=1,
+                    submitted_at=now,
+                    completed_at=now,
+                )
+            )
+        session.commit()
+    created = client.post(
+        "/api/v1/tasks/from-preset",
+        json={"preset_id": "quick-demo", "mode": "quick"},
+    )
+    assert created.status_code == 201
+    task_id = created.json()["id"]
+    assert client.post(f"/api/v1/tasks/{task_id}/cancel").status_code == 200
+
+    retried = client.post(f"/api/v1/tasks/{task_id}/retry")
+    assert retried.status_code == 429
+
+
+def test_post_install_database_failure_restores_the_prior_slot(client: TestClient, monkeypatch):
+    task_id = _create(client).json()["id"]
+    assert _upload(client, task_id, "cam_01", _mkv(b"old"), "old.mkv").status_code == 200
+    destination = (
+        Path(client.app.state.settings.runtime_root)
+        / "analyses"
+        / task_id
+        / "input"
+        / "cam_01.mkv"
+    )
+    original_begin = task_routes.begin_write
+    calls = 0
+
+    def fail_after_install(session: Session) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("database unavailable after install")
+        original_begin(session)
+
+    monkeypatch.setattr(task_routes, "begin_write", fail_after_install)
+    failed = _upload(client, task_id, "cam_01", _mkv(b"new"), "new.mkv")
+    assert failed.status_code == 500
+    assert destination.read_bytes() == _mkv(b"old")
+    detail = client.get(f"/api/v1/tasks/{task_id}").json()
+    assert detail["status"] == "draft"
+    assert detail["inputs"][0]["original_filename"] == "old.mkv"
+    assert [path for path in destination.parent.iterdir() if path.name.startswith(".cam_01")] == []
+
+
+def test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts(client: TestClient):
+    task_id = _create(client).json()["id"]
+    assert _upload(client, task_id, "cam_01", _mkv(b"old"), "old.mkv").status_code == 200
+    input_root = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
+    destination = input_root / "cam_01.mkv"
+    backup = input_root / ".cam_01-crash.bak"
+    temporary = input_root / ".cam_01-crash.tmp"
+    destination.replace(backup)
+    destination.write_bytes(_mkv(b"new"))
+    temporary.write_bytes(b"partial")
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        task.status = "uploading"
+        session.add(task)
+        session.commit()
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert destination.read_bytes() == _mkv(b"old")
+    assert not backup.exists()
+    assert not temporary.exists()
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "draft"
+    assert item.original_filename == "old.mkv"
+
+
+def test_legacy_upload_does_not_hold_the_database_writer_during_media_io(
+    client: TestClient,
+    monkeypatch,
+):
+    entered_media_io = threading.Event()
+    release_media_io = threading.Event()
+    writer_finished = threading.Event()
+    original_save = client.app.state.storage.save_uploads
+
+    def gated_save(*args, **kwargs):
+        entered_media_io.set()
+        assert release_media_io.wait(timeout=3)
+        return original_save(*args, **kwargs)
+
+    monkeypatch.setattr(client.app.state.storage, "save_uploads", gated_save)
+    result = {}
+
+    def upload() -> None:
+        result["response"] = client.post(
+            "/api/v1/analyses/upload",
+            data={"title": "legacy", "mode": "quick"},
+            files={
+                slot: (f"{slot}.mkv", _mkv(slot.encode()), "video/x-matroska")
+                for slot in SLOTS
+            },
+        )
+
+    def write_database() -> None:
+        with Session(client.app.state.engine) as session:
+            session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            session.connection().exec_driver_sql("UPDATE user SET is_active = is_active")
+            session.commit()
+        writer_finished.set()
+
+    upload_thread = threading.Thread(target=upload)
+    upload_thread.start()
+    assert entered_media_io.wait(timeout=3)
+    writer_thread = threading.Thread(target=write_database)
+    writer_thread.start()
+    writer_was_not_blocked = writer_finished.wait(timeout=0.5)
+    release_media_io.set()
+    upload_thread.join(timeout=3)
+    writer_thread.join(timeout=3)
+    assert writer_was_not_blocked
+    assert result["response"].status_code == 201
+
+
+def test_legacy_delete_obeys_staged_task_lifecycle_rules(client: TestClient):
+    task_id = _create(client).json()["id"]
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        task.status = "uploading"
+        session.add(task)
+        session.commit()
+    uploading = client.delete(f"/api/v1/analyses/{task_id}")
+    assert uploading.status_code == 409
+
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        task.status = "queued"
+        session.add(task)
+        session.commit()
+    queued = client.delete(f"/api/v1/analyses/{task_id}")
+    assert queued.status_code == 409
+    assert queued.headers["Deprecation"] == "true"
+
+
+def test_task_status_schema_is_closed_and_unknown_internal_states_fail(client: TestClient):
+    allowed = {
+        "draft",
+        "uploading",
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "canceled",
+        "expired",
+    }
+    schema = client.app.openapi()["components"]["schemas"]["TaskPublic"]["properties"]["status"]
+    assert set(schema["enum"]) == allowed
+
+    task = Analysis(
+        title="unknown state",
+        status="mystery",
+        input_manifest_json="{}",
+        owner_id=1,
+        submitted_at=None,
+    )
+    task_id = task.id
+    with Session(client.app.state.engine) as session:
+        session.add(task)
+        session.commit()
+    assert client.get(f"/api/v1/tasks/{task_id}").status_code == 500

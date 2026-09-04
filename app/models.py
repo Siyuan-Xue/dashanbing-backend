@@ -85,6 +85,16 @@ class TaskInput(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=utc_now, nullable=False)
 
 
+class SubmissionEvent(SQLModel, table=True):
+    __tablename__ = "submission_event"
+
+    id: int | None = Field(default=None, primary_key=True)
+    task_id: str = Field(index=True)
+    owner_id: int = Field(foreign_key="user.id", nullable=False, index=True)
+    kind: str = Field(max_length=16)
+    submitted_at: datetime = Field(default_factory=utc_now, nullable=False, index=True)
+
+
 class AnalysisPublic(SQLModel):
     id: str
     title: str
@@ -146,13 +156,25 @@ class TaskInputPublic(SQLModel):
         return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+TaskPublicStatus = Literal[
+    "draft",
+    "uploading",
+    "queued",
+    "running",
+    "completed",
+    "failed",
+    "canceled",
+    "expired",
+]
+
+
 class TaskPublic(SQLModel):
     id: str
     title: str
     mode: str
     source_type: str
     preset_id: str | None
-    status: str
+    status: TaskPublicStatus
     progress: int
     stage_message: str
     error_code: str | None

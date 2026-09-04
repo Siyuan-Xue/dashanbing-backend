@@ -49,6 +49,9 @@ def test_identity_migration_backfills_existing_analyses_before_making_owner_requ
         identities = connection.execute(
             text("SELECT value, user_id FROM user_identity ORDER BY value")
         ).all()
+        submissions = connection.execute(
+            text("SELECT task_id, owner_id, kind FROM submission_event ORDER BY id")
+        ).all()
         user_columns = {column["name"]: column for column in inspect(connection).get_columns("user")}
         analysis_columns = {
             column["name"]: column for column in inspect(connection).get_columns("analysis")
@@ -56,6 +59,7 @@ def test_identity_migration_backfills_existing_analyses_before_making_owner_requ
 
     assert analysis == (7, "legacy", 0)
     assert identities == [("bootstrap", 7)]
+    assert submissions == [("legacy-analysis", 7, "initial")]
     assert user_columns["email"]["nullable"] is True
     assert user_columns["is_active"]["nullable"] is False
     assert "created_at" in user_columns

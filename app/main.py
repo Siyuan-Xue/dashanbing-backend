@@ -79,6 +79,10 @@ def create_app(
             supervisor = AnalysisSupervisor(application)
             application.state.supervisor = supervisor
             await supervisor.start()
+        else:
+            from app.services.supervisor import AnalysisSupervisor
+
+            AnalysisSupervisor(application)._mark_interrupted()
         yield
         supervisor = getattr(application.state, "supervisor", None)
         if supervisor is not None:

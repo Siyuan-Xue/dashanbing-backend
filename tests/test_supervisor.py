@@ -7,7 +7,7 @@ from sqlmodel import Session
 
 from app.config import AppSettings
 from app.main import create_app
-from app.models import Analysis
+from app.models import Analysis, TaskInput
 from app.services.supervisor import AnalysisSupervisor
 
 
@@ -72,6 +72,55 @@ def test_idle_supervisor_continues_after_asyncio_timeout(tmp_path: Path, monkeyp
         asyncio.run(supervisor._loop())
 
     assert calls == 2
+
+
+def test_app_restart_recovers_upload_artifacts_when_worker_is_disabled(tmp_path: Path):
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'upload-recovery.db'}",
+        runtime_root=tmp_path / "runtime",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    app = create_app(settings=settings)
+    with TestClient(app):
+        task = Analysis(
+            title="interrupted upload",
+            status="uploading",
+            input_manifest_json="{}",
+            owner_id=1,
+            submitted_at=None,
+        )
+        task_id = task.id
+        root = app.state.storage.prepare(task_id) / "input"
+        destination = root / "cam_01.mkv"
+        destination.write_bytes(b"old")
+        backup = root / ".cam_01-restart.bak"
+        destination.replace(backup)
+        destination.write_bytes(b"new")
+        (root / ".cam_01-restart.tmp").write_bytes(b"partial")
+        with Session(app.state.engine) as session:
+            session.add(task)
+            session.add(
+                TaskInput(
+                    task_id=task_id,
+                    slot="cam_01",
+                    original_filename="old.mkv",
+                    byte_size=3,
+                    validation_state="valid",
+                    path=str(destination),
+                )
+            )
+            session.commit()
+
+    with TestClient(app):
+        with Session(app.state.engine) as session:
+            recovered = session.get(Analysis, task_id)
+        assert recovered.status == "draft"
+        assert destination.read_bytes() == b"old"
+        assert list(root.glob(".cam_01-*")) == []
 
 
 def test_supervisor_contains_one_job_exception_and_keeps_loop_alive(tmp_path: Path, monkeypatch):
