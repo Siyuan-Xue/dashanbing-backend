@@ -9,9 +9,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.config import AppSettings
+from app.database import create_tables
 from app.main import create_app
-from app.models import Analysis, User
-from app.security import JWT_ALGORITHM, create_access_token, verify_password
+from app.models import Analysis, User, UserRegistration
+from app.api.routes.auth import register
+from app.security import JWT_ALGORITHM, create_access_token, hash_password, verify_password
 
 
 @pytest.fixture
@@ -254,6 +256,52 @@ def test_registration_returns_conflict_when_a_duplicate_wins_the_insert_race(
     assert response.status_code == 409
 
 
+def test_registration_returns_conflict_when_swapped_identities_race(
+    client: TestClient,
+    configured_app,
+):
+    """Catches two transactions committing the same identities in opposite fields."""
+    app, _ = configured_app
+    competing_result = None
+    inserted = False
+
+    def register_competing_user(session, _flush_context, _instances) -> None:
+        nonlocal competing_result, inserted
+        if inserted or not any(
+            isinstance(item, User) and item.username == "racingcoach" for item in session.new
+        ):
+            return
+        inserted = True
+        with Session(app.state.engine) as competing_session:
+            competing_result = register(
+                UserRegistration(
+                    username="racing@example.com",
+                    email="racingcoach",
+                    password="new-password",
+                ),
+                session=competing_session,
+            )
+
+    event.listen(Session, "before_flush", register_competing_user)
+    try:
+        response = client.post(
+            "/api/v1/register",
+            json={"username": "racingcoach", "email": "racing@example.com", "password": "new-password"},
+        )
+    finally:
+        event.remove(Session, "before_flush", register_competing_user)
+
+    assert response.status_code == 409
+    assert competing_result is not None
+    with Session(app.state.engine) as session:
+        users = list(
+            session.exec(
+                select(User).where(User.username.in_(["racingcoach", "racing@example.com"]))
+            )
+        )
+    assert len(users) == 1
+
+
 def test_mixed_case_bootstrap_username_can_log_in(tmp_path: Path):
     """Catches normalizing OAuth input differently from bootstrap account storage."""
     settings = AppSettings(
@@ -271,6 +319,33 @@ def test_mixed_case_bootstrap_username_can_log_in(tmp_path: Path):
         response = bootstrap_client.post(
             "/api/v1/login/access-token",
             data={"username": "LOCAL_admin", "password": "correct-password"},
+        )
+
+    assert response.status_code == 200
+
+
+def test_preexisting_unicode_bootstrap_username_can_log_in(tmp_path: Path):
+    """Catches using database lower() instead of the Python casefold contract for legacy users."""
+    settings = AppSettings(
+        database_url=f"sqlite:///{tmp_path / 'unicode-bootstrap.db'}",
+        runtime_root=tmp_path / "runtime",
+        admin_username="STRASSE",
+        admin_password="correct-password",
+        jwt_secret_key="test-secret-with-at-least-thirty-two-characters",
+        simulation_mode=True,
+        worker_enabled=False,
+        auto_create_schema=True,
+    )
+    app = create_app(settings=settings)
+    create_tables(app.state.engine)
+    with Session(app.state.engine) as session:
+        session.add(User(username="Straße", hashed_password=hash_password("correct-password")))
+        session.commit()
+
+    with TestClient(app) as bootstrap_client:
+        response = bootstrap_client.post(
+            "/api/v1/login/access-token",
+            data={"username": "STRASSE", "password": "correct-password"},
         )
 
     assert response.status_code == 200

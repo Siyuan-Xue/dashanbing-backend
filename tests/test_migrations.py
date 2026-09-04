@@ -46,14 +46,47 @@ def test_identity_migration_backfills_existing_analyses_before_making_owner_requ
                 "SELECT owner_id, created_via, retry_count FROM analysis WHERE id = 'legacy-analysis'"
             )
         ).one()
+        identities = connection.execute(
+            text("SELECT value, user_id FROM user_identity ORDER BY value")
+        ).all()
         user_columns = {column["name"]: column for column in inspect(connection).get_columns("user")}
         analysis_columns = {
             column["name"]: column for column in inspect(connection).get_columns("analysis")
         }
 
     assert analysis == (7, "legacy", 0)
+    assert identities == [("bootstrap", 7)]
     assert user_columns["email"]["nullable"] is True
     assert user_columns["is_active"]["nullable"] is False
     assert "created_at" in user_columns
     assert analysis_columns["owner_id"]["nullable"] is False
     assert "submitted_at" in analysis_columns
+
+
+def test_user_identity_migration_deduplicates_a_single_users_matching_values(
+    tmp_path: Path,
+    monkeypatch,
+):
+    """Catches a legacy account inserting its same normalized identity key twice."""
+    database_url = f"sqlite:///{tmp_path / 'identity-migration.db'}"
+    monkeypatch.setenv("BASKETBALL_DATABASE_URL", database_url)
+    monkeypatch.setenv("BASKETBALL_ADMIN_USERNAME", "bootstrap")
+    config = _alembic_config()
+    command.upgrade(config, "20260903_0001")
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text("INSERT INTO user (id, username, hashed_password) VALUES (9, 'bootstrap', 'hash')")
+        )
+
+    command.upgrade(config, "20260904_0002")
+    with engine.begin() as connection:
+        connection.execute(text("UPDATE user SET email = 'bootstrap' WHERE id = 9"))
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as connection:
+        identities = connection.execute(
+            text("SELECT value, user_id FROM user_identity ORDER BY value")
+        ).all()
+    assert identities == [("bootstrap", 9)]

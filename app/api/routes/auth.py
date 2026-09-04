@@ -3,40 +3,25 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.api.deps import get_current_user
 from app.database import get_session
 from app.models import Token, User, UserPublic, UserRegistration
 from app.security import DUMMY_PASSWORD_HASH, create_access_token, hash_password, normalize_identity, verify_password
+from app.services.identities import ensure_user_identities, find_user_by_identity
 
 
 router = APIRouter(tags=["authentication"])
 
 
-def _normalized_identity_clause(identity: str):
-    return or_(
-        func.lower(func.trim(User.username)) == identity,
-        func.lower(func.trim(User.email)) == identity,
-    )
-
-
-def _conflicting_identity_clause(username: str, email: str):
-    identities = [username, email]
-    return or_(
-        func.lower(func.trim(User.username)).in_(identities),
-        func.lower(func.trim(User.email)).in_(identities),
-    )
-
-
 @router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
 def register(payload: UserRegistration, session: Session = Depends(get_session)) -> User:
-    existing = session.exec(
-        select(User).where(_conflicting_identity_clause(payload.username, payload.email))
-    ).first()
-    if existing is not None:
+    if (
+        find_user_by_identity(session, payload.username) is not None
+        or find_user_by_identity(session, payload.email) is not None
+    ):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username or email is already registered")
     user = User(
         username=payload.username,
@@ -45,8 +30,10 @@ def register(payload: UserRegistration, session: Session = Depends(get_session))
     )
     session.add(user)
     try:
+        session.flush()
+        ensure_user_identities(session, user)
         session.commit()
-    except IntegrityError as error:
+    except (IntegrityError, ValueError) as error:
         session.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -64,9 +51,7 @@ def login(
     session: Session = Depends(get_session),
 ) -> Token:
     identity = normalize_identity(form_data.username)
-    user = session.exec(
-        select(User).where(_normalized_identity_clause(identity))
-    ).first()
+    user = find_user_by_identity(session, identity)
     password_hash = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
     valid = verify_password(form_data.password, password_hash)
     if user is None or not user.is_active or not valid:

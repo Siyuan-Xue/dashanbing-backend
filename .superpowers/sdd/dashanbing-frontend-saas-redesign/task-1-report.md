@@ -102,3 +102,75 @@ Result: `85 passed, 2 warnings in 4.69s`. The two warnings are Alembic's existin
 - `app/main.py`
 - `tests/test_app.py`
 - `.superpowers/sdd/dashanbing-frontend-saas-redesign/task-1-report.md`
+
+## Fix Round 2 — database-enforced global identity registry
+
+### Findings fixed
+
+- Added `user_identity`, a normalized-identity registry keyed by its canonical value. Its primary key enforces global uniqueness across username and email, so two transactions cannot commit swapped values into opposite columns.
+- Registration checks the registry for fast sequential conflicts, inserts the user and both identity keys in one transaction, and maps both registry/key races and database uniqueness failures to HTTP 409 with a rollback.
+- Removed SQL `lower(trim(...))` as the identity contract. `normalize_identity` (Python trim + casefold) is now the canonical rule for registry creation, registration, login, bootstrap comparison, and the upgrade backfill.
+- Bootstrap now creates missing registry keys for an existing legacy admin after password validation, so a pre-existing verbatim Unicode username can log in through its casefolded input.
+- Added Alembic revision `20260904_0003` to create/backfill the registry. It rejects cross-user normalized collisions clearly and deduplicates matching username/email values belonging to one user.
+
+### Covering tests added
+
+- `test_registration_returns_conflict_when_swapped_identities_race`
+- `test_preexisting_unicode_bootstrap_username_can_log_in`
+- `test_user_identity_migration_deduplicates_a_single_users_matching_values`
+- Extended `test_identity_migration_backfills_existing_analyses_before_making_owner_required` to assert identity-registry backfill.
+
+### RED/GREEN evidence
+
+Initial required-case RED command:
+
+```sh
+uv run pytest tests/test_app.py::test_registration_returns_conflict_when_swapped_identities_race tests/test_app.py::test_preexisting_unicode_bootstrap_username_can_log_in tests/test_migrations.py::test_identity_migration_backfills_existing_analyses_before_making_owner_required -q
+```
+
+Result: `3 failed, 2 warnings in 0.79s` — swapped identities both committed (HTTP 201), the pre-existing Unicode bootstrap login returned 401, and the identity registry table was absent after upgrade.
+
+After introducing the registry, the Unicode/bootstrap and upgrade cases passed while the swapped race exposed an unhandled registry `ValueError` as HTTP 500. Registration now maps that conflict to 409.
+
+The migration duplicate-key edge case was then added and deliberately failed:
+
+```sh
+uv run pytest tests/test_migrations.py::test_user_identity_migration_deduplicates_a_single_users_matching_values -q
+```
+
+Result: `1 failed, 3 warnings in 0.46s` with `UNIQUE constraint failed: user_identity.value`.
+
+Final focused GREEN:
+
+```sh
+uv run pytest tests/test_app.py::test_registration_returns_conflict_when_swapped_identities_race tests/test_app.py::test_preexisting_unicode_bootstrap_username_can_log_in tests/test_migrations.py::test_identity_migration_backfills_existing_analyses_before_making_owner_required tests/test_migrations.py::test_user_identity_migration_deduplicates_a_single_users_matching_values -q
+```
+
+Result: `4 passed, 5 warnings in 0.67s`.
+
+Covering verification:
+
+```sh
+uv run pytest tests/test_app.py tests/test_migrations.py
+```
+
+Result: `27 passed, 5 warnings in 2.03s`.
+
+Full verification:
+
+```sh
+uv run pytest
+```
+
+Result: `88 passed, 5 warnings in 4.59s`. All five warnings are Alembic's existing `path_separator` configuration deprecation.
+
+### Files changed in this round
+
+- `app/models.py`
+- `app/services/identities.py`
+- `app/api/routes/auth.py`
+- `app/main.py`
+- `migrations/versions/20260904_0003_user_identity_registry.py`
+- `tests/test_app.py`
+- `tests/test_migrations.py`
+- `.superpowers/sdd/dashanbing-frontend-saas-redesign/task-1-report.md`

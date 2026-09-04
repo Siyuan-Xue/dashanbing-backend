@@ -13,6 +13,7 @@ from app.config import AppSettings, get_settings
 from app.database import create_database_engine, create_tables
 from app.models import User
 from app.security import hash_password, normalize_identity, verify_password
+from app.services.identities import ensure_user_identities
 from app.services.presets import PresetCatalog
 from app.services.readiness import ReadinessService
 from app.services.storage import AnalysisStorage
@@ -26,19 +27,24 @@ def _bootstrap_admin(app: FastAPI) -> bool:
         existing = session.exec(select(User)).first()
         configured_username = normalize_identity(settings.admin_username)
         if existing is None:
-            session.add(
-                User(
-                    username=configured_username,
-                    hashed_password=hash_password(settings.admin_password),
-                )
+            existing = User(
+                username=configured_username,
+                hashed_password=hash_password(settings.admin_password),
             )
+            session.add(existing)
+            session.flush()
+            ensure_user_identities(session, existing)
             session.commit()
             return True
         try:
-            return normalize_identity(existing.username) == configured_username and verify_password(
+            valid = normalize_identity(existing.username) == configured_username and verify_password(
                 settings.admin_password,
                 existing.hashed_password,
             )
+            if valid:
+                ensure_user_identities(session, existing)
+                session.commit()
+            return valid
         except Exception:
             return False
 

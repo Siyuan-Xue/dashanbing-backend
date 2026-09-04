@@ -16,6 +16,13 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
 
 
+class UserIdentity(SQLModel, table=True):
+    __tablename__ = "user_identity"
+
+    value: str = Field(primary_key=True, max_length=255)
+    user_id: int = Field(foreign_key="user.id", nullable=False, index=True)
+
+
 class UserRegistration(SQLModel):
     username: str = Field(min_length=3, max_length=50)
     email: str = Field(min_length=3, max_length=255)
