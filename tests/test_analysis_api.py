@@ -134,9 +134,13 @@ def test_upload_reserves_declared_size_before_parsing(client: TestClient, monkey
     assert response.status_code == 507
 
 
-def test_preset_result_is_protected_and_media_supports_range(client: TestClient):
+def test_preset_result_is_protected_and_media_supports_range(client: TestClient, monkeypatch):
     assert client.get("/api/v1/presets/quick-demo/result").status_code == 401
     _login(client)
+    monkeypatch.setattr(
+        "app.api.routes.presets.remux_to_browser_mp4",
+        lambda source, _destination: source,
+    )
 
     result = client.get("/api/v1/presets/quick-demo/result")
     media = client.get(
@@ -358,7 +362,15 @@ def test_completed_analysis_media_uses_manifest_and_supports_range(client: TestC
         session.add(analysis)
         session.commit()
         analysis_id = analysis.id
-    output = client.app.state.storage.prepare(analysis_id) / "output"
+    root = client.app.state.storage.prepare(analysis_id)
+    original = root / "input" / "cam_01.mkv"
+    original.write_bytes(b"unlisted-original-camera")
+    with Session(client.app.state.engine) as session:
+        stored = session.get(Analysis, analysis_id)
+        stored.input_manifest_json = json.dumps({"cam_01": str(original)})
+        session.add(stored)
+        session.commit()
+    output = root / "output"
     _write_json(
         output / "report.json",
         {"clips": [], "shot_outcomes": [], "shot_stats": {"attempts": 0, "makes": 0, "misses": 0, "undetermined": 0}},
@@ -378,11 +390,19 @@ def test_completed_analysis_media_uses_manifest_and_supports_range(client: TestC
     assert result.json()["media"] == {"phases": f"/api/v1/analyses/{analysis_id}/media/phases"}
     assert media.status_code == 206
     assert media.content == b"defg"
+    assert client.get(f"/api/v1/analyses/{analysis_id}/media/cam_01").status_code == 404
     assert client.get(f"/api/v1/analyses/{analysis_id}/media/evil").status_code == 404
 
 
-def test_completed_analysis_camera_media_uses_original_inputs_not_annotated(client: TestClient):
+def test_completed_analysis_camera_media_uses_original_inputs_not_annotated(
+    client: TestClient,
+    monkeypatch,
+):
     _login(client)
+    monkeypatch.setattr(
+        "app.api.routes.analyses.remux_to_browser_mp4",
+        lambda source, _destination: source,
+    )
     analysis = Analysis(
         title="原片复核",
         mode="full",
@@ -398,7 +418,7 @@ def test_completed_analysis_camera_media_uses_original_inputs_not_annotated(clie
     root = client.app.state.storage.prepare(analysis_id)
     inputs = {}
     for name in ("cam_01", "cam_02", "cam_03", "cam_04"):
-        path = root / "input" / f"{name}.mkv"
+        path = root / "input" / f"{name}.mp4"
         path.write_bytes(f"source-{name}".encode())
         inputs[name] = str(path)
     with Session(client.app.state.engine) as session:

@@ -15,6 +15,8 @@ RESEARCH_ROOT = Path(__file__).resolve().parent
 if str(RESEARCH_ROOT) not in sys.path:
     sys.path.insert(0, str(RESEARCH_ROOT))
 
+from src.utils.files import link_or_copy_file
+
 
 STAGE_MESSAGES = {
     "registering": "注册匿名参与者",
@@ -122,7 +124,7 @@ def _install_original_review_videos(group_root: Path, viz_target: Path) -> None:
             continue
         source = raw_dir / f"{camera}.mp4"
         if source.exists():
-            shutil.copy2(source.resolve(), dest)
+            link_or_copy_file(source.resolve(), dest)
 
 
 def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
@@ -136,10 +138,10 @@ def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
         shutil.copy2(source, output_root / name)
     viz_source = group_root / "viz"
     viz_target = output_root / "viz"
-    if viz_source.is_dir():
-        shutil.copytree(viz_source, viz_target)
-    else:
-        viz_target.mkdir(parents=True, exist_ok=True)
+    viz_target.mkdir(parents=True, exist_ok=True)
+    phases_source = viz_source / "phases.mp4"
+    if phases_source.is_file():
+        shutil.copy2(phases_source, viz_target / phases_source.name)
     _install_original_review_videos(group_root, viz_target)
     expected = {
         "cam_01": "cam_01_original.mp4",

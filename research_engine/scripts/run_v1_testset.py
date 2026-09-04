@@ -47,6 +47,7 @@ from src.privacy.consent import grant_consent  # noqa: E402
 from src.privacy.db import init_db  # noqa: E402
 from src.shot.outcome import run_ball_tracking_on_video, run_shot_outcome_session  # noqa: E402
 from src.types import ConsentScope, StudentActions  # noqa: E402
+from src.utils.files import link_or_copy_file  # noqa: E402
 from src.utils.video_io import create_video_writer, ffmpeg_available  # noqa: E402
 from src.viz.identity_style import (  # noqa: E402
     VizIdentitySticky,
@@ -693,7 +694,7 @@ def render_group_visualizations(
         if not (original_out.is_file() and original_out.stat().st_size > 1000):
             source = Path(video_path)
             if source.exists():
-                shutil.copy2(source.resolve(), original_out)
+                link_or_copy_file(source.resolve(), original_out)
 
     # phases.mp4 = 2x2 mosaic synced to action-segment camera (cam_03) clock
     if all(c in outputs for c in ("cam_01", "cam_02", "cam_03", "cam_04")):

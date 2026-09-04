@@ -35,7 +35,7 @@ def _lock_for(path: Path) -> threading.Lock:
 
 
 def remux_to_browser_mp4(src: Path, dst: Path) -> Path:
-    """Make a browser-playable MP4. Copy-stream when possible; copy as-is without ffmpeg."""
+    """Make a browser-playable MP4, without disguising another container as MP4."""
     src = Path(src)
     dst = Path(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -95,6 +95,8 @@ def remux_to_browser_mp4(src: Path, dst: Path) -> Path:
             detail = (encoded.stderr or encoded.stdout or "ffmpeg failed").strip().splitlines()
             tail = " ".join(detail[-6:]) if detail else "ffmpeg failed"
             raise RuntimeError(f"无法将 {src.name} 转为可播放的 MP4。{tail}")
+        if src.suffix.lower() != ".mp4":
+            raise RuntimeError(f"无法将 {src.name} 转为可播放的 MP4：FFmpeg 不可用。")
         shutil.copy2(src, dst)
         return dst
 

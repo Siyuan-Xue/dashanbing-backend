@@ -34,7 +34,7 @@
 | 项目路径 | `/root/autodl-tmp/dashanbing-backend` |
 | Python 环境 | `/root/autodl-tmp/envs/dashanbing` |
 | Git origin | `https://gitee.com/milesxue/dashanbing-backend.git` |
-| 跟踪分支 | `codex/productize-v3` |
+| 跟踪分支 | `main` |
 | 服务管理 | `screen` + Uvicorn，单 worker |
 | 对外方式 | SSH 本地端口转发 |
 
@@ -175,12 +175,12 @@ AutoDL 访问 GitHub 经常出现 TLS、HTTP/2 或 `GnuTLS recv error`。运行�
 https://gitee.com/milesxue/dashanbing-backend.git
 ```
 
-本地开发机继续向 GitHub 推送；运行机只负责从镜像拉取。镜像如何与 GitHub 同步不在运行机操作范围内。当前展示部署跟踪分支 `codex/productize-v3`。
+本地开发机继续向 GitHub 推送；运行机只负责从镜像拉取。镜像如何与 GitHub 同步不在运行机操作范围内。产品化分支已经合并，展示部署跟踪稳定分支 `main`。
 
 ```bash
 ssh -p <SSH_PORT> <SSH_USER>@<SSH_HOST>
 cd /root/autodl-tmp
-git clone --branch codex/productize-v3 --single-branch \
+git clone --branch main --single-branch \
   https://gitee.com/milesxue/dashanbing-backend.git
 cd dashanbing-backend
 git config http.version HTTP/1.1
@@ -193,7 +193,7 @@ git rev-parse HEAD
 
 ```bash
 git -c http.version=HTTP/1.1 clone \
-  --branch codex/productize-v3 \
+  --branch main \
   --single-branch \
   https://gitee.com/milesxue/dashanbing-backend.git
 ```
@@ -848,9 +848,9 @@ test -d .git || git init
 git remote remove origin 2>/dev/null || true
 git remote add origin https://gitee.com/milesxue/dashanbing-backend.git
 git fetch origin
-git reset --mixed origin/codex/productize-v3
-git branch -M codex/productize-v3
-git branch --set-upstream-to=origin/codex/productize-v3
+git reset --mixed origin/main
+git branch -M main
+git branch --set-upstream-to=origin/main
 git config http.version HTTP/1.1
 git config pull.ff only
 ```
@@ -869,14 +869,15 @@ git pull --ff-only
 /root/autodl-tmp/start-dashanbing.sh
 ```
 
-如果 `git pull --ff-only` 因工作区已有相同文件而被拒绝，先确认没有实例独有修改，再让工作区与镜像一致：
+如果 `git pull --ff-only` 因工作区修改而被拒绝，先停止更新并检查差异：
 
 ```bash
-git fetch origin
-git reset --hard origin/codex/productize-v3
+git status --short
+git diff --stat
+git diff
 ```
 
-不要对包含 `.env` 或 `runtime/` 的目录使用会删除未跟踪文件的清理命令。当前实例若仍显示与镜像 HEAD 的本地差异，通常是此前 rsync 上去、镜像尚未包含的提交，等镜像同步后再 hard reset 即可。
+确认差异只是可丢弃的旧源码后，也应先备份再逐文件恢复，或新建干净 checkout 并迁移 `.env`、`runtime/`、`local-assets/` 和 `app/frontend/`。不要在生产目录直接使用 `git reset --hard`，也不要对包含本地资产的目录执行会删除未跟踪文件的清理命令。
 
 如果 GPU requirements、PyTorch 或模型发生变化，应重新执行完整依赖安装、严格 readiness 和 [GPU 验收清单](GPU_ACCEPTANCE.md)，不要只重启应用。
 
@@ -1005,7 +1006,7 @@ du -sh /root/autodl-tmp/dashanbing-backend/runtime/*
 
 ## 15. 当前尚未完成的最终验收
 
-2026-09-03 已在本机 RTX 4090 上完成 group4/group5 完整与快速真实重跑：DTO 与 `report.json` 一致，group4 为 1.0/1.0，group5 为 0.944/1.0 且 outcome 17/17。记录见 [GPU_ACCEPTANCE.md](GPU_ACCEPTANCE.md) 本次实测节。GPU 主机 pytest 此前为 54/54。
+2026-09-03 已在本机 RTX 4090 上完成 group4/group5 完整与快速真实重跑：DTO 与 `report.json` 一致，group4 为 1.0/1.0，group5 为 0.944/1.0 且 outcome 17/17。记录见 [GPU_ACCEPTANCE.md](GPU_ACCEPTANCE.md) 本次实测节。GPU 主机完整 pytest 已通过；用例数量会随代码演进，不作为验收指标。
 
 仍未完成、不能当作已交付的部分：
 
@@ -1020,7 +1021,7 @@ du -sh /root/autodl-tmp/dashanbing-backend/runtime/*
 
 1. 选择 Ubuntu 22.04、Python 3.12、CUDA 12.4、24 GiB 显存级别 NVIDIA GPU；
 2. 检查 `nvidia-smi`、数据盘空间和 SSH；
-3. 从 Gitee 镜像 clone 指定分支并记录 commit；网络异常时改用 HTTP/1.1，再失败则上传源码归档后按 13.2 接入 Gitee；
+3. 从 Gitee 镜像 clone `main` 并记录 commit；网络异常时改用 HTTP/1.1，再失败则上传源码归档后按 13.2 接入 Gitee；
 4. 本地运行 `scripts/prepare_local_assets.sh` 并补齐 `buffalo_l`；
 5. 本地构建 `app/frontend/`；
 6. 用 rsync 上传最小运行模型、前端、group3–6 输入输出和现场同步配置；

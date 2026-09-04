@@ -18,6 +18,14 @@ from app.services.storage import InvalidVideoUpload
 
 router = APIRouter(prefix="/analyses", tags=["analyses"], dependencies=[Depends(get_current_user)])
 
+LEGACY_MEDIA_FILES = {
+    "cam_01": "cam_01_annotated.mp4",
+    "cam_02": "cam_02_annotated.mp4",
+    "cam_03": "cam_03_annotated.mp4",
+    "cam_04": "cam_04_ball.mp4",
+    "phases": "phases.mp4",
+}
+
 
 def _analysis_or_404(analysis_id: str, session: Session) -> Analysis:
     analysis = session.get(Analysis, analysis_id)
@@ -150,9 +158,34 @@ def _original_sources(analysis: Analysis) -> dict[str, Path]:
     }
 
 
+def _allowed_media_kinds(output_root: Path) -> set[str]:
+    manifest_path = output_root / "media_manifest.json"
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    if not isinstance(payload, dict):
+        return set()
+    return {
+        kind
+        for kind, filename in payload.items()
+        if kind in MEDIA_FILES
+        and isinstance(filename, str)
+        and filename in {MEDIA_FILES[kind], LEGACY_MEDIA_FILES[kind]}
+    }
+
+
 def _review_media_paths(analysis: Analysis, request: Request) -> dict[str, Path]:
     output_root = request.app.state.storage.analysis_root(analysis.id) / "output"
-    return resolve_review_media(output_root / "viz", _original_sources(analysis))
+    allowed = _allowed_media_kinds(output_root)
+    return {
+        kind: path
+        for kind, path in resolve_review_media(
+            output_root / "viz",
+            _original_sources(analysis),
+        ).items()
+        if kind in allowed
+    }
 
 
 @router.get("/{analysis_id}/media/{kind}")

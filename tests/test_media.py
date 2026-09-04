@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from app.services.media import (
     MEDIA_FILES,
     install_original_camera_videos,
@@ -26,9 +28,19 @@ def test_resolve_review_media_prefers_originals_over_annotated(tmp_path: Path):
     assert media["cam_01"] == remuxed
 
 
-def test_remux_without_ffmpeg_copies_source_bytes(tmp_path: Path, monkeypatch):
+def test_remux_without_ffmpeg_rejects_non_mp4_source(tmp_path: Path, monkeypatch):
     monkeypatch.setattr("app.services.media.shutil.which", lambda _name: None)
     src = tmp_path / "cam_01.mkv"
+    dst = tmp_path / "viz" / "cam_01_original.mp4"
+    src.write_bytes(b"source-bytes")
+
+    with pytest.raises(RuntimeError, match="FFmpeg"):
+        remux_to_browser_mp4(src, dst)
+
+
+def test_remux_without_ffmpeg_copies_existing_mp4(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr("app.services.media.shutil.which", lambda _name: None)
+    src = tmp_path / "cam_01.mp4"
     dst = tmp_path / "viz" / "cam_01_original.mp4"
     src.write_bytes(b"source-bytes")
 
@@ -43,7 +55,7 @@ def test_install_original_camera_videos_writes_product_filenames(tmp_path: Path,
     viz = tmp_path / "viz"
     sources = {}
     for kind in ("cam_01", "cam_02", "cam_03", "cam_04"):
-        path = tmp_path / f"{kind}.mkv"
+        path = tmp_path / f"{kind}.mp4"
         path.write_bytes(kind.encode())
         sources[kind] = path
 
