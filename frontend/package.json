@@ -7,6 +7,10 @@
   "scripts": {
     "dev": "vite",
     "generate:api": "openapi-typescript ../openapi.json -o src/generated/schema.d.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -b --pretty false",
     "build": "pnpm run generate:api && tsc -b && vite build"
   },
   "dependencies": {
@@ -16,11 +20,17 @@
     "react-router-dom": "^7.8.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "jsdom": "^30.0.1",
     "openapi-typescript": "^7.9.1",
     "typescript": "~5.8.3",
-    "vite": "^7.1.4"
+    "vite": "^7.1.4",
+    "vitest": "^5.0.0"
   }
 }

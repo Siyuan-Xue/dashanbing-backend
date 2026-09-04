@@ -1,34 +1,79 @@
 import createClient from "openapi-fetch";
 
-import type { components, paths } from "./generated/schema";
+import type { paths } from "./generated/schema";
 
+// Generated contracts remain the source for staged-task APIs. Auth uses the
+// current server contract directly until the planned Task 6 schema refresh.
 export const api = createClient<paths>({ credentials: "include" });
 
-export type Analysis = components["schemas"]["AnalysisPublic"];
-export type ProductResult = components["schemas"]["ProductResult"];
-
-export type Preset = components["schemas"]["PresetPublic"];
-
-export type Readiness = {
-  ready: boolean;
-  mode: "gpu" | "simulation";
-  checks: Array<{ name: string; ready: boolean; detail: string }>;
+export type AuthUser = {
+  id: number;
+  username: string;
+  email: string | null;
+  is_active: boolean;
 };
 
-export function errorMessage(error: unknown, fallback = "请求失败") {
-  if (typeof error === "object" && error && "detail" in error) {
-    const detail = (error as { detail?: unknown }).detail;
-    if (typeof detail === "string") return detail;
+export type Registration = {
+  username: string;
+  email: string;
+  password: string;
+};
+
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
   }
-  return fallback;
 }
 
-export async function uploadAnalysis(form: FormData): Promise<Analysis> {
-  const response = await fetch("/api/v1/analyses/upload", {
-    method: "POST",
-    credentials: "include",
-    body: form,
-  });
-  if (!response.ok) throw await response.json();
-  return response.json();
+async function readError(response: Response) {
+  try {
+    const payload = (await response.json()) as { detail?: unknown };
+    if (typeof payload.detail === "string") return payload.detail;
+    if (Array.isArray(payload.detail)) {
+      return payload.detail
+        .map((item) => (typeof item === "object" && item && "msg" in item ? String(item.msg) : ""))
+        .filter(Boolean)
+        .join("; ");
+    }
+  } catch {
+    // A non-JSON proxy error still receives a stable localized message in UI.
+  }
+  return "Request failed";
 }
+
+async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, { credentials: "include", ...init });
+  if (!response.ok) throw new ApiError(response.status, await readError(response));
+  return response.json() as Promise<T>;
+}
+
+export const authApi = {
+  me: () => jsonRequest<AuthUser>("/api/v1/users/me"),
+  register: (registration: Registration) =>
+    jsonRequest<AuthUser>("/api/v1/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(registration),
+    }),
+  login: (identity: string, password: string) => {
+    const body = new URLSearchParams();
+    body.set("username", identity);
+    body.set("password", password);
+    return jsonRequest<{ access_token: string; token_type: string }>("/api/v1/login/access-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+  },
+  logout: async () => {
+    const response = await fetch("/api/v1/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!response.ok) throw new ApiError(response.status, await readError(response));
+  },
+};
