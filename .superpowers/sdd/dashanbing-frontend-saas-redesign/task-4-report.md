@@ -102,3 +102,15 @@ The repository's `openapi.json` predates Tasks 1–3. `frontend/src/api.ts` ther
 - RED: focused `string_too_short` and Unicode tests produced `3 failed`; the prior implementation displayed “too long” for both Chinese and English server responses, while two basketball emoji incorrectly passed the local three-character minimum.
 - GREEN focused: four structured validation tests passed, including the preserved `string_too_long` mapping, bilingual `string_too_short`, and Unicode client validation.
 - GREEN full: `pnpm test` → `21 passed`; `pnpm run typecheck` → exit 0; `pnpm run build` → exit 0 with 56 modules transformed; Playwright → `9 passed, 1 intentional desktop skip`; `git diff --check` → exit 0.
+
+## Review fix round 3
+
+- Removed native `maxLength` from username, email, and password. HTML counts UTF-16 code units, so it silently truncated astral characters before the Pydantic-compatible code-point checks could run. Required attributes and localized range hints remain, while the shared code-point validator is now authoritative for all three maxima.
+- Added component and real Chromium regressions proving a 50-code-point basketball-emoji username remains fully enterable and is submitted intact on desktop and mobile.
+
+### RED/GREEN evidence
+
+- RED component: the focused run produced `2 failed`; the constraint assertion found `maxlength="50"`, and typing 50 basketball emoji yielded only 25 in the input.
+- RED browser: the focused Playwright run failed `2/2` projects because the UTF-16 native cap was still installed.
+- GREEN focused: component boundary tests passed `2/2`; focused Playwright passed `2/2` across desktop and mobile Chromium.
+- GREEN full: `pnpm test` → `22 passed`; `pnpm run typecheck` → exit 0; `pnpm run build` → exit 0 with 56 modules transformed; Playwright → `11 passed, 1 intentional desktop skip`; `git diff --check` → exit 0.

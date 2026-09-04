@@ -298,11 +298,11 @@ describe("authentication and protected routes", () => {
     renderAt("/register");
 
     expect(await screen.findByLabelText("用户名")).toHaveAttribute("required");
-    expect(screen.getByLabelText("用户名")).toHaveAttribute("maxlength", "50");
+    expect(screen.getByLabelText("用户名")).not.toHaveAttribute("maxlength");
     expect(screen.getByLabelText("邮箱")).toHaveAttribute("required");
-    expect(screen.getByLabelText("邮箱")).toHaveAttribute("maxlength", "255");
+    expect(screen.getByLabelText("邮箱")).not.toHaveAttribute("maxlength");
     expect(screen.getByLabelText("密码")).toHaveAttribute("required");
-    expect(screen.getByLabelText("密码")).toHaveAttribute("maxlength", "128");
+    expect(screen.getByLabelText("密码")).not.toHaveAttribute("maxlength");
 
     await user.type(screen.getByLabelText("用户名"), "ab");
     await user.type(screen.getByLabelText("邮箱"), "not-an-email");
@@ -400,6 +400,33 @@ describe("authentication and protected routes", () => {
 
     expect(screen.getByText("用户名至少需要 3 个字符")).toBeVisible();
     expect(fetchMock).not.toHaveBeenCalledWith("/api/v1/register", expect.anything());
+  });
+
+  test("keeps a backend-valid 50-code-point astral username enterable", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+      if (String(input).endsWith("/api/v1/register")) {
+        return new Response(JSON.stringify({ detail: "Username or email is already registered" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return anonymousResponse();
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    const username = "🏀".repeat(50);
+    renderAt("/register");
+
+    const usernameInput = await screen.findByLabelText("用户名");
+    await user.type(usernameInput, username);
+    expect(usernameInput).toHaveValue(username);
+    await user.type(screen.getByLabelText("邮箱"), "coach@example.com");
+    await user.type(screen.getByLabelText("密码"), "practice123");
+    await user.click(screen.getByRole("button", { name: "创建账号" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("该用户名或邮箱已被注册");
+    const registerCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/v1/register"));
+    expect(JSON.parse(String(registerCall?.[1]?.body))).toMatchObject({ username });
   });
 
   test("maps structured required, email, and maximum issues in English", async () => {

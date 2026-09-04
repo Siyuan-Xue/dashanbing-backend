@@ -106,10 +106,10 @@ export function AuthPage({ mode }: { mode: Mode }) {
           <p>{t(loginMode ? "authLoginBody" : "authRegisterBody")}</p>
           <form onSubmit={submit} noValidate>
             {loginMode ? <Field label={t("identity")} name="identity" autoComplete="username" placeholder={t("identityPlaceholder")} error={errors.identity}/> : <>
-              <Field label={t("username")} name="username" autoComplete="username" placeholder={t("usernamePlaceholder")} error={errors.username} required maxLength={50}/>
-              <Field label={t("email")} name="email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} error={errors.email} required maxLength={255}/>
+              <Field label={t("username")} name="username" autoComplete="username" placeholder={t("usernamePlaceholder")} error={errors.username} required/>
+              <Field label={t("email")} name="email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} error={errors.email} required/>
             </>}
-            <Field label={t("password")} name="password" type="password" autoComplete={loginMode ? "current-password" : "new-password"} placeholder={t("passwordPlaceholder")} error={errors.password} required maxLength={128}/>
+            <Field label={t("password")} name="password" type="password" autoComplete={loginMode ? "current-password" : "new-password"} placeholder={t("passwordPlaceholder")} error={errors.password} required/>
             {errors.server && <div className="form-alert" role="alert">{errors.server}</div>}
             <button className="button button-primary auth-submit" disabled={pending}>{t(pending ? (loginMode ? "submittingLogin" : "submittingRegister") : (loginMode ? "submitLogin" : "submitRegister"))}<Icon name="arrow"/></button>
           </form>
@@ -120,7 +120,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
   );
 }
 
-function Field({ label, name, type = "text", autoComplete, placeholder, error, required, maxLength }: { label: string; name: string; type?: string; autoComplete: string; placeholder: string; error?: string; required?: boolean; maxLength?: number }) {
+function Field({ label, name, type = "text", autoComplete, placeholder, error, required }: { label: string; name: string; type?: string; autoComplete: string; placeholder: string; error?: string; required?: boolean }) {
   const errorId = `${name}-error`;
-  return <div className={`form-field ${error ? "has-error" : ""}`}><label htmlFor={name}>{label}</label><input id={name} name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} required={required} maxLength={maxLength} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}/>{error && <small id={errorId}>{error}</small>}</div>;
+  return <div className={`form-field ${error ? "has-error" : ""}`}><label htmlFor={name}>{label}</label><input id={name} name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} required={required} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}/>{error && <small id={errorId}>{error}</small>}</div>;
 }

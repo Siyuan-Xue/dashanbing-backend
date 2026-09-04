@@ -72,6 +72,32 @@ test("protected routing redirects back after a mocked cookie-auth login", async 
   await expect(page.getByRole("link", { name: "coach" })).toBeVisible();
 });
 
+test("registration permits the backend's 50-code-point astral username maximum", async ({ page }) => {
+  const username = "🏀".repeat(50);
+  let submittedUsername = "";
+  await page.route("**/api/v1/register", async (route) => {
+    submittedUsername = (route.request().postDataJSON() as { username: string }).username;
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({ detail: "Username or email is already registered" }),
+    });
+  });
+  await page.goto("/register");
+
+  const usernameInput = page.getByLabel("用户名");
+  await expect(usernameInput).not.toHaveAttribute("maxlength");
+  await usernameInput.click();
+  await page.keyboard.insertText(username);
+  await expect(usernameInput).toHaveValue(username);
+  await page.getByLabel("邮箱").fill("coach@example.com");
+  await page.getByLabel("密码").fill("practice123");
+  await page.getByRole("button", { name: "创建账号" }).click();
+
+  await expect(page.getByRole("alert")).toContainText("该用户名或邮箱已被注册");
+  expect(submittedUsername).toBe(username);
+});
+
 test("mobile header actions remain usable without horizontal overflow", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium", "mobile-only layout assertion");
 
