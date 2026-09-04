@@ -361,3 +361,76 @@ Result: full suite `116 passed, 7 warnings in 9.46s`; compile and whitespace che
 - A slot in `valid_slots` but absent from `committed_operations` is precisely a persisted null-ID row, so legacy status recovery remains available without conflating it with an unpersisted first upload.
 - Replacement rollback restores the newest backup and removes all operation artifacts; first-upload rollback removes untracked installed bytes and its pending marker.
 - The recovery matrix exercises realistic mutations of every decision branch: wrong correlation comparison, missing first-upload cleanup, removed null-ID fallback, and lost committed evidence would each fail a covering test.
+
+## Fix Round 5 — serialize replacement generations through reconciliation
+
+### Finding fixed
+
+- A successful replacement now reconciles all stranded upload artifacts against the currently persisted draft metadata before changing the task to `uploading` or installing another generation. This closes the A-to-B ordering hole where A's database commit succeeded but marker publication failed, B later finalized only its own artifacts, and restart misread the remaining A marker as an uncommitted operation newer than B.
+- Reconciliation runs inside the route's existing SQLite `BEGIN IMMEDIATE` writer reservation. The persisted `TaskInput` operation ID therefore remains stable while recovery either finalizes its matching pending generation or rolls back a mismatched one; the new replacement then starts from a clean single predecessor.
+- No storage format, database schema, API response, quota, lifecycle, result/media, or legacy endpoint behavior changed.
+
+### Covering test
+
+- `test_successful_replacement_supersedes_stale_pending_operation` performs the exact sequence: initial valid input; replacement A whose database commit succeeds but `.pending` publication fails; successful replacement B; restart; then assertions that B bytes, filename, byte size, and operation ID survive while all stale slot artifacts are removed.
+
+### RED evidence
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_successful_replacement_supersedes_stale_pending_operation
+```
+
+Result: `1 failed in 0.73s`. After B returned 200 and the database recorded B's distinct operation ID, restart restored the pre-A `old` bytes instead of retaining B's `final` bytes.
+
+### GREEN evidence
+
+The same focused command passed: `1 passed in 0.63s`.
+
+Recovery matrix:
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_successful_replacement_supersedes_stale_pending_operation \
+  tests/test_tasks_api.py::test_restart_rolls_back_unmatched_pending_replacement_for_draft \
+  tests/test_tasks_api.py::test_restart_rolls_back_unmatched_pending_first_upload_for_draft \
+  tests/test_tasks_api.py::test_restart_keeps_pending_replacement_for_legacy_null_operation_id \
+  tests/test_tasks_api.py::test_restart_uses_committed_metadata_when_marker_publication_fails \
+  tests/test_tasks_api.py::test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel \
+  tests/test_tasks_api.py::test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts \
+  tests/test_supervisor.py::test_app_restart_recovers_upload_artifacts_when_worker_is_disabled
+```
+
+Result: `8 passed in 1.20s`.
+
+Covering task/supervisor suite:
+
+```sh
+.venv/bin/pytest -q tests/test_tasks_api.py tests/test_supervisor.py
+```
+
+Result: `32 passed in 4.69s`.
+
+Full verification:
+
+```sh
+.venv/bin/pytest -q
+.venv/bin/python -m compileall -q app migrations
+.venv/bin/alembic heads
+git diff --check
+```
+
+Result: full suite `117 passed, 7 warnings in 9.62s`; compile and whitespace checks exited 0, and Alembic reports the single head `20260904_0006`. All warnings remain the pre-existing Alembic `path_separator` deprecation.
+
+### Files changed
+
+- `app/api/routes/tasks.py`
+- `tests/test_tasks_api.py`
+- `.superpowers/sdd/dashanbing-frontend-saas-redesign/task-2-report.md`
+
+### Fix-round self-review
+
+- Reconciliation uses the same `valid_slots` and non-null operation-ID evidence as startup recovery, so it preserves matching pending commits, authoritative mismatch rollbacks, first-upload cleanup, legacy null-ID status fallback, and durable `.committed` handling rather than introducing a competing interpretation.
+- The database writer reservation spans task validation, metadata snapshot, reconciliation, and the transition to `uploading`; a second upload cannot observe draft state and start another generation inside that interval.
+- Every crash boundary now has one recoverable predecessor: before installation the persisted input remains intact; before B's database commit B rolls back to that clean predecessor; after commit B's operation ID identifies B; after marker publication `.committed` identifies B.
+- The regression asserts filesystem bytes and database metadata together after restart. Removing the pre-upload reconciliation reproduces the recorded RED failure, so it protects the generation-order invariant rather than an implementation detail.

@@ -217,6 +217,16 @@ def upload_task_input(
     if task.status != "draft":
         raise HTTPException(status_code=409, detail="Inputs can only be changed on a draft task")
     current_inputs = task_inputs(task.id, session)
+    request.app.state.storage.recover_task_input_uploads(
+        task.id,
+        status=task.status,
+        valid_slots={item.slot for item in current_inputs},
+        committed_operations={
+            item.slot: item.upload_operation_id
+            for item in current_inputs
+            if item.upload_operation_id is not None
+        },
+    )
     existing_bytes = sum(item.byte_size for item in current_inputs if item.slot != slot)
     task.status = "uploading"
     task.stage_message = f"Validating {slot}"

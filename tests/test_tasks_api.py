@@ -663,6 +663,61 @@ def test_restart_uses_committed_metadata_when_marker_publication_fails(
     assert item.upload_operation_id is not None
 
 
+def test_successful_replacement_supersedes_stale_pending_operation(
+    client: TestClient,
+    monkeypatch,
+):
+    task_id = _create(client).json()["id"]
+    old_bytes = _mkv(b"old")
+    first_bytes = _mkv(b"first")
+    final_bytes = _mkv(b"final")
+    assert _upload(client, task_id, "cam_01", old_bytes, "old.mkv").status_code == 200
+    input_root = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
+    destination = input_root / "cam_01.mkv"
+    original_mark_committed = client.app.state.storage.mark_task_input_committed
+    failed_operation_id = None
+
+    def fail_first_commit_marker(installed):
+        nonlocal failed_operation_id
+        if failed_operation_id is None:
+            failed_operation_id = installed.operation_id
+            raise OSError("simulated first marker-publication failure")
+        return original_mark_committed(installed)
+
+    monkeypatch.setattr(
+        client.app.state.storage,
+        "mark_task_input_committed",
+        fail_first_commit_marker,
+    )
+    first = _upload(client, task_id, "cam_01", first_bytes, "first.mkv")
+    assert first.status_code == 200
+    assert failed_operation_id is not None
+    assert list(input_root.glob(f".cam_01-{failed_operation_id}.*"))
+
+    final = _upload(client, task_id, "cam_01", final_bytes, "final.mkv")
+    assert final.status_code == 200
+    assert destination.read_bytes() == final_bytes
+    with Session(client.app.state.engine) as session:
+        final_item = session.get(TaskInput, (task_id, "cam_01"))
+        final_operation_id = final_item.upload_operation_id
+    assert final_operation_id is not None
+    assert final_operation_id != failed_operation_id
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert destination.read_bytes() == final_bytes
+    assert list(input_root.glob(".cam_01-*")) == []
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "draft"
+    assert item.original_filename == "final.mkv"
+    assert item.byte_size == len(final_bytes)
+    assert item.upload_operation_id == final_operation_id
+
+
 def test_restart_rolls_back_unmatched_pending_replacement_for_draft(
     client: TestClient,
 ):
