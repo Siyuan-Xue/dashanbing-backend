@@ -663,6 +663,107 @@ def test_restart_uses_committed_metadata_when_marker_publication_fails(
     assert item.upload_operation_id is not None
 
 
+def test_restart_rolls_back_unmatched_pending_replacement_for_draft(
+    client: TestClient,
+):
+    task_id = _create(client).json()["id"]
+    old_bytes = _mkv(b"old")
+    new_bytes = _mkv(b"new")
+    assert _upload(client, task_id, "cam_01", old_bytes, "old.mkv").status_code == 200
+    input_root = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
+    destination = input_root / "cam_01.mkv"
+    operation_id = "uncommitted-replacement"
+    backup = input_root / f".cam_01-{operation_id}.bak"
+    pending = input_root / f".cam_01-{operation_id}.pending"
+    destination.replace(backup)
+    destination.write_bytes(new_bytes)
+    pending.write_text("cam_01", encoding="utf-8")
+    with Session(client.app.state.engine) as session:
+        item = session.get(TaskInput, (task_id, "cam_01"))
+        prior_operation_id = item.upload_operation_id
+        task = session.get(Analysis, task_id)
+    assert task.status == "draft"
+    assert prior_operation_id is not None
+    assert prior_operation_id != operation_id
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert destination.read_bytes() == old_bytes
+    assert list(input_root.glob(".cam_01-*")) == []
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "draft"
+    assert item.original_filename == "old.mkv"
+    assert item.byte_size == len(old_bytes)
+    assert item.upload_operation_id == prior_operation_id
+
+
+def test_restart_rolls_back_unmatched_pending_first_upload_for_draft(
+    client: TestClient,
+):
+    task_id = _create(client).json()["id"]
+    input_root = client.app.state.storage.prepare(task_id) / "input"
+    destination = input_root / "cam_01.mkv"
+    destination.write_bytes(_mkv(b"uncommitted"))
+    (input_root / ".cam_01-first-upload.pending").write_text(
+        "cam_01",
+        encoding="utf-8",
+    )
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert not destination.exists()
+    assert list(input_root.glob(".cam_01-*")) == []
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "draft"
+    assert item is None
+
+
+def test_restart_keeps_pending_replacement_for_legacy_null_operation_id(
+    client: TestClient,
+):
+    task_id = _create(client).json()["id"]
+    old_bytes = _mkv(b"old")
+    new_bytes = _mkv(b"new")
+    assert _upload(client, task_id, "cam_01", old_bytes, "old.mkv").status_code == 200
+    input_root = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
+    destination = input_root / "cam_01.mkv"
+    operation_id = "legacy-replacement"
+    backup = input_root / f".cam_01-{operation_id}.bak"
+    pending = input_root / f".cam_01-{operation_id}.pending"
+    destination.replace(backup)
+    destination.write_bytes(new_bytes)
+    pending.write_text("cam_01", encoding="utf-8")
+    with Session(client.app.state.engine) as session:
+        item = session.get(TaskInput, (task_id, "cam_01"))
+        item.original_filename = "new.mkv"
+        item.byte_size = len(new_bytes)
+        item.upload_operation_id = None
+        session.add(item)
+        session.commit()
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert destination.read_bytes() == new_bytes
+    assert list(input_root.glob(".cam_01-*")) == []
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "draft"
+    assert item.original_filename == "new.mkv"
+    assert item.byte_size == len(new_bytes)
+    assert item.upload_operation_id is None
+
+
 def test_legacy_upload_does_not_hold_the_database_writer_during_media_io(
     client: TestClient,
     monkeypatch,

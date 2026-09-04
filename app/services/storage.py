@@ -290,12 +290,17 @@ class AnalysisStorage:
                 marker_operation_id = latest_marker.name.removeprefix(
                     f".{slot}-"
                 ).removesuffix(latest_marker.suffix)
-            committed = (
-                latest_marker is not None and latest_marker.suffix == ".committed"
-            ) or (
-                marker_operation_id is not None
-                and marker_operation_id == (committed_operations or {}).get(slot)
-            ) or status not in {"uploading", "canceled"}
+            correlated_operation_id = (committed_operations or {}).get(slot)
+            if latest_marker is None:
+                committed = status not in {"uploading", "canceled"}
+            elif latest_marker.suffix == ".committed":
+                committed = True
+            elif correlated_operation_id is not None:
+                committed = marker_operation_id == correlated_operation_id
+            elif slot in valid_slots:
+                committed = status not in {"uploading", "canceled"}
+            else:
+                committed = False
             destination = input_root / filename
             if committed:
                 for backup in backup_files:

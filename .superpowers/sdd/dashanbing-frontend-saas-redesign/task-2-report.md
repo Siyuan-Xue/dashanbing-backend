@@ -284,3 +284,80 @@ Result: full suite `113 passed, 7 warnings in 8.58s`; compile and whitespace che
 - UUID comparison uses the newest marker for a slot, preventing an older stranded committed/pending operation from classifying a newer uncommitted install.
 - Existing migrated and preset inputs have a null operation UUID and retain status-based legacy recovery behavior. New staged uploads use 32-character UUID hex values matching the new column bound.
 - The operation UUID is written before the database commit and is never updated during marker publication, so recovery evidence does not depend on the fallible post-commit rename.
+
+## Fix Round 4 — authoritative pending-marker correlation
+
+### Finding fixed
+
+- Replaced the recovery boolean's fall-through ordering with an explicit decision tree. A durable `.committed` marker remains authoritative; a `.pending` marker with a non-null database operation ID now commits only on an exact ID match and rolls back on mismatch, independent of task status.
+- A pending first upload without any `TaskInput` row is treated as uncommitted and its installed destination is removed. The existing `valid_slots` input distinguishes that case from migrated/legacy `TaskInput` rows whose operation ID is null; only those rows retain the prior status-based recovery heuristic.
+- No model, migration, API, lifecycle, quota, or public response contract changed.
+
+### Covering tests
+
+- `test_restart_rolls_back_unmatched_pending_replacement_for_draft`
+- `test_restart_rolls_back_unmatched_pending_first_upload_for_draft`
+- `test_restart_keeps_pending_replacement_for_legacy_null_operation_id`
+- Preserved matching-correlation and durable-marker coverage through `test_restart_uses_committed_metadata_when_marker_publication_fails` and `test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel`.
+
+### RED evidence
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_restart_rolls_back_unmatched_pending_replacement_for_draft \
+  tests/test_tasks_api.py::test_restart_rolls_back_unmatched_pending_first_upload_for_draft \
+  tests/test_tasks_api.py::test_restart_keeps_pending_replacement_for_legacy_null_operation_id
+```
+
+Result: `2 failed, 1 passed in 0.83s`. The replacement test found `new` bytes instead of the backed-up `old` bytes, and the first-upload test found the uncommitted destination still present. The legacy null-ID characterization passed.
+
+### GREEN evidence
+
+The same focused command passed: `3 passed in 0.83s`.
+
+Recovery matrix:
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_restart_rolls_back_unmatched_pending_replacement_for_draft \
+  tests/test_tasks_api.py::test_restart_rolls_back_unmatched_pending_first_upload_for_draft \
+  tests/test_tasks_api.py::test_restart_keeps_pending_replacement_for_legacy_null_operation_id \
+  tests/test_tasks_api.py::test_restart_uses_committed_metadata_when_marker_publication_fails \
+  tests/test_tasks_api.py::test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel \
+  tests/test_tasks_api.py::test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts \
+  tests/test_supervisor.py::test_app_restart_recovers_upload_artifacts_when_worker_is_disabled
+```
+
+Result: `7 passed in 1.10s`.
+
+Covering task/supervisor suite:
+
+```sh
+.venv/bin/pytest -q tests/test_tasks_api.py tests/test_supervisor.py
+```
+
+Result: `31 passed in 4.54s`.
+
+Full verification:
+
+```sh
+.venv/bin/pytest -q
+.venv/bin/python -m compileall -q app migrations
+.venv/bin/alembic heads
+git diff --check
+```
+
+Result: full suite `116 passed, 7 warnings in 9.46s`; compile and whitespace checks exited 0, and Alembic reports the single head `20260904_0006`. All warnings remain the pre-existing Alembic `path_separator` deprecation.
+
+### Files changed
+
+- `app/services/storage.py`
+- `tests/test_tasks_api.py`
+- `.superpowers/sdd/dashanbing-frontend-saas-redesign/task-2-report.md`
+
+### Fix-round self-review
+
+- The decision order prevents task status from overriding explicit non-null correlation evidence: matching pending IDs commit, mismatches roll back, and `.committed` markers still win.
+- A slot in `valid_slots` but absent from `committed_operations` is precisely a persisted null-ID row, so legacy status recovery remains available without conflating it with an unpersisted first upload.
+- Replacement rollback restores the newest backup and removes all operation artifacts; first-upload rollback removes untracked installed bytes and its pending marker.
+- The recovery matrix exercises realistic mutations of every decision branch: wrong correlation comparison, missing first-upload cleanup, removed null-ID fallback, and lost committed evidence would each fail a covering test.
