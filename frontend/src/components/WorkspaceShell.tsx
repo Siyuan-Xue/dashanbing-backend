@@ -47,7 +47,7 @@ export function WorkspaceShell() {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") { closeDrawer(); return; }
       if (event.key !== "Tab") return;
-      const focusable = [...(sidebarRef.current?.querySelectorAll<HTMLElement>(".workspace-nav a, .workspace-recent a, .workspace-sidebar-bottom a") || [])];
+      const focusable = [...(sidebarRef.current?.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])') || [])];
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable.at(-1)!;
@@ -58,22 +58,27 @@ export function WorkspaceShell() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [closeDrawer, open]);
 
+  const closeOnInternalNavigation = (event: React.MouseEvent<HTMLElement>) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+    if (link && new URL(link.href).origin === window.location.origin) closeDrawer();
+  };
+
   return (
     <div className="workspace-shell">
       <button ref={menuButtonRef} className="workspace-menu-button" type="button" onClick={() => setOpen(true)} aria-label={wt("menuOpen")} aria-expanded={open} aria-controls="workspace-sidebar" inert={mobile && open ? true : undefined}><Icon name="menu"/></button>
       {open && <button className="workspace-scrim" type="button" tabIndex={-1} aria-hidden="true" onClick={closeDrawer}/>}
-      <aside ref={sidebarRef} id="workspace-sidebar" className={`workspace-sidebar${open ? " is-open" : ""}`} inert={mobile && !open ? true : undefined} aria-hidden={mobile && !open ? true : undefined} role={mobile && open ? "dialog" : undefined} aria-modal={mobile && open ? true : undefined} aria-label={mobile && open ? wt("workspaceNav") : undefined}>
-        <div className="workspace-brand"><Brand/></div>
-        <nav className="workspace-nav" aria-label={wt("workspaceNav")} onClick={closeDrawer}>
+      <aside ref={sidebarRef} id="workspace-sidebar" className={`workspace-sidebar${open ? " is-open" : ""}`} inert={mobile && !open ? true : undefined} aria-hidden={mobile && !open ? true : undefined} role={mobile && open ? "dialog" : undefined} aria-modal={mobile && open ? true : undefined} aria-label={mobile && open ? wt("workspaceNav") : undefined} onClick={closeOnInternalNavigation}>
+        <div className="workspace-brand"><Brand/>{mobile && open && <button className="workspace-drawer-close" type="button" aria-label={wt("menuClose")} onClick={closeDrawer}><Icon name="x"/></button>}</div>
+        <nav className="workspace-nav" aria-label={wt("workspaceNav")}>
           <NavLink ref={firstDrawerLinkRef} className="workspace-create" to="/workspace/new"><Icon name="plus"/>{wt("createTask")}</NavLink>
           <NavLink to="/workspace/tasks"><Icon name="layers"/>{wt("tasks")}</NavLink>
         </nav>
         <section className="workspace-recent" aria-labelledby="recent-heading">
           <h2 id="recent-heading">{wt("recent")}</h2>
-          {recent.length ? recent.map((item) => <Link key={item.id} to={`/workspace/tasks/${item.id}`} onClick={closeDrawer}><span className={`status-dot status-${item.status}`}/><span>{item.title}</span></Link>) : <p>{wt("noRecent")}</p>}
+          {recent.length ? recent.map((item) => <Link key={item.id} to={`/workspace/tasks/${item.id}`}><span className={`status-dot status-${item.status}`}/><span>{item.title}</span></Link>) : <p>{wt("noRecent")}</p>}
         </section>
         <div className="workspace-sidebar-bottom">
-          <Link to="/workspace/settings" className="workspace-account" onClick={closeDrawer}><span className="avatar">{user?.username.slice(0, 1).toUpperCase()}</span><span><b>{user?.username}</b><small>{wt("account")}</small></span></Link>
+          <Link to="/workspace/settings" className="workspace-account"><span className="avatar">{user?.username.slice(0, 1).toUpperCase()}</span><span><b>{user?.username}</b><small>{wt("account")}</small></span></Link>
           <div className="workspace-utility-row">
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label={wt("github")} title={wt("github")}><Icon name="github"/></a>
             <a href="/api/docs" aria-label={wt("api")} title={wt("api")}><Icon name="code"/></a>

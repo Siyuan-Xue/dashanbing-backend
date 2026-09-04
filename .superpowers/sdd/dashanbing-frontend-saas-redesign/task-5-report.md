@@ -94,6 +94,33 @@ All eleven review findings were handled with focused regression coverage:
 - Accessibility/responsive: confirmation and drawer focus loops were keyboard-tested; closed mobile navigation is absent from the accessibility tree and tab order; desktop navigation remains directly available.
 - Contract/localization: title limits match the backend's 120-code-point validator, FastAPI issue structure is retained narrowly, raw API values remain untouched, and only displayed stable identifiers are localized. No OpenAPI/API-key/docs implementation was added.
 
+## Review fix round 2
+
+The remaining mobile-drawer finding is addressed without changing the desktop shell:
+
+- The focus trap now discovers all current focusable drawer descendants rather than selecting only navigation/recent/bottom anchors. The Home brand link and the new close button therefore participate in normal order and both wrap directions.
+- A visible close button appears inside the open phone drawer. It uses the existing localized `menuClose` copy (`关闭工作台菜单` / `Close workspace menu`), while Create Task remains the predictable initial target and every close path restores the menu trigger when the workspace shell remains mounted.
+- Drawer-level delegated navigation closes every same-origin link: Home, Create Task, Tasks, recent tasks, account, API, and utility Settings. External GitHub remains an external new-tab action.
+- Closed-drawer `inert`/`aria-hidden` behavior is preserved. The close control is phone-only, and desktop geometry remains 256 px.
+
+### Round 2 RED/GREEN evidence
+
+- Focused component RED: `1 failed`, `28 skipped`; the open drawer had no accessible `关闭工作台菜单` button.
+- Focused mobile Chromium RED: `1 failed`; Shift+Tab could not reach the missing close action and the old trap skipped Home.
+- Focused component GREEN: `1 passed`, `28 skipped`; it covers backward/forward wrap through Home and close, API and utility Settings closure, Chinese/English close names, and trigger restoration.
+- Focused mobile Chromium GREEN: `1 passed`; it additionally covers real-keyboard wrap plus close-button, utility Settings, recent-task, Tasks, Escape, Create Task, account, and Home navigation paths.
+- Full component suite: `51 passed` across `2` files.
+- Task 5 Playwright suite: `6 passed`, `2 intentional project skips`.
+- Full Playwright suite: `17 passed`, `3 intentional project skips` across desktop Chromium and iPhone 13 Chromium.
+- TypeScript and production build exited `0`; build transformed `74` modules and produced no generated-schema diff.
+- `git diff --check` exited `0`.
+
+### Round 2 self-review
+
+- The trap's first and last nodes derive from DOM order, so adding another ordinary focusable descendant automatically includes it without updating a class-specific query.
+- Same-origin detection centralizes internal-link closure and removes the earlier per-link omissions; the close button and Escape still use the explicit close path.
+- Browser assertions re-check the 256 px desktop rail and phone horizontal overflow in the same shell scenario.
+
 ## Known handoff note
 
 `openapi.json` and `frontend/src/generated/schema.d.ts` remain unchanged, as required: Task 6 owns final OpenAPI export and generated-client refresh. The production build runs the existing generator, but the checked-in result had no diff. API documentation and API-key management are intentionally not implemented here.

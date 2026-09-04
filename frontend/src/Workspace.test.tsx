@@ -205,6 +205,58 @@ describe("workspace shell and staged creation", () => {
     expect(screen.queryByLabelText("注册视频")).not.toBeInTheDocument();
   });
 
+  test("keeps every phone drawer action in the focus loop and closes from utility navigation", async () => {
+    vi.stubGlobal("matchMedia", vi.fn().mockImplementation((query: string) => ({
+      matches: query === "(max-width: 760px)", media: query, onchange: null,
+      addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(),
+    })));
+    installBaseFetch();
+    const user = userEvent.setup();
+    renderAt("/workspace/new");
+    const menu = await screen.findByRole("button", { name: "打开工作台菜单" });
+    await user.click(menu);
+    const drawer = screen.getByRole("dialog", { name: "工作台导航" });
+    const create = within(drawer).getByRole("link", { name: "创建任务" });
+    const home = within(drawer).getByRole("link", { name: "大山冰首页" });
+    const close = within(drawer).getByRole("button", { name: "关闭工作台菜单" });
+    const settings = within(drawer).getByRole("link", { name: "设置" });
+
+    expect(create).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(close).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(home).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(settings).toHaveFocus();
+    await user.keyboard("{Tab}");
+    expect(home).toHaveFocus();
+    await user.keyboard("{Tab}");
+    expect(close).toHaveFocus();
+    await user.click(close);
+    expect(screen.queryByRole("dialog", { name: "工作台导航" })).not.toBeInTheDocument();
+    await waitFor(() => expect(menu).toHaveFocus());
+
+    await user.click(menu);
+    const api = within(screen.getByRole("dialog", { name: "工作台导航" })).getByRole("link", { name: "API" });
+    api.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    await user.click(api);
+    expect(screen.queryByRole("dialog", { name: "工作台导航" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("workspace-location")).toHaveTextContent("/workspace/new");
+    await waitFor(() => expect(menu).toHaveFocus());
+
+    await user.click(menu);
+    await user.click(within(screen.getByRole("dialog", { name: "工作台导航" })).getByRole("link", { name: "设置" }));
+    await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/workspace/settings"));
+    expect(screen.queryByRole("dialog", { name: "工作台导航" })).not.toBeInTheDocument();
+    await waitFor(() => expect(menu).toHaveFocus());
+    await user.click(screen.getByRole("button", { name: "English" }));
+    await user.click(menu);
+    const englishClose = within(screen.getByRole("dialog", { name: "Workspace navigation" })).getByRole("button", { name: "Close workspace menu" });
+    expect(englishClose).toBeVisible();
+    await user.click(englishClose);
+    await waitFor(() => expect(menu).toHaveFocus());
+  });
+
   test("serializes slot writes to match the backend draft upload state machine", async () => {
     const uploaded: Array<{ slot: string; original_filename: string; byte_size: number; validation_state: string; created_at: string; updated_at: string }> = [];
     installBaseFetch((url, init) => {
