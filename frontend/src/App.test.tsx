@@ -358,4 +358,72 @@ describe("authentication and protected routes", () => {
     expect(await screen.findByText("用户名不能超过 50 个字符")).toBeVisible();
     expect(screen.queryByText("暂时无法完成请求，请稍后重试")).not.toBeInTheDocument();
   });
+
+  test.each([
+    ["zh", "用户名至少需要 3 个字符"],
+    ["en", "Username must be at least 3 characters"],
+  ])("maps a FastAPI string_too_short issue in %s", async (locale, expected) => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/api/v1/register")) {
+        return new Response(JSON.stringify({ detail: [{ loc: ["body", "username"], msg: "String should have at least 3 characters", type: "string_too_short" }] }), {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return anonymousResponse();
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/register");
+    if (locale === "en") await user.click(await screen.findByRole("button", { name: "English" }));
+
+    await user.type(await screen.findByLabelText(locale === "en" ? "Username" : "用户名"), "coach");
+    await user.type(screen.getByLabelText(locale === "en" ? "Email" : "邮箱"), "coach@example.com");
+    await user.type(screen.getByLabelText(locale === "en" ? "Password" : "密码"), "practice123");
+    await user.click(screen.getByRole("button", { name: locale === "en" ? "Create account" : "创建账号" }));
+
+    expect(await screen.findByText(expected)).toBeVisible();
+    expect(screen.queryByText(locale === "en" ? "Username cannot exceed 50 characters" : "用户名不能超过 50 个字符")).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/register", expect.objectContaining({ method: "POST" }));
+  });
+
+  test("counts Unicode registration minima like the backend", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(anonymousResponse());
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/register");
+
+    await user.type(await screen.findByLabelText("用户名"), "🏀🏀");
+    await user.type(screen.getByLabelText("邮箱"), "coach@example.com");
+    await user.type(screen.getByLabelText("密码"), "practice123");
+    await user.click(screen.getByRole("button", { name: "创建账号" }));
+
+    expect(screen.getByText("用户名至少需要 3 个字符")).toBeVisible();
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/v1/register", expect.anything());
+  });
+
+  test("maps structured required, email, and maximum issues in English", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/api/v1/register")) {
+        return new Response(JSON.stringify({ detail: [
+          { loc: ["body", "username"], msg: "Field required", type: "missing" },
+          { loc: ["body", "email"], msg: "Value is not a valid email address", type: "value_error" },
+          { loc: ["body", "password"], msg: "String should have at most 128 characters", type: "string_too_long" },
+        ] }), { status: 422, headers: { "Content-Type": "application/json" } });
+      }
+      return anonymousResponse();
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderAt("/register");
+    await user.click(await screen.findByRole("button", { name: "English" }));
+    await user.type(screen.getByLabelText("Username"), "coach");
+    await user.type(screen.getByLabelText("Email"), "coach@example.com");
+    await user.type(screen.getByLabelText("Password"), "practice123");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+
+    expect(await screen.findByText("Enter a username")).toBeVisible();
+    expect(screen.getByText("Enter a valid email address")).toBeVisible();
+    expect(screen.getByText("Password cannot exceed 128 characters")).toBeVisible();
+  });
 });

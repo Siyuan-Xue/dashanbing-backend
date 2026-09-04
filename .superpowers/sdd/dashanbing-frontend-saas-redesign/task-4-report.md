@@ -90,3 +90,15 @@ The repository's `openapi.json` predates Tasks 1–3. `frontend/src/api.ts` ther
 - Every async auth state write is conditional on the current generation, including `finally`, so stale requests cannot clear a newer loading/session state.
 - Registration changes stop at the current auth contract; no workspace or API-center UI from Tasks 5/6 was added.
 - The external head theme bootstrap uses only same-origin JavaScript and no inline script, nonce, remote asset, or third-party dependency. Playwright used the already provisioned local Chromium cache at the path shown above; no unrelated browser was downloaded.
+
+## Review fix round 2
+
+- Preserved FastAPI/Pydantic validation issues as structured `{ field, type }` values on `ApiError` instead of reducing them to field names.
+- Registration now maps `missing`, `string_too_short`, `string_too_long`, and email `value_error` semantics to the correct localized field copy. Unknown validation types continue to use the stable generic request error rather than guessing.
+- Client length checks now count Unicode code points with `Array.from`, matching Python/Pydantic behavior for representative astral characters such as basketball emoji.
+
+### RED/GREEN evidence
+
+- RED: focused `string_too_short` and Unicode tests produced `3 failed`; the prior implementation displayed “too long” for both Chinese and English server responses, while two basketball emoji incorrectly passed the local three-character minimum.
+- GREEN focused: four structured validation tests passed, including the preserved `string_too_long` mapping, bilingual `string_too_short`, and Unicode client validation.
+- GREEN full: `pnpm test` → `21 passed`; `pnpm run typecheck` → exit 0; `pnpm run build` → exit 0 with 56 modules transformed; Playwright → `9 passed, 1 intentional desktop skip`; `git diff --check` → exit 0.

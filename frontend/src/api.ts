@@ -19,38 +19,46 @@ export type Registration = {
   password: string;
 };
 
+export type ApiValidationIssue = {
+  field: string;
+  type: string;
+};
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
-    public readonly fields: string[] = [],
+    public readonly validationIssues: ApiValidationIssue[] = [],
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
-async function readError(response: Response): Promise<{ message: string; fields: string[] }> {
+async function readError(response: Response): Promise<{ message: string; validationIssues: ApiValidationIssue[] }> {
   try {
     const payload = (await response.json()) as { detail?: unknown };
-    if (typeof payload.detail === "string") return { message: payload.detail, fields: [] };
+    if (typeof payload.detail === "string") return { message: payload.detail, validationIssues: [] };
     if (Array.isArray(payload.detail)) {
-      const details = payload.detail.filter((item): item is { msg?: unknown; loc?: unknown } => typeof item === "object" && item !== null);
+      const details = payload.detail.filter((item): item is { msg?: unknown; loc?: unknown; type?: unknown } => typeof item === "object" && item !== null);
       const message = details.map((item) => typeof item.msg === "string" ? item.msg : "").filter(Boolean).join("; ");
-      const fields = details.flatMap((item) => Array.isArray(item.loc) ? item.loc.slice(-1).filter((field): field is string => typeof field === "string") : []);
-      if (message) return { message, fields };
+      const validationIssues = details.flatMap((item) => {
+        const field = Array.isArray(item.loc) ? item.loc.at(-1) : undefined;
+        return typeof field === "string" && typeof item.type === "string" ? [{ field, type: item.type }] : [];
+      });
+      if (message || validationIssues.length) return { message: message || "Validation failed", validationIssues };
     }
   } catch {
     // A non-JSON proxy error still receives a stable localized message in UI.
   }
-  return { message: "Request failed", fields: [] };
+  return { message: "Request failed", validationIssues: [] };
 }
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "include", ...init });
   if (!response.ok) {
     const error = await readError(response);
-    throw new ApiError(response.status, error.message, error.fields);
+    throw new ApiError(response.status, error.message, error.validationIssues);
   }
   return response.json() as Promise<T>;
 }
@@ -93,7 +101,7 @@ export const authApi = {
     });
     if (!response.ok) {
       const error = await readError(response);
-      throw new ApiError(response.status, error.message, error.fields);
+      throw new ApiError(response.status, error.message, error.validationIssues);
     }
   },
 };

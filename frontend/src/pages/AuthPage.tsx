@@ -25,15 +25,29 @@ function localizedServerError(error: unknown, mode: Mode): CopyKey {
 }
 
 function localizedValidationErrors(error: unknown, t: (key: CopyKey) => string): Errors | null {
-  if (!(error instanceof ApiError) || error.status !== 422 || error.fields.length === 0) return null;
+  if (!(error instanceof ApiError) || error.status !== 422 || error.validationIssues.length === 0) return null;
   const errors: Errors = {};
-  for (const field of error.fields) {
-    if (field === "username") errors.username = t("usernameLong");
-    if (field === "email") errors.email = t("emailLong");
-    if (field === "password") errors.password = t("passwordLong");
+  for (const issue of error.validationIssues) {
+    if (issue.field === "username") {
+      if (issue.type === "missing") errors.username = t("usernameRequired");
+      if (issue.type === "string_too_short") errors.username = t("usernameShort");
+      if (issue.type === "string_too_long") errors.username = t("usernameLong");
+    }
+    if (issue.field === "email") {
+      if (issue.type === "missing") errors.email = t("emailRequired");
+      if (issue.type === "string_too_long") errors.email = t("emailLong");
+      if (issue.type === "string_too_short" || issue.type === "value_error") errors.email = t("emailInvalid");
+    }
+    if (issue.field === "password") {
+      if (issue.type === "missing") errors.password = t("passwordRequired");
+      if (issue.type === "string_too_short") errors.password = t("passwordShort");
+      if (issue.type === "string_too_long") errors.password = t("passwordLong");
+    }
   }
   return Object.keys(errors).length ? errors : null;
 }
+
+const characterCount = (value: string) => Array.from(value).length;
 
 export function AuthPage({ mode }: { mode: Mode }) {
   const { checking, user, login, register } = useAuth();
@@ -56,14 +70,14 @@ export function AuthPage({ mode }: { mode: Mode }) {
     const nextErrors: Errors = {};
     if (mode === "login" && !identity) nextErrors.identity = t("identityRequired");
     if (mode === "register" && !username) nextErrors.username = t("usernameRequired");
-    else if (mode === "register" && username.length < 3) nextErrors.username = t("usernameShort");
-    else if (mode === "register" && username.length > 50) nextErrors.username = t("usernameLong");
+    else if (mode === "register" && characterCount(username) < 3) nextErrors.username = t("usernameShort");
+    else if (mode === "register" && characterCount(username) > 50) nextErrors.username = t("usernameLong");
     if (mode === "register" && !email) nextErrors.email = t("emailRequired");
-    else if (mode === "register" && email.length > 255) nextErrors.email = t("emailLong");
+    else if (mode === "register" && characterCount(email) > 255) nextErrors.email = t("emailLong");
     else if (mode === "register" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = t("emailInvalid");
     if (!password) nextErrors.password = t("passwordRequired");
-    else if (password.length < 8) nextErrors.password = t("passwordShort");
-    else if (password.length > 128) nextErrors.password = t("passwordLong");
+    else if (characterCount(password) < 8) nextErrors.password = t("passwordShort");
+    else if (characterCount(password) > 128) nextErrors.password = t("passwordLong");
     if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
     setErrors({}); setPending(true);
     try {
