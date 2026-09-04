@@ -372,6 +372,7 @@ def delete_analysis(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> Response:
+    begin_write(session)
     analysis = _analysis_or_404(analysis_id, current_user, session)
     if not task_can_be_deleted(analysis.status):
         raise HTTPException(status_code=409, detail="Running analysis must be canceled first")

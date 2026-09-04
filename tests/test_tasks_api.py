@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis, TaskInput
+from app.api.routes import analyses as analyses_routes
 from app.api.routes import tasks as task_routes
 from app.services.retention import RetentionService
 
@@ -586,6 +587,42 @@ def test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts(cli
     assert item.original_filename == "old.mkv"
 
 
+def test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel(
+    client: TestClient,
+    monkeypatch,
+):
+    task_id = _create(client).json()["id"]
+    assert _upload(client, task_id, "cam_01", _mkv(b"old"), "old.mkv").status_code == 200
+    input_root = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
+    destination = input_root / "cam_01.mkv"
+
+    def interrupt_finalize(_installed) -> None:
+        raise OSError("simulated process interruption during finalization")
+
+    monkeypatch.setattr(client.app.state.storage, "finalize_task_input", interrupt_finalize)
+    replaced = _upload(client, task_id, "cam_01", _mkv(b"new"), "new.mkv")
+    assert replaced.status_code == 200
+    assert destination.read_bytes() == _mkv(b"new")
+    assert [path for path in input_root.iterdir() if path.name.startswith(".cam_01")]
+
+    canceled = client.post(f"/api/v1/tasks/{task_id}/cancel")
+    assert canceled.status_code == 200
+    assert canceled.json()["status"] == "canceled"
+
+    from app.services.supervisor import AnalysisSupervisor
+
+    AnalysisSupervisor(client.app)._mark_interrupted()
+
+    assert destination.read_bytes() == _mkv(b"new")
+    assert [path for path in input_root.iterdir() if path.name.startswith(".cam_01")] == []
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        item = session.get(TaskInput, (task_id, "cam_01"))
+    assert task.status == "canceled"
+    assert item.original_filename == "new.mkv"
+    assert item.byte_size == len(_mkv(b"new"))
+
+
 def test_legacy_upload_does_not_hold_the_database_writer_during_media_io(
     client: TestClient,
     monkeypatch,
@@ -651,6 +688,55 @@ def test_legacy_delete_obeys_staged_task_lifecycle_rules(client: TestClient):
     queued = client.delete(f"/api/v1/analyses/{task_id}")
     assert queued.status_code == 409
     assert queued.headers["Deprecation"] == "true"
+
+
+def test_legacy_delete_serializes_lifecycle_check_against_upload_transition(
+    client: TestClient,
+    monkeypatch,
+):
+    task_id = _create(client).json()["id"]
+    delete_checked = threading.Event()
+    allow_delete = threading.Event()
+    upload_reached_media_io = threading.Event()
+    allow_media_io = threading.Event()
+    original_predicate = analyses_routes.task_can_be_deleted
+
+    def gated_predicate(status: str) -> bool:
+        delete_checked.set()
+        assert allow_delete.wait(timeout=3)
+        return original_predicate(status)
+
+    def gated_probe(_path: Path, _title: str) -> None:
+        upload_reached_media_io.set()
+        assert allow_media_io.wait(timeout=3)
+
+    monkeypatch.setattr(analyses_routes, "task_can_be_deleted", gated_predicate)
+    monkeypatch.setattr(client.app.state.storage, "video_probe", gated_probe)
+    results = {}
+
+    def delete() -> None:
+        results["delete"] = client.delete(f"/api/v1/analyses/{task_id}")
+
+    def upload() -> None:
+        results["upload"] = _upload(client, task_id, "cam_01", _mkv(b"new"), "new.mkv")
+
+    delete_thread = threading.Thread(target=delete)
+    delete_thread.start()
+    assert delete_checked.wait(timeout=3)
+    upload_thread = threading.Thread(target=upload)
+    upload_thread.start()
+    upload_transitioned_before_delete = upload_reached_media_io.wait(timeout=0.5)
+    allow_delete.set()
+    delete_thread.join(timeout=3)
+    allow_media_io.set()
+    upload_thread.join(timeout=3)
+
+    assert not delete_thread.is_alive()
+    assert not upload_thread.is_alive()
+    assert not upload_transitioned_before_delete
+    assert results["delete"].status_code == 204
+    assert results["upload"].status_code == 404
+    assert client.get(f"/api/v1/tasks/{task_id}").status_code == 404
 
 
 def test_task_status_schema_is_closed_and_unknown_internal_states_fail(client: TestClient):

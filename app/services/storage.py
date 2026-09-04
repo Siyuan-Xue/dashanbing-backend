@@ -230,6 +230,17 @@ class AnalysisStorage:
                 raise
 
     @staticmethod
+    def mark_task_input_committed(upload: InstalledUpload) -> InstalledUpload:
+        committed_marker = upload.marker.with_suffix(".committed")
+        upload.marker.replace(committed_marker)
+        return InstalledUpload(
+            destination=upload.destination,
+            byte_size=upload.byte_size,
+            backup=upload.backup,
+            marker=committed_marker,
+        )
+
+    @staticmethod
     def finalize_task_input(upload: InstalledUpload) -> None:
         if upload.backup is not None:
             upload.backup.unlink(missing_ok=True)
@@ -252,7 +263,6 @@ class AnalysisStorage:
         input_root = self.analysis_root(analysis_id) / "input"
         if not input_root.is_dir():
             return
-        committed = status not in {"uploading", "canceled"}
         for slot, filename in UPLOAD_NAMES.items():
             temporary_files = list(input_root.glob(f".{slot}-*.tmp"))
             backup_files = sorted(
@@ -260,6 +270,15 @@ class AnalysisStorage:
                 key=lambda path: path.stat().st_mtime_ns,
             )
             marker_files = list(input_root.glob(f".{slot}-*.pending"))
+            marker_files.extend(input_root.glob(f".{slot}-*.committed"))
+            latest_marker = max(
+                marker_files,
+                key=lambda path: path.stat().st_mtime_ns,
+                default=None,
+            )
+            committed = (
+                latest_marker is not None and latest_marker.suffix == ".committed"
+            ) or status not in {"uploading", "canceled"}
             destination = input_root / filename
             if committed:
                 for backup in backup_files:

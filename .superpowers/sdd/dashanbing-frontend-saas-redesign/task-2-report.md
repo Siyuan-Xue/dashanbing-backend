@@ -165,3 +165,55 @@ Result: compile and whitespace checks exited 0; full suite `110 passed, 7 warnin
 - Recovery distinguishes uncommitted `uploading`/concurrently `canceled` operations from committed draft/queued states. It restores the newest backup, removes partial untracked destinations, and deletes pending/temp artifacts without changing `TaskInput` metadata.
 - Database exceptions after file installation cannot skip file rollback; status restoration is attempted in a `finally` path, and restart recovery handles database unavailability that persists beyond the request.
 - Legacy and new deletion routes call the same eligibility predicate. Existing legacy result/media/ownership/deprecation behavior is unchanged.
+
+## Fix Round 2 — committed replacement phase and serialized legacy deletion
+
+### Findings fixed
+
+- Added an explicit durable filesystem commit phase for staged slot replacement. After the database transaction commits the new `TaskInput`, the route atomically renames its `.pending` marker to `.committed` before cleanup. Startup recovery inspects the newest operation marker per slot and treats `.committed` as authoritative regardless of a later task status such as `canceled`; it keeps the installed file and removes the obsolete backup and markers. Uncommitted `uploading` recovery continues to restore the prior slot.
+- Added the shared `BEGIN IMMEDIATE` writer reservation to legacy delete before its owner-scoped lookup and deletion predicate. A competing upload transition can no longer commit `uploading` between the legacy route's status check and storage/database deletion.
+
+### Covering tests
+
+- `test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel`
+- `test_legacy_delete_serializes_lifecycle_check_against_upload_transition`
+- Existing recovery coverage: `test_supervisor_recovers_an_interrupted_replacement_and_cleans_artifacts`
+- Existing steady-state legacy coverage: `test_legacy_delete_obeys_staged_task_lifecycle_rules`
+
+### RED evidence
+
+```sh
+.venv/bin/pytest -q \
+  tests/test_tasks_api.py::test_restart_keeps_committed_replacement_after_finalize_interruption_and_cancel \
+  tests/test_tasks_api.py::test_legacy_delete_serializes_lifecycle_check_against_upload_transition
+```
+
+Result: `2 failed in 0.70s`. Restart restored the old bytes over the database-committed replacement after cancellation, and the competing upload reached media validation while legacy delete was paused after its lifecycle read.
+
+### GREEN evidence
+
+The same focused command passed: `2 passed in 1.22s`.
+
+Covering task API command:
+
+```sh
+.venv/bin/pytest -q tests/test_tasks_api.py
+```
+
+Result: `22 passed in 3.78s`.
+
+Full verification:
+
+```sh
+.venv/bin/pytest -q
+git diff --check
+```
+
+Result: full suite `112 passed, 7 warnings in 8.75s`; whitespace validation exited 0. All warnings remain the pre-existing Alembic `path_separator` deprecation.
+
+### Fix-round self-review
+
+- The marker phase transition is an atomic rename within the task input directory. Cleanup removes the backup before the committed marker; if cleanup is interrupted at either point, recovery preserves the new destination and finishes removing artifacts.
+- Recovery chooses the newest marker per slot, so a stale committed marker cannot make a newer pending replacement look committed. It preserves the previous rule for old pending-only artifacts according to task state.
+- Legacy delete now uses the same lock ordering, owner-scoped reload, and predicate serialization as new delete. The race test verifies ordering rather than only checking static status values.
+- No quota, public status, worker/result/media, API-key, or frontend behavior changed in this round.

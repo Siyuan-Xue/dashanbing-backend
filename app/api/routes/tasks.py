@@ -286,10 +286,11 @@ def upload_task_input(
             _restore_uploading_task(session, task_id, current_user.id)
         raise
     try:
+        installed = request.app.state.storage.mark_task_input_committed(installed)
         request.app.state.storage.finalize_task_input(installed)
     except OSError:
-        # The committed database state is authoritative; startup recovery
-        # safely removes a stranded backup/marker after an interrupted cleanup.
+        # A committed marker is authoritative even after a later lifecycle
+        # transition; startup recovery finalizes any stranded backup/marker.
         pass
     session.refresh(task)
     return task_public(task, session)
