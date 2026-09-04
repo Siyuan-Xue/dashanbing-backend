@@ -278,7 +278,10 @@ describe("authentication and protected routes", () => {
       bootstrap.resolve(anonymousResponse());
       await bootstrap.promise;
     });
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(meCalls).toBe(2);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/api/v1/login/access-token"))).toHaveLength(1);
+    expect(fetchMock.mock.calls.filter(([input]) => String(input).startsWith("/api/v1/tasks?"))).toHaveLength(2);
     expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks");
     expect(screen.getByText("coach")).toBeVisible();
   });

@@ -1,0 +1,141 @@
+import { expect, test } from "@playwright/test";
+
+const authUser = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
+const baseTask = {
+  id: "task-1", title: "周三投篮训练", mode: "quick", source_type: "upload", preset_id: null, status: "completed", progress: 100,
+  stage_message: "已完成", error_code: null, error_message: null, submitted_at: "2026-09-05T01:05:00Z", created_via: "tasks_api", retry_count: 0,
+  created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T02:00:00Z", started_at: "2026-09-05T01:06:00Z", completed_at: "2026-09-05T02:00:00Z", inputs: [],
+};
+const presets = [
+  { id: "quick-demo", title: "快速演示", description: "4 次跳投", expected_minutes: 9.4 },
+  { id: "mixed-actions", title: "混合动作", description: "三威胁与跳投", expected_minutes: 26.7 },
+  { id: "verified-outcome", title: "命中验证", description: "带投篮结果真值的罚篮样例", expected_minutes: 30.9 },
+  { id: "layup-demo", title: "上篮演示", description: "6 次上篮", expected_minutes: 14.3 },
+];
+const result = {
+  registered_participant_count: 2,
+  action_counts: { triple_threat: 1, free_throw: 0, jump_shot: 4, layup: 1 }, unsupported_event_count: 0,
+  shots: { attempts: 5, makes: 3, misses: 1, undetermined: 1, make_rate: 0.6, unlinked_outcomes: 0 },
+  events: [{ event_index: 1, action_type: "jump_shot", start_ms: 1000, end_ms: 2200, time_ms: 1800, result: "make" }],
+  media: { phases: "/api/v1/tasks/task-1/media/phases", cam_01: "/api/v1/tasks/task-1/media/cam_01", cam_02: "/api/v1/tasks/task-1/media/cam_02", cam_03: "/api/v1/tasks/task-1/media/cam_03", cam_04: "/api/v1/tasks/task-1/media/cam_04" },
+  warnings: [], disclaimer: "AI 识别结果，仅供训练复盘。",
+};
+
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname;
+    if (path === "/api/v1/users/me") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(authUser) });
+    if (path === "/api/v1/presets") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(presets) });
+    if (path === "/api/v1/tasks/task-1") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(baseTask) });
+    if (path === "/api/v1/tasks/task-1/result") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(result) });
+    if (path === "/api/v1/account/usage") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ submitted_today: { used: 4, limit: 20 }, unfinished_tasks: { used: 2, limit: 5 }, drafts: { used: 1, limit: 3 }, active_api_keys: { used: 2, limit: 5 }, retention: { drafts: "24 hours", enrollment_data: "7 days", raw_inputs: "30 days", results: "180 days" } }) });
+    if (path === "/api/v1/tasks") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [baseTask], total: 1, page: Number(url.searchParams.get("page") || 1), page_size: Number(url.searchParams.get("page_size") || 10) }) });
+    if (path.includes("/media/")) return route.fulfill({ status: 200, contentType: "video/mp4", body: "" });
+    return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: "Not found" }) });
+  });
+});
+
+test("workspace shell has the fixed desktop rail and a usable phone drawer", async ({ page }, testInfo) => {
+  await page.goto("/workspace/new");
+  await expect(page.getByRole("heading", { name: "创建分析任务" })).toBeVisible();
+  await expect(page.getByTestId("preset-card")).toHaveCount(4);
+  await expect(page.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/Siyuan-Xue/dashanbing-backend");
+
+  if (testInfo.project.name === "mobile-chromium") {
+    await expect(page.locator(".workspace-mobile-actions")).toBeVisible();
+    const before = await page.locator(".workspace-sidebar").boundingBox();
+    expect(before).not.toBeNull();
+    expect(before!.x + before!.width).toBeLessThanOrEqual(1);
+    await page.getByRole("button", { name: "打开工作台菜单" }).click();
+    const drawerNav = page.getByRole("navigation", { name: "工作台导航", exact: true });
+    await expect(drawerNav).toBeVisible();
+    await expect.poll(async () => (await page.locator(".workspace-sidebar").boundingBox())?.x).toBeGreaterThanOrEqual(0);
+    await expect(drawerNav.getByRole("link", { name: "创建任务" })).toBeFocused();
+    await drawerNav.getByRole("link", { name: "任务列表" }).click();
+    await expect(page).toHaveURL(/\/workspace\/tasks$/);
+    await expect(page.getByRole("button", { name: "打开工作台菜单" })).toBeFocused();
+    await page.getByRole("button", { name: "打开工作台菜单" }).click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "打开工作台菜单" })).toBeFocused();
+  } else {
+    const sidebar = await page.locator(".workspace-sidebar").boundingBox();
+    expect(sidebar?.width).toBe(256);
+    await expect(page.getByRole("navigation", { name: "工作台导航", exact: true })).toBeVisible();
+  }
+
+  const dimensions = await page.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth }));
+  expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport);
+});
+
+test("task list filters through the real query contract and detail switches media", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "desktop interaction coverage");
+  let observed = "";
+  await page.route("**/api/v1/tasks?**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("page_size") !== "5") observed = url.search;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [baseTask], total: 21, page: Number(url.searchParams.get("page") || 1), page_size: Number(url.searchParams.get("page_size") || 10) }) });
+  });
+  await page.goto("/workspace/tasks");
+  await page.getByRole("searchbox", { name: "搜索任务" }).fill("周三");
+  await page.getByLabel("状态").selectOption("completed");
+  await page.getByLabel("分析模式").selectOption("quick");
+  await page.getByRole("button", { name: "筛选" }).click();
+  await expect(page).toHaveURL(/q=%E5%91%A8%E4%B8%89&status=completed&mode=quick&page=1&page_size=10/);
+  await expect.poll(() => observed).toContain("q=%E5%91%A8%E4%B8%89");
+  await page.getByRole("link", { name: "周三投篮训练" }).first().click();
+  await expect(page.getByRole("tab", { name: "阶段合成" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "机位 1" }).click();
+  await expect(page.getByTitle("机位 1 播放器")).toHaveAttribute("src", "/api/v1/tasks/task-1/media/cam_01");
+  await expect(page.getByRole("link", { name: "下载 JSON 结果" })).toBeVisible();
+});
+
+test("staged browser upload recovers one failed slot and gates submission", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "desktop upload interaction coverage");
+  const inputs: Array<Record<string, unknown>> = [];
+  let camOneAttempts = 0;
+  const draft = () => ({ ...baseTask, status: "draft", progress: 0, submitted_at: null, started_at: null, completed_at: null, inputs });
+  await page.route("**/api/v1/tasks", async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify(draft()) });
+  });
+  await page.route("**/api/v1/tasks/task-1/inputs/*", async (route) => {
+    const slot = new URL(route.request().url()).pathname.split("/").at(-1)!;
+    if (slot === "cam_01" && camOneAttempts++ === 0) {
+      return route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ detail: "Invalid video" }) });
+    }
+    const multipart = route.request().postDataBuffer()?.toString() || "";
+    const filename = multipart.match(/filename="([^"]+)"/)?.[1] || `${slot}.mp4`;
+    inputs.splice(0, inputs.length, ...inputs.filter((item) => item.slot !== slot), { slot, original_filename: filename, byte_size: 5, validation_state: "valid", created_at: baseTask.created_at, updated_at: baseTask.updated_at });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(draft()) });
+  });
+  await page.route("**/api/v1/tasks/task-1/submit", async (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...draft(), status: "queued" }) }));
+
+  await page.goto("/workspace/new");
+  const submit = page.getByRole("button", { name: "提交分析" });
+  await expect(submit).toBeDisabled();
+  await page.getByLabel("注册视频").setInputFiles({ name: "enroll.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
+  await page.getByLabel("机位 1").setInputFiles({ name: "cam1.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
+  await expect(page.getByRole("alert")).toContainText("Invalid video");
+  await expect(submit).toBeDisabled();
+  await page.getByRole("button", { name: "重试机位 1" }).click();
+  await expect(page.getByText("cam1.mp4")).toBeVisible();
+  await page.getByLabel("机位 2").setInputFiles({ name: "cam2.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
+  await page.getByLabel("机位 3").setInputFiles({ name: "cam3.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
+  await page.getByLabel("机位 4").setInputFiles({ name: "cam4.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
+  await expect(submit).toBeEnabled();
+  await submit.click();
+  await expect(page).toHaveURL(/\/workspace\/tasks\/task-1$/);
+});
+
+test("settings preferences remain functional inside the mobile-safe shell", async ({ page }) => {
+  await page.goto("/workspace/settings");
+  await expect(page.getByText("4 / 20")).toBeVisible();
+  await page.getByRole("button", { name: "English" }).click();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const dimensions = await page.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth }));
+  expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport);
+});
