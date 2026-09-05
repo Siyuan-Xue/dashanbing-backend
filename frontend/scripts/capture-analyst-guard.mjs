@@ -15,18 +15,16 @@ export function assertVerifiedReport(state, locale, factsHash) {
 }
 
 /** Native page coordinates only: never rearrange or synthesize report content */
-export function captureClips({ video, analyst, report, raw, composer, summaryLines, textLines }, viewport) {
-  const mobile = viewport === "mobile";
+export function captureClips({ video, analyst, report, raw, composer, summaryLines, textLines }) {
   const bottom = rect => rect.y + rect.height;
   if (![video, analyst, report, raw].every(rect => rect && Object.values(rect).every(Number.isFinite) && rect.width > 0 && rect.height > 0) || bottom(video) > raw.y + 1 || bottom(raw) > analyst.y + 1 || report.y < analyst.y || !summaryLines.length) throw new Error("Refusing capture: expected native video, data tabs, then analyst layout");
-  const detailLimit = Math.min(analyst.y + (mobile ? 420 : 540), bottom(analyst));
-  const detailLines = textLines.filter(y => y >= report.y && y + 4 <= detailLimit).sort((a, b) => a - b);
-  if (!detailLines.length || detailLines.at(-1) < Math.max(...summaryLines)) throw new Error("Refusing capture: analyst crop would omit the conclusion");
-  const clip = (rect, end) => ({ x: Math.floor(rect.x), y: Math.floor(rect.y), width: Math.floor(rect.width), height: Math.floor(end - Math.floor(rect.y)) });
+  if (!textLines.length || [...summaryLines, ...textLines].some(y => !Number.isFinite(y) || y > bottom(analyst)) || bottom(report) > bottom(analyst) || (composer && (!Object.values(composer).every(Number.isFinite) || composer.y < analyst.y || bottom(composer) > bottom(analyst)))) throw new Error("Refusing capture: analyst crop would omit report or follow-up content");
+  const clip = rect => ({ x: Math.floor(rect.x), y: Math.floor(rect.y), width: Math.ceil(rect.x + rect.width) - Math.floor(rect.x), height: Math.ceil(bottom(rect)) - Math.floor(rect.y) });
   // Separate native crops preserve the result page's actual order without
   // compositing the report over the overview/timeline/JSON section in between
-  const end = composer && bottom(composer) <= detailLimit ? bottom(composer) : detailLines.at(-1) + 4;
-  return { main: clip(video, bottom(video)), analyst: clip(analyst, end) };
+  // Capture the complete section, including suggestions and the chat composer.
+  // A fixed-height or text-line crop can cut a paragraph or its evidence links.
+  return { main: clip(video), analyst: clip(analyst) };
 }
 
 export function assertCaptureMatrix(images) {

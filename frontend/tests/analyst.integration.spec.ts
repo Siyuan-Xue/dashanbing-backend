@@ -204,7 +204,7 @@ for(const width of [768,800,900,1024])test(`expanded tablet sidebar preserves th
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
-for(const [width,height] of [[320,568],[390,664],[1440,768],[1920,700]])test(`AI showcase fits a short screen ${width}x${height}`,async({page},info)=>{
+for(const [width,height] of [[320,568],[390,664],[1440,768],[1920,700]])test(`AI showcase preserves the complete preview on a short screen ${width}x${height}`,async({page},info)=>{
   test.skip(info.project.name!=='desktop-chromium','Explicit short viewports');
   await page.setViewportSize({width,height});
   await page.addInitScript(()=>localStorage.setItem('dashanbing-locale','en'));
@@ -213,7 +213,19 @@ for(const [width,height] of [[320,568],[390,664],[1440,768],[1920,700]])test(`AI
   const showcase=page.locator('.ai-showcase');
   await showcase.scrollIntoViewIfNeeded();
   await showcase.locator('picture img').evaluate((image:HTMLImageElement)=>image.decode());
-  expect((await showcase.boundingBox())!.height).toBeLessThanOrEqual(height);
+  const preview=await showcase.locator('picture img').evaluate((image:HTMLImageElement)=>{
+    const rect=image.getBoundingClientRect();
+    const figure=image.closest('figure')!.getBoundingClientRect();
+    const source=image.parentElement!.querySelector('source')!;
+    const dimensions=matchMedia(source.media).matches?source:image;
+    return {width:rect.width,height:rect.height,ratio:Number(dimensions.getAttribute('height'))/Number(dimensions.getAttribute('width')),left:rect.left-figure.left,right:figure.right-rect.right};
+  });
+  expect(Math.abs(preview.height-preview.width*preview.ratio)).toBeLessThan(1);
+  expect(preview.left).toBeGreaterThanOrEqual(12);
+  expect(preview.right).toBeGreaterThanOrEqual(12);
+  const canvas=await page.locator('body').evaluate(element=>getComputedStyle(element).backgroundColor);
+  await expect(showcase).toHaveCSS('background-color',canvas);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await expect(showcase.getByRole('link',{name:'View AI review'})).toBeVisible();
   expect(api.analystCalls).toBe(0);
 });

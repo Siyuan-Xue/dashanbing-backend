@@ -25,7 +25,7 @@ test("all 16 crops preserve video/data/analyst order and exclude the intervening
     const raw = { x: 16, y: video.y + video.height + 16, width, height: 400 };
     const analyst = { x: 16, y: raw.y + raw.height + 16, width, height: 1800 };
     const y = analyst.y + 150;
-    const layout = { video, raw, analyst, report: { x: 16, y, width: mobile ? 358 : 725, height: 1600 }, summaryLines: [y + 68, y + 96], textLines: Array.from({ length: 50 }, (_, i) => y + 68 + i * 28) };
+    const layout = { video, raw, analyst, report: { x: 16, y, width, height: 1450 }, composer: { x: 16, y: analyst.y + 1700, width, height: 76 }, summaryLines: [y + 68, y + 96], textLines: Array.from({ length: 50 }, (_, i) => y + 68 + i * 28) };
     for (const locale of ["zh", "en"]) for (const theme of ["light", "dark"]) {
       const clips = captureClips(layout, viewport);
       assert.equal(clips.main.height, video.height);
@@ -33,12 +33,14 @@ test("all 16 crops preserve video/data/analyst order and exclude the intervening
       assert.ok(clips.main.y + clips.main.height <= raw.y);
       assert.equal(clips.analyst.y, analyst.y);
       assert.equal(clips.analyst.width, analyst.width);
-      assert.ok(clips.analyst.height <= (mobile ? 420 : 540));
-      assert.ok(clips.analyst.y + clips.analyst.height >= Math.max(...layout.summaryLines));
+      assert.equal(clips.analyst.height, analyst.height);
+      assert.ok(clips.analyst.y + clips.analyst.height >= Math.max(...layout.textLines));
+      assert.ok(clips.analyst.y + clips.analyst.height >= layout.composer.y + layout.composer.height);
       assert.ok(clips.analyst.y >= raw.y + raw.height, `${locale}/${theme}/${viewport}`);
     }
     assert.throws(() => captureClips({ ...layout, analyst: { ...analyst, y: video.y } }, viewport));
     assert.throws(() => captureClips({ ...layout, summaryLines: [] }, viewport));
+    assert.throws(() => captureClips({ ...layout, analyst: { ...analyst, height: 500 } }, viewport));
   }
 });
 

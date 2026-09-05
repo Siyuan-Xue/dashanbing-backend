@@ -22,9 +22,21 @@ try{
     const section=page.locator('.ai-showcase');await section.scrollIntoViewIfNeeded();
     await section.locator('picture img').evaluate(image=>image.decode());
     const geometry=await section.boundingBox();
-    if(geometry.height>901||await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)||aiRequests.length)throw new Error(`Invalid showcase ${width}/${locale}/${theme}`);
-    await section.screenshot({path:join(output,`ai-${width}-${locale}-${theme}.png`),animations:'disabled'});
-    results.push({width,locale,theme,height:geometry.height,ai_requests:aiRequests.length});
+    const preview=await section.locator('picture img').evaluate(image=>{
+      const rect=image.getBoundingClientRect();const frame=image.closest('figure').getBoundingClientRect();
+      const source=image.parentElement.querySelector('source');
+      // naturalWidth/Height are density-corrected integers for srcset images.
+      // Use original source dimensions so rounding cannot look like a crop.
+      const dimensions=matchMedia(source.media).matches?source:image;
+      return {height:rect.height,expectedHeight:rect.width*Number(dimensions.getAttribute('height'))/Number(dimensions.getAttribute('width')),left:rect.left-frame.left,right:frame.right-rect.right};
+    });
+    const matchingCanvas=await section.evaluate(element=>getComputedStyle(element).backgroundColor===getComputedStyle(document.body).backgroundColor);
+    if(!matchingCanvas||Math.abs(preview.height-preview.expectedHeight)>1||preview.left<12||preview.right<12||await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)||aiRequests.length)throw new Error(`Invalid showcase ${width}/${locale}/${theme}`);
+    // Keep the sticky public header outside this native document-coordinate crop.
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+    const clip=await section.boundingBox();
+    await page.screenshot({path:join(output,`ai-${width}-${locale}-${theme}.png`),clip,fullPage:true,animations:'disabled'});
+    results.push({width,locale,theme,height:geometry.height,matching_canvas:matchingCanvas,preview,ai_requests:aiRequests.length});
     await page.close();
   }
   await writeFile(join(output,'verification.json'),JSON.stringify({source:origin.origin,captured_at:new Date().toISOString(),results},null,2));
