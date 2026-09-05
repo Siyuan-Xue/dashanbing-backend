@@ -5,14 +5,14 @@
   "packageManager": "pnpm@11.19.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --config vite.config.ts",
     "generate:api": "openapi-typescript ../openapi.json -o src/generated/schema.d.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:visual": "playwright test tests/visual-matrix.spec.ts",
+    "test:e2e:visual": "playwright test --project=visual-chromium",
     "typecheck": "tsc -b --pretty false",
-    "build": "pnpm run generate:api && tsc -b && vite build"
+    "build": "pnpm run generate:api && tsc -b && vite build --config vite.config.ts"
   },
   "dependencies": {
     "openapi-fetch": "^0.14.0",

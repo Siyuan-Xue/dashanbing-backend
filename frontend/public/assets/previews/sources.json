@@ -1,0 +1,74 @@
+[
+  {
+    "file": "quick-cam-1.webp",
+    "source": "test_data_v3/4-1.mkv",
+    "time_ms": 6150.0,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "ccac64a4f5e8a761d689ef789ee3b45432913700e487ee9eac07510fd85bb901"
+  },
+  {
+    "file": "quick-cam-2.webp",
+    "source": "test_data_v3/4-2.mkv",
+    "time_ms": 6183.0,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "8135ee55e4ee8a492a2cec9c32e88dfe5dcd7b1ac70bda5799b4666b22d3cf50"
+  },
+  {
+    "file": "quick-cam-3.webp",
+    "source": "test_data_v3/4-3.mkv",
+    "time_ms": 6150.0,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "8f70035bea30423231cc07854c406391b97e5e67948afdbfe867c3889c0539dc"
+  },
+  {
+    "file": "quick-cam-4.webp",
+    "source": "test_data_v3/4-4.mkv",
+    "time_ms": 6134.0,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "cabdaf03ae2060b56a964c08c44251ba8595af23a9f08ce3a1830da8bbd73b7d"
+  },
+  {
+    "file": "quick-phases.webp",
+    "source": "outputs/v3/group_04/viz/phases.mp4",
+    "time_ms": 6166.579253253197,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "d0ba1ddfe620ee65297009bde01d9ab680d964459a3020ef99cbdf5b8f014929"
+  },
+  {
+    "file": "quick-pose.webp",
+    "source": "outputs/v3/group_04/viz/cam_03_annotated.mp4",
+    "time_ms": 6166.579253253197,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "c6ed1f98c1074148219bf7e2629debe2c7a174ae22827134c27acb6aebc425fd"
+  },
+  {
+    "file": "mixed-phases.webp",
+    "source": "outputs/v3/group_03/viz/phases.mp4",
+    "time_ms": 5999.945741130937,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "4efa562b9c9673b60edc6e9ffca4ac5de9497e519d41a609c3a6eb029c013d0b"
+  },
+  {
+    "file": "verified-phases.webp",
+    "source": "outputs/v3/group_05/viz/phases.mp4",
+    "time_ms": 5999.975402880322,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "3e6fb00b632c310861e444501fdf7f0c88a5cd4a41f331e214bf9cbe28132389"
+  },
+  {
+    "file": "layup-phases.webp",
+    "source": "outputs/v3/group_06/viz/phases.mp4",
+    "time_ms": 5999.863727949073,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "73c0d5c7c38dcee2c38df5fe538f49cce977a703a3676e76cd2f8162ce331776"
+  }
+]

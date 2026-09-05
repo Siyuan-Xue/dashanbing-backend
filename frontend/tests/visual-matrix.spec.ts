@@ -13,10 +13,12 @@ const usage = { submitted_today: { used: 4, limit: 20 }, unfinished_tasks: { use
 const keys = [{ id: "key-1", name: "Production", prefix: "dsb_live_abcd12", last_four: "9xyz", status: "active", created_at: "2026-09-01T10:00:00Z", expires_at: "2026-12-01T10:00:00Z", last_used_at: null, revoked_at: null }];
 
 test.beforeEach(async ({ page }) => {
+  page.on("pageerror", error => { throw error; });
   await page.route("**/api/v1/**", async route => {
     const url = new URL(route.request().url());
     if (url.pathname === "/api/v1/users/me") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) });
     if (url.pathname === "/api/v1/presets") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(presets) });
+    if (url.pathname === "/api/v1/presets/quick-demo/result") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(result) });
     if (url.pathname === "/api/v1/tasks/task-1/result") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(result) });
     if (url.pathname === "/api/v1/tasks/task-1") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(task) });
     if (url.pathname === "/api/v1/tasks") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [task], total: 1, page: 1, page_size: 10 }) });
@@ -27,58 +29,174 @@ test.beforeEach(async ({ page }) => {
 });
 
 const pages = [
-  ["home", "/"], ["new", "/workspace/new"], ["list", "/workspace/tasks"],
-  ["detail", "/workspace/tasks/task-1"], ["docs", "/api/docs"], ["keys", "/api/keys"],
+  ["home", "/"], ["login", "/login"], ["register", "/register"],
+  ["new", "/workspace/new"], ["list", "/workspace/tasks"], ["detail", "/workspace/tasks/task-1"],
+  ["example", "/workspace/examples/quick-demo"], ["settings", "/workspace/settings"],
+  ["docs", "/api/docs"], ["keys", "/api/keys"],
 ] as const;
 const locales = ["zh", "en"] as const;
 const themes = ["light", "dark"] as const;
+const widths = [390, 768, 1024, 1440, 1920];
+type PageName = typeof pages[number][0];
 
-async function waitForRouteFixture(page: import("@playwright/test").Page, name: typeof pages[number][0], locale: typeof locales[number]) {
+async function ready(page: import("@playwright/test").Page, name: PageName, locale: typeof locales[number]) {
   const zh = locale === "zh";
-  await expect(page.locator(".account-link, .workspace-account").filter({ hasText: "coach" })).toBeVisible();
-  if (name === "home") return expect(page.getByRole("heading", { name: zh ? "让多路训练视频，变成可复盘的篮球洞察" : "Turn multi-angle training video into basketball insight you can review" })).toBeVisible();
-  if (name === "new") {
-    await expect(page.getByRole("heading", { name: zh ? "创建分析任务" : "Create analysis task" })).toBeVisible();
-    return expect(page.getByTestId("preset-card").first()).toBeVisible();
-  }
-  if (name === "list") {
-    await expect(page.locator(".task-list-page h1")).toHaveText(zh ? "任务列表" : "Tasks");
-    return expect(page.locator(".task-table tbody .task-title-link")).toHaveText(/Friday shooting session/);
-  }
-  if (name === "detail") {
-    await expect(page.getByRole("heading", { name: "Friday shooting session" })).toBeVisible();
-    return expect(page.locator(".detail-progress small")).toHaveText(zh ? "已完成" : "Complete");
-  }
-  if (name === "docs") return expect(page.getByRole("heading", { name: zh ? "大山冰 API 文档" : "DaShanBing API Docs" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: zh ? "API 管理" : "API Management" })).toBeVisible();
-  return expect(page.getByText("Production", { exact: true })).toBeVisible();
+  const headings: Record<PageName, string> = {
+    home: zh ? "让我看看你打球什么b样" : "Turn multi-angle training video into basketball insight you can review",
+    login: zh ? "登录大山冰" : "Log in to DaShanBing",
+    register: zh ? "创建大山冰账号" : "Create a DaShanBing account",
+    new: zh ? "创建分析任务" : "Create analysis task", list: zh ? "任务列表" : "Tasks",
+    detail: "Friday shooting session", example: zh ? "快速演示" : "Quick demo",
+    settings: zh ? "设置" : "Settings", docs: zh ? "大山冰 API 文档" : "DaShanBing API Docs", keys: zh ? "API 管理" : "API Management",
+  };
+  await expect(page.getByRole("heading", { name: headings[name], exact: true })).toBeVisible();
+  if (name === "new") await expect(page.getByTestId("preset-card").first()).toBeVisible();
+  if (name === "list") await expect(page.locator(".task-table tbody .task-title-link")).toContainText("Friday shooting session");
+  if (name === "detail" || name === "example") await expect(page.locator(".result-workspace")).toBeVisible();
+  if (name === "keys") await expect(page.getByText("Production", {exact:true})).toBeVisible();
+  if (name === "settings") await expect(page.locator(".quota-grid article")).toHaveCount(4);
+  if (!["login", "register"].includes(name)) await expect(page.locator(".account-link, .workspace-account")).toHaveAttribute("aria-label", /coach/);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(Array.from(document.images).filter(img => img.loading !== "lazy" || (img.getBoundingClientRect().top < innerHeight && img.getBoundingClientRect().bottom > 0)).map(img => img.decode()));
+  });
 }
 
-test("public visual readiness waits for delayed authenticated header identity", async ({ page }) => {
-  let authFulfilled = false;
-  await page.route("**/api/v1/users/me", async route => {
-    await new Promise(resolve => setTimeout(resolve, 125));
-    authFulfilled = true;
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) });
-  });
-  await page.goto("/");
-  await waitForRouteFixture(page, "home", "zh");
-  expect(authFulfilled).toBe(true);
-  await expect(page.locator(".account-link, .workspace-account").filter({ hasText: "coach" })).toBeVisible();
-});
+async function setup(page: import("@playwright/test").Page, name: PageName, path: string, locale: typeof locales[number], theme: typeof themes[number], width: number, height = 900) {
+  await page.setViewportSize({width, height});
+  await page.addInitScript(({locale, theme}) => {
+    localStorage.setItem("dashanbing-locale", locale);
+    localStorage.setItem("dashanbing-theme", theme);
+  }, {locale, theme});
+  await page.emulateMedia({reducedMotion: "reduce", colorScheme: theme});
+  if (name === "login" || name === "register") await page.route("**/api/v1/users/me", route => route.fulfill({status:401, json:{detail:"Not authenticated"}}));
+  await page.goto(path);
+  await ready(page, name, locale);
+}
 
-for (const [name, path] of pages) for (const locale of locales) for (const theme of themes) {
-  test(`visual ${name} ${locale} ${theme}`, async ({ page }, testInfo) => {
-    await page.addInitScript(({ locale, theme }) => {
-      localStorage.setItem("dashanbing-locale", locale);
-      localStorage.setItem("dashanbing-theme", theme);
-    }, { locale, theme });
-    await page.emulateMedia({ reducedMotion: "reduce", colorScheme: theme });
-    await page.goto(path);
-    await waitForRouteFixture(page, name, locale);
-    await page.evaluate(() => document.fonts.ready);
+for (const [name, path] of pages) for (const locale of locales) for (const theme of themes) for (const width of widths) {
+  test(`visual ${name} ${width} ${locale} ${theme}`, async ({page}) => {
+    await setup(page, name, path, locale, theme, width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const viewport = testInfo.project.name === "desktop-chromium" ? "1440x900" : "phone";
-    await page.screenshot({ path: testInfo.outputPath("visual-matrix", `${name}-${viewport}-${locale}-${theme}.png`), animations: "disabled" });
+    await expect(page).toHaveScreenshot(`${name}-${width}-${locale}-${theme}.png`, {animations:"disabled", maxDiffPixelRatio:0.001});
+  });
+}
+
+// Boundary and short-window checks supplement the full language/theme matrix.
+for (const [name, path] of pages) for (const [width, height] of [[320,700],[767,800],[769,800],[1279,800],[1281,800],[1440,480],[1024,320]]) {
+  test(`boundary ${name} ${width}x${height}`, async ({page}, info) => {
+    await setup(page, name, path, "en", "dark", width, height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const sidebarFooter = page.locator(".workspace-sidebar-bottom");
+    if (width === 1024 && height === 320 && await sidebarFooter.isVisible()) {
+      await sidebarFooter.scrollIntoViewIfNeeded();
+      await expect(sidebarFooter).toBeInViewport();
+    }
+    await page.screenshot({path:info.outputPath(`${name}-${width}x${height}.png`), animations:"disabled"});
+  });
+}
+
+for (const width of [390,1440]) for (const theme of themes) {
+  test(`lower page content ${width} ${theme}`, async ({page}) => {
+    await setup(page, "home", "/", "zh", theme, width);
+    await page.locator(".capabilities-section").scrollIntoViewIfNeeded();
+    await ready(page, "home", "zh");
+    await expect(page).toHaveScreenshot(`home-capabilities-${width}-${theme}.png`);
+    await page.getByRole("button", {name:"后台排队，回来继续"}).click();
+    await expect(page.getByText("任务状态会被保留，回来时从上次进度继续，不必守着页面等待")).toBeVisible();
+    await page.locator("#examples").scrollIntoViewIfNeeded();
+    await ready(page, "home", "zh");
+    await expect(page).toHaveScreenshot(`home-examples-${width}-${theme}.png`);
+    await page.goto("/api/docs#upload");
+    await ready(page,"docs","zh");
+    await expect(page.locator("#upload")).toBeVisible();
+    await expect(page).toHaveScreenshot(`docs-upload-${width}-${theme}.png`);
+  });
+}
+
+for (const locale of locales) for (const theme of themes) {
+  test(`sidebar pinned collapsed and hover ${locale} ${theme}`, async ({page}) => {
+    const zh = locale === "zh";
+    await setup(page, "list", "/workspace/tasks", locale, theme, 1440);
+    await page.getByRole("button", {name:zh ? "收起侧边栏" : "Collapse sidebar"}).click();
+    await expect(page.locator(".workspace-sidebar")).toBeHidden();
+    await expect(page).toHaveScreenshot(`sidebar-collapsed-${locale}-${theme}.png`);
+    const expand = page.getByRole("button", {name:zh ? "展开侧边栏" : "Expand sidebar"});
+    await expand.hover();
+    await expect(page.locator(".workspace-sidebar.is-floating")).toBeVisible();
+    await expect(page).toHaveScreenshot(`sidebar-hover-${locale}-${theme}.png`);
+    await expand.click();
+    await expect(page.locator(".workspace-shell")).not.toHaveClass(/is-collapsed/);
+    await expect(page).toHaveScreenshot(`sidebar-pinned-${locale}-${theme}.png`);
+    await page.getByRole("button", {name:zh ? "筛选" : "Filter", exact:true}).click();
+    await expect(page).toHaveScreenshot(`task-filters-${locale}-${theme}.png`);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", {name:zh ? "筛选" : "Filter", exact:true})).toBeFocused();
+  });
+}
+
+for (const width of [390,1440]) for (const theme of themes) {
+  test(`result tabs and real homepage footage ${width} ${theme}`, async ({page}) => {
+    await setup(page, "detail", "/workspace/tasks/task-1", "zh", theme, width);
+    await page.locator(".result-insights-panel").scrollIntoViewIfNeeded();
+    for (const [label, slug] of [["概览","summary"],["时间线","timeline"],["JSON","json"]]) {
+      await page.getByRole("tab", {name:label,exact:true}).click();
+      await expect(page).toHaveScreenshot(`result-${slug}-${width}-${theme}.png`);
+    }
+    await page.goto("/");
+    await page.locator(".hero-preview-wrap").scrollIntoViewIfNeeded();
+    await ready(page, "home", "zh");
+    await expect(page).toHaveScreenshot(`home-real-preview-${width}-${theme}.png`);
+    await page.getByRole("button", {name:"动作与投篮，分别求证"}).click();
+    await page.locator(".model-evidence").scrollIntoViewIfNeeded();
+    await ready(page, "home", "zh");
+    await expect(page).toHaveScreenshot(`home-model-output-${width}-${theme}.png`);
+  });
+}
+
+for (const width of [390,1440]) for (const locale of locales) for (const theme of themes) {
+  test(`key dialogs ${width} ${locale} ${theme}`, async ({page}) => {
+    const zh = locale === "zh";
+    await page.route("**/api/v1/api-keys", route => route.request().method() === "POST"
+      ? route.fulfill({status:201, json:{...keys[0], id:"key-2", name:"Review", secret:"dsb_live_visual_fixture_only"}})
+      : route.fulfill({status:200, json:keys}));
+    await setup(page,"keys","/api/keys",locale,theme,width);
+    await page.getByRole("button",{name:zh ? "创建 API 密钥" : "Create API key",exact:true}).click();
+    await page.getByLabel(zh ? "密钥名称" : "Key name").fill("Review");
+    await expect(page).toHaveScreenshot(`key-create-${width}-${locale}-${theme}.png`);
+    await page.getByRole("button",{name:zh ? "创建密钥" : "Create key",exact:true}).click();
+    await expect(page.getByRole("dialog",{name:zh ? "保存新密钥" : "Save your new key"})).toBeVisible();
+    await expect(page).toHaveScreenshot(`key-secret-${width}-${locale}-${theme}.png`);
+    await page.getByRole("button",{name:zh ? "我已保存" : "I saved it"}).click();
+    await page.getByRole("button",{name:zh ? "撤销 Production" : "Revoke Production"}).click();
+    await expect(page).toHaveScreenshot(`key-revoke-${width}-${locale}-${theme}.png`);
+  });
+  test(`empty states and navigation ${width} ${locale} ${theme}`, async ({page}) => {
+    const zh = locale === "zh";
+    await setup(page,"list","/workspace/tasks",locale,theme,width);
+    await page.getByRole("button",{name:zh ? /^删除/ : /^Delete/}).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page).toHaveScreenshot(`task-delete-${width}-${locale}-${theme}.png`);
+    await page.keyboard.press("Escape");
+    await page.route("**/api/v1/tasks?**", route => route.fulfill({status:200,json:{items:[],total:0,page:1,page_size:10}}));
+    await page.reload();
+    await expect(page.locator(".task-list-page .workspace-state")).toBeVisible();
+    await expect(page).toHaveScreenshot(`tasks-empty-${width}-${locale}-${theme}.png`);
+    if (width === 390) {
+      await page.getByRole("button",{name:zh ? "打开工作台菜单" : "Open workspace menu"}).click();
+      await expect(page).toHaveScreenshot(`workspace-drawer-${locale}-${theme}.png`);
+      await page.keyboard.press("Escape");
+    }
+    await page.route("**/api/v1/api-keys", route => route.fulfill({status:200,json:[]}));
+    await page.goto("/api/keys");
+    await expect(page.locator(".api-key-empty")).toBeVisible();
+    await expect(page).toHaveScreenshot(`keys-empty-${width}-${locale}-${theme}.png`);
+    await page.goto("/api/docs");
+    if (width === 390) {
+      await page.getByRole("button",{name:zh ? "本文目录" : "On this page",exact:true}).click();
+      await expect(page).toHaveScreenshot(`docs-toc-${locale}-${theme}.png`);
+      await page.locator(".public-menu-toggle").click();
+      await expect(page).toHaveScreenshot(`public-menu-${locale}-${theme}.png`);
+    }
   });
 }

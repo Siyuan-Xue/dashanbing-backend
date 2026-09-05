@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -32,6 +32,22 @@ export function TaskListPage() {
   const [revision, setRevision] = useState(0);
   const [pending, setPending] = useState<{ task: Task; action: Action } | null>(null);
   const [acting, setActing] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filterControl = useRef<HTMLDivElement>(null);
+  const filterButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!filtersOpen) return;
+    filterControl.current?.querySelector("select")?.focus();
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { event.preventDefault(); setFiltersOpen(false); filterButton.current?.focus(); }
+    };
+    const outside = (event: PointerEvent) => {
+      if (!filterControl.current?.contains(event.target as Node)) setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", dismiss);
+    window.addEventListener("pointerdown", outside);
+    return () => { window.removeEventListener("keydown", dismiss); window.removeEventListener("pointerdown", outside); };
+  }, [filtersOpen]);
 
   useEffect(() => {
     const current = new URLSearchParams(query);
@@ -81,6 +97,7 @@ export function TaskListPage() {
     params.set("page", "1");
     params.set("page_size", String(pageSize));
     setSearchParams(params);
+    if (filtersOpen) { setFiltersOpen(false); filterButton.current?.focus(); }
   };
 
   const changePage = (nextPage: number) => {
@@ -112,22 +129,28 @@ export function TaskListPage() {
 
   const actionButton = (item: Task, action: Action) => {
     const label = action === "cancel" ? wt("cancel") : action === "retry" ? wt("retryTask") : wt("delete");
-    return <button className={`table-action action-${action}`} type="button" aria-label={`${label}${item.title}`} onClick={() => setPending({ task: item, action })}><Icon name={action === "delete" ? "trash" : action === "retry" ? "refresh" : "x"}/> {label}</button>;
+    return <button className={`table-action action-${action}`} type="button" aria-label={`${label}${item.title}`} title={`${label}${item.title}`} onClick={() => setPending({ task: item, action })}><Icon name={action === "delete" ? "trash" : action === "retry" ? "refresh" : "x"}/></button>;
   };
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const dialogTitle = pending?.action === "cancel" ? wt("confirmCancel") : pending?.action === "retry" ? wt("confirmRetry") : wt("confirmDelete");
   const confirmLabel = `${wt("confirm")}${pending?.action === "cancel" ? wt("cancel") : pending?.action === "retry" ? wt("retryTask") : wt("delete")}`;
   return <div className="workspace-page task-list-page">
-    <header className="workspace-page-header"><div><span className="page-eyebrow">TASK LIBRARY</span><h1>{wt("listTitle")}</h1><p>{wt("listBody")}</p></div><Link className="button button-primary" to="/workspace/new"><Icon name="plus"/>{wt("createTask")}</Link></header>
-    <form className="task-filters" onSubmit={applyFilters}>
-      <label className="search-field"><span className="sr-only">{wt("search")}</span><Icon name="search"/><input type="search" aria-label={wt("search")} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={wt("search")}/></label>
-      <label><span>{wt("status")}</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">{wt("allStatuses")}</option>{statusValues.map((value) => <option key={value} value={value}>{taskStatusLabel(locale, value)}</option>)}</select></label>
-      <label><span>{wt("mode")}</span><select value={mode} onChange={(event) => setMode(event.target.value)}><option value="">{wt("allModes")}</option><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select></label>
-      <button className="button button-outline" type="submit">{wt("filter")}</button>
-    </form>
-    {error ? <WorkspaceState title={wt("loadFailed")} body={error.message} onRetry={() => setRevision((value) => value + 1)}/> : loading ? <div className="loading-block" role="status"/> : tasks.length === 0 ? <WorkspaceState title={wt("emptyTasks")}/> : <div className="task-table-wrap"><table className="task-table"><thead><tr><th>{wt("taskTitle")}</th><th>{wt("status")}</th><th>{wt("mode")}</th><th>{wt("progress")}</th><th>{wt("created")}</th><th>{wt("actions")}</th></tr></thead><tbody>{tasks.map((item) => <tr key={item.id}><td data-label={wt("taskTitle")}><Link className="task-title-link" to={`/workspace/tasks/${item.id}`}><b>{item.title}</b><small>{item.id.slice(0, 8)}</small></Link></td><td data-label={wt("status")}><StatusChip status={item.status}/></td><td data-label={wt("mode")}><span className="mode-label">{taskModeLabel(locale, item.mode)}</span></td><td data-label={wt("progress")}><div className="mini-progress"><i style={{ width: `${item.progress}%` }}/></div><span>{item.progress}%</span></td><td data-label={wt("created")}><time dateTime={item.created_at}>{new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(item.created_at))}</time></td><td data-label={wt("actions")}><div className="table-actions"><Link className="table-action" to={`/workspace/tasks/${item.id}`}>{wt("open")}</Link>{["draft", "uploading", "queued", "running"].includes(item.status) && actionButton(item, "cancel")}{["failed", "canceled"].includes(item.status) && actionButton(item, "retry")}{["draft", "failed", "canceled", "completed", "expired"].includes(item.status) && actionButton(item, "delete")}</div></td></tr>)}</tbody></table></div>}
-    <footer className="pagination"><span>{total} · {page}/{totalPages}</span><div><button type="button" disabled={page <= 1} onClick={() => changePage(page - 1)}>{wt("previous")}</button><button type="button" disabled={page >= totalPages} onClick={() => changePage(page + 1)}>{wt("next")}</button></div></footer>
+    <header className="workspace-page-header"><h1>{wt("listTitle")}</h1>
+      <form className="task-filters" onSubmit={applyFilters}>
+        <label className="search-field"><span className="sr-only">{wt("search")}</span><Icon name="search"/><input type="search" aria-label={wt("search")} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={wt("search")}/></label>
+        <div className="task-filter-control" ref={filterControl} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFiltersOpen(false); }}>
+          <button ref={filterButton} className={`button button-quiet button-icon${status || mode ? " has-filters" : ""}`} type="button" aria-label={wt("filter")} title={wt("filter")} aria-expanded={filtersOpen} aria-controls="task-filter-options" onClick={() => setFiltersOpen(value => !value)}><Icon name="filter"/></button>
+          {filtersOpen && <div id="task-filter-options" className="task-filter-popover">
+            <label><span>{wt("status")}</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">{wt("allStatuses")}</option>{statusValues.map((value) => <option key={value} value={value}>{taskStatusLabel(locale, value)}</option>)}</select></label>
+            <label><span>{wt("mode")}</span><select value={mode} onChange={(event) => setMode(event.target.value)}><option value="">{wt("allModes")}</option><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select></label>
+            <button className="button button-primary button-icon" type="submit" aria-label={wt("applyFilters")} title={wt("applyFilters")}><Icon name="check"/></button>
+          </div>}
+        </div>
+      </form>
+    </header>
+    {error ? <WorkspaceState title={wt("loadFailed")} body={error.message} onRetry={() => setRevision((value) => value + 1)}/> : loading ? <div className="loading-block" role="status" aria-label={wt("detailLoading")}/> : tasks.length === 0 ? <WorkspaceState title={wt("emptyTasks")}/> : <div className="task-table-wrap" role="region" aria-label={wt("tasks")} tabIndex={0}><table className="task-table"><thead><tr><th>{wt("taskTitle")}</th><th>{wt("status")}</th><th>{wt("mode")}</th><th>{wt("progress")}</th><th>{wt("created")}</th><th>{wt("actions")}</th></tr></thead><tbody>{tasks.map((item) => <tr key={item.id}><td data-label={wt("taskTitle")}><Link className="task-title-link" to={`/workspace/tasks/${item.id}`}><span className="task-file-icon"><Icon name="file" size={18}/></span><span><b>{item.title}</b><small>{item.id.slice(0, 8)}</small></span></Link></td><td data-label={wt("status")}><StatusChip status={item.status}/></td><td data-label={wt("mode")}><span className="mode-label">{taskModeLabel(locale, item.mode)}</span></td><td data-label={wt("progress")}><div className="mini-progress"><i style={{ width: `${item.progress}%` }}/></div><span>{item.progress}%</span></td><td data-label={wt("created")}><time dateTime={item.created_at}>{new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(item.created_at))}</time></td><td data-label={wt("actions")}><div className="table-actions"><Link className="table-action" to={`/workspace/tasks/${item.id}`} aria-label={wt("open")} title={`${wt("open")} · ${item.title}`}><Icon name="arrow"/></Link>{["draft", "uploading", "queued", "running"].includes(item.status) && actionButton(item, "cancel")}{["failed", "canceled"].includes(item.status) && actionButton(item, "retry")}{["draft", "failed", "canceled", "completed", "expired"].includes(item.status) && actionButton(item, "delete")}</div></td></tr>)}</tbody></table></div>}
+    <footer className="pagination"><span>{wt("totalTasks")} {total}</span><div><button type="button" aria-label={wt("previous")} title={wt("previous")} disabled={page <= 1} onClick={() => changePage(page - 1)}><Icon name="chevronLeft" size={18}/></button><span className="pagination-current" aria-current="page">{page} / {totalPages}</span><button type="button" aria-label={wt("next")} title={wt("next")} disabled={page >= totalPages} onClick={() => changePage(page + 1)}><Icon name="chevronRight" size={18}/></button></div><select aria-label={wt("perPage")} value={pageSize} onChange={event => { const params = new URLSearchParams(requestParams); params.set("page_size", event.target.value); params.set("page", "1"); setSearchParams(params); }}>{[...new Set([10, 20, 50, pageSize])].sort((a,b) => a-b).map(size => <option key={size} value={size}>{size} / {wt("perPage")}</option>)}</select></footer>
     {pending && <ConfirmDialog title={dialogTitle} message={`${pending.task.title} · ${taskStatusLabel(locale, pending.task.status)}`} confirmLabel={confirmLabel} danger={pending.action === "delete"} busy={acting} onClose={() => setPending(null)} onConfirm={() => void execute()}/>}
   </div>;
 }

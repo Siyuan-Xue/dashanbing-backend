@@ -1,6 +1,13 @@
-type IconName = "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
+type IconName = "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
 
 const paths: Record<IconName, React.ReactNode> = {
+  collapse: <path d="m11 6-6 6 6 6m7-12-6 6 6 6"/>,
+  expand: <path d="m6 6 6 6-6 6m7-12 6 6-6 6"/>,
+  copy: <><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></>,
+  download: <><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></>,
+  chevronLeft: <path d="m15 5-7 7 7 7"/>,
+  chevronRight: <path d="m9 5 7 7-7 7"/>,
+  filter: <><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="2" fill="var(--surface)"/><circle cx="16" cy="17" r="2" fill="var(--surface)"/></>,
   arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
   basketball: <><circle cx="12" cy="12" r="9"/><path d="M3.6 9.2c5.2.2 9.7 4.4 10 9.7M8.5 4.7c4.8 3.6 7.2 8.2 7 14.1M4.2 15.7c4.5-3.5 9.6-5.1 15.5-4.7"/></>,
   chart: <><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h21"/></>,

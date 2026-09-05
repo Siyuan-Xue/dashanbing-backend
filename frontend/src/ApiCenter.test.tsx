@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -31,7 +31,12 @@ function installFetch(authenticated = true) {
 
 function renderAt(path: string) { return render(<MemoryRouter initialEntries={[path]}><App/></MemoryRouter>); }
 
-beforeEach(() => { localStorage.clear(); localStorage.setItem("dashanbing-locale", "zh"); });
+beforeEach(() => {
+  localStorage.clear();
+  localStorage.setItem("dashanbing-locale", "zh");
+  // jsdom has no layout; real scroll offsets and history are covered in Playwright.
+  vi.stubGlobal("scrollTo", vi.fn());
+});
 afterEach(() => vi.restoreAllMocks());
 
 describe("API center", () => {
@@ -66,8 +71,91 @@ describe("API center", () => {
 
     expect(await screen.findByRole("heading", { name: "DaShanBing API Docs" })).toBeVisible();
     expect(screen.getByText("Before running: python3 -m pip install requests")).toBeVisible();
-    expect(screen.getByText(/multipart field/, { selector: "li" })).toBeVisible();
+    expect(screen.getByText(/multipart field/, { selector: "p" })).toBeVisible();
     expect(screen.getByText(/draft, uploading, queued, or running tasks/)).toBeVisible();
+  });
+
+  test("links every nested TOC entry to a named heading and selects a child deep link", async () => {
+    vi.stubGlobal("fetch", installFetch(false));
+    renderAt("/api/docs#upload");
+    const toc = await screen.findByRole("navigation", { name: "本文目录" });
+    for (const id of ["overview", "auth", "workflow", "polling", "lifecycle", "limits", "examples", "errors"]) {
+      expect(toc.querySelector(`a[href$="#${id}"]`)).toBeInTheDocument();
+      expect(document.getElementById(id)).toHaveRole("heading");
+    }
+    const upload = within(toc).getByRole("link", { name: "上传输入" });
+    expect(upload.closest("ul")?.parentElement?.closest("ul")).not.toBeNull();
+    await waitFor(() => expect(upload).toHaveAttribute("aria-current", "location"));
+    expect(screen.getByRole("heading", { name: "上传输入" })).toHaveAttribute("id", "upload");
+
+    await userEvent.setup().click(within(toc).getByRole("link", { name: "Python" }));
+    await waitFor(() => expect(within(toc).getByRole("link", { name: "Python" })).toHaveAttribute("aria-current", "location"));
+    expect(screen.getByRole("heading", { name: "Python" })).toHaveFocus();
+  });
+
+  test("keeps child targets stable in English and safely ignores a malformed hash", async () => {
+    localStorage.setItem("dashanbing-locale", "en");
+    vi.stubGlobal("fetch", installFetch(false));
+    renderAt("/api/docs#%E0%A4%A");
+    const toc = await screen.findByRole("navigation", { name: "On this page" });
+    for (const [name, id] of [["Create a draft", "create"], ["Upload inputs", "upload"], ["Submit a task", "submit"], ["Poll task status", "poll-status"], ["Get results", "result"], ["Review media", "media"], ["Curl", "curl"], ["Python", "python"]]) {
+      expect(within(toc).getByRole("link", { name })).toHaveAttribute("href", `/api/docs#${id}`);
+      expect(screen.getByRole("heading", { name })).toHaveAttribute("id", id);
+    }
+  });
+
+  test("expands inline navigation and TOC, then restores the toggle on Escape", async () => {
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({ matches: query.includes("max-width"), media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+    vi.stubGlobal("fetch", installFetch(false));
+    const operator = userEvent.setup();
+    renderAt("/api/docs");
+    const menu = screen.getByRole("button", { name: "打开 API 导航" });
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("navigation", { name: "API 导航" })).not.toBeInTheDocument();
+    await operator.click(menu);
+    const nav = screen.getByRole("navigation", { name: "API 导航" });
+    await operator.tab();
+    expect(within(nav).getByRole("link", { name: "API 文档" })).toHaveFocus();
+    await operator.keyboard("{Escape}");
+    expect(menu).toHaveFocus();
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+
+    const toggle = screen.getByRole("button", { name: "本文目录" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await operator.click(toggle);
+    const toc = screen.getByRole("navigation", { name: "本文目录" });
+    await operator.click(within(toc).getByRole("link", { name: "上传输入" }));
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await waitFor(() => expect(screen.getByRole("heading", { name: "上传输入" })).toHaveFocus());
+    await operator.click(toggle);
+    await operator.keyboard("{Escape}");
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("uses all four live quotas and the returned key limit", async () => {
+    const fetchMock = installFetch();
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => String(input).endsWith("/account/usage")
+      ? Promise.resolve(Response.json({ ...usage, active_api_keys: { used: 2, limit: 2 } }))
+      : fetchMock(input, init)));
+    renderAt("/api/keys");
+    const overview = await screen.findByRole("region", { name: "API 概览" });
+    for (const value of ["4 / 20", "2 / 5", "1 / 3", "2 / 2"]) expect(within(overview).getByText(value)).toBeVisible();
+    expect(screen.getByRole("heading", { name: "API 密钥 (2/2)" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "创建 API 密钥" })).toBeDisabled();
+  });
+
+  test("explains an empty key list while keeping creation available", async () => {
+    const fetchMock = installFetch();
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).endsWith("/api-keys")) return Promise.resolve(Response.json([]));
+      if (String(input).endsWith("/account/usage")) return Promise.resolve(Response.json({ ...usage, active_api_keys: { used: 0, limit: 5 } }));
+      return fetchMock(input, init);
+    }));
+    renderAt("/api/keys");
+    const panel = await screen.findByRole("region", { name: /API 密钥/ });
+    expect(within(panel).getByText("暂无 API 密钥。创建密钥以开始服务端集成。")).toBeVisible();
+    expect(within(panel).getByRole("button", { name: "创建 API 密钥" })).toBeEnabled();
   });
 
   test("creates a key, reveals its full secret once, copies it, then closes without retaining it", async () => {
@@ -85,6 +173,9 @@ describe("API center", () => {
     await operator.click(screen.getByRole("button", { name: "创建 API 密钥" }));
     const createDialog = screen.getByRole("dialog", { name: "创建 API 密钥" });
     await operator.type(within(createDialog).getByLabelText("密钥名称"), "CI runner");
+    const expiry = within(createDialog).getByLabelText("有效期");
+    await operator.selectOptions(expiry, "30");
+    expect(expiry).toHaveFocus();
     await operator.click(within(createDialog).getByRole("button", { name: "创建密钥" }));
 
     const secretDialog = await screen.findByRole("dialog", { name: "保存新密钥" });
@@ -95,7 +186,7 @@ describe("API center", () => {
     expect(await within(secretDialog).findByText("已复制")).toBeVisible();
     await operator.click(within(secretDialog).getByRole("button", { name: "我已保存" }));
     expect(screen.queryByText("dsb_live_only_once_123456")).not.toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/api-keys", expect.objectContaining({ method: "POST" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/api-keys", expect.objectContaining({ method: "POST", body: JSON.stringify({ name: "CI runner", expires_in_days: 30 }) }));
   });
 
   test("keeps a one-time secret keyboard-selectable after clipboard failure", async () => {
@@ -173,9 +264,52 @@ describe("API center", () => {
     expect(dialog).toHaveAttribute("aria-busy", "true");
     expect(within(dialog).getByRole("status")).toHaveTextContent("正在撤销");
     expect(within(dialog).getByRole("button", { name: "确认撤销" })).toBeDisabled();
+    expect(dialog).toHaveFocus();
+    await operator.keyboard("{Escape}");
+    expect(dialog).toBeInTheDocument();
     await operator.keyboard("{Tab}");
     expect(dialog).toHaveFocus();
-    resolveDelete?.();
+    await operator.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(dialog).toHaveFocus();
+    await act(async () => { resolveDelete?.(); });
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+  });
+
+  test("keeps focus on the copy action when its confirmation rerenders the secret dialog", async () => {
+    vi.stubGlobal("fetch", installFetch());
+    const operator = userEvent.setup();
+    vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
+    renderAt("/api/keys");
+    await operator.click(await screen.findByRole("button", { name: "创建 API 密钥" }));
+    await operator.type(screen.getByLabelText("密钥名称"), "CI runner");
+    await operator.click(screen.getByRole("button", { name: "创建密钥" }));
+    const dialog = await screen.findByRole("dialog", { name: "保存新密钥" });
+    const copy = within(dialog).getByRole("button", { name: "复制完整密钥" });
+    await operator.click(copy);
+    expect(await within(dialog).findByRole("status")).toHaveTextContent("已复制");
+    expect(copy).toHaveFocus();
+  });
+
+  test("locks document scrolling for API dialogs and restores previous overflow on close or unmount", async () => {
+    vi.stubGlobal("fetch", installFetch());
+    const operator = userEvent.setup();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "scroll";
+    const view = renderAt("/api/keys");
+    try {
+      const trigger = await screen.findByRole("button", { name: "创建 API 密钥" });
+      await operator.click(trigger);
+      expect(document.body.style.overflow).toBe("hidden");
+      await operator.keyboard("{Escape}");
+      expect(document.body.style.overflow).toBe("scroll");
+      await operator.click(trigger);
+      expect(document.body.style.overflow).toBe("hidden");
+      view.unmount();
+      expect(document.body.style.overflow).toBe("scroll");
+    } finally {
+      view.unmount();
+      document.body.style.overflow = previousOverflow;
+    }
   });
 
   test("requires confirmation before revoking a key and refreshes list and usage", async () => {
