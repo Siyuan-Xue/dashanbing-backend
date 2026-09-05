@@ -12,7 +12,7 @@ import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 export function SettingsPage() {
   const wt = useWorkspaceCopy();
   const { locale, toggleLocale, t } = useLocale();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutFailed, setLogoutFailed] = useState(false);
   const signOut = async () => {
@@ -36,6 +36,16 @@ export function SettingsPage() {
     <header className="workspace-page-header"><div><h1>{wt("settings")}</h1></div><button className="button button-outline settings-logout" type="button" aria-disabled={loggingOut} onClick={() => void signOut()}><Icon name="logout" size={18}/>{t(loggingOut ? "loggingOut" : "logout")}</button></header>
       {logoutFailed && <p className="settings-logout-error" role="alert">{t("logoutFailed")}</p>}
       <div className="settings-content">
+        {user && <section className="settings-section settings-profile" aria-labelledby="profile-heading">
+          <h2 id="profile-heading">{wt("userInfo")}</h2>
+          <div className="settings-profile-content">
+            <span className="settings-profile-avatar" aria-hidden="true"><Icon name="user" size={26}/></span>
+            <dl className="settings-profile-fields">
+              <div><dt>{t("username")}</dt><dd>{user.username}</dd></div>
+              <div><dt>{t("email")}</dt><dd>{user.email || "—"}</dd></div>
+            </dl>
+          </div>
+        </section>}
         <section id="usage" className="settings-section" aria-labelledby="usage-heading">
           <h2 id="usage-heading">{wt("usage")}</h2>
           {error ? <WorkspaceState title={wt("loadFailed")} body={error.message} onRetry={reload}/> : !usage ? <div className="loading-block" role="status" aria-label={wt("usage")}/> : <div className="quota-grid">{quotaCards.map(([label, value]) => <article key={label}><span>{label}</span><b>{value.used} / {value.limit}</b><div><i style={{ width: `${value.limit > 0 ? Math.min(100, value.used / value.limit * 100) : 0}%` }}/></div></article>)}</div>}

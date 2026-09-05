@@ -208,9 +208,13 @@ test("staged browser upload recovers one failed slot and gates submission", asyn
 
 test("settings preferences remain functional inside the mobile-safe shell", async ({ page }) => {
   await page.goto("/workspace/settings");
+  const profile = page.getByRole("region", { name: "用户信息" });
+  await expect(profile.getByText(authUser.username, { exact: true })).toBeVisible();
+  await expect(profile.getByText(authUser.email, { exact: true })).toBeVisible();
   await expect(page.getByText("4 / 20")).toBeVisible();
   await page.getByRole("button", { name: "English" }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "User information" })).toBeVisible();
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   const dimensions = await page.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth }));
