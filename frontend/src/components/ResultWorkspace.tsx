@@ -29,7 +29,7 @@ function ResultVideo({ src, title }: { src: string; title: string }) {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [attempt, setAttempt] = useState(0);
   return <>
-    {state !== "error" && <video key={attempt} controls preload="metadata" src={src} title={title} onLoadedMetadata={() => setState("ready")} onLoadedData={() => setState("ready")} onCanPlay={() => setState("ready")} onError={() => setState("error")}/>}
+    {state !== "error" && <video key={attempt} controls autoPlay muted playsInline preload="auto" src={src} title={title} onLoadedMetadata={() => setState("ready")} onLoadedData={() => setState("ready")} onCanPlay={() => setState("ready")} onError={() => setState("error")}/>}
     {state === "loading" && <span className="media-loading" role="status">{wt("mediaLoading")}</span>}
     {state === "error" && <div className="media-placeholder" role="alert"><div><b>{wt("mediaError")}</b><button type="button" className="media-retry" aria-label={wt("reloadMedia")} title={wt("reloadMedia")} onClick={() => { setAttempt((value) => value + 1); setState("loading"); }}><Icon name="refresh"/></button></div></div>}
   </>;

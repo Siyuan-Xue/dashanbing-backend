@@ -603,6 +603,9 @@ describe("task and example result workspaces", () => {
     expect(screen.getByRole("tab", { name: "阶段合成" })).toBeDisabled();
     const video = screen.getByTitle("机位 2 播放器");
     expect(video).toHaveAttribute("controls");
+    expect(video).toHaveAttribute("autoplay");
+    expect(video).toHaveProperty("muted", true);
+    expect(video).toHaveAttribute("playsinline");
     expect(screen.getByText("正在加载视频")).toBeVisible();
     fireEvent.loadedMetadata(video);
     expect(screen.queryByText("正在加载视频")).not.toBeInTheDocument();
@@ -741,9 +744,9 @@ describe("task and example result workspaces", () => {
     renderAt("/workspace/examples/quick-demo");
 
     expect(await screen.findByRole("heading", { name: "快速演示" })).toBeVisible();
-    expect(screen.getByText("4 次跳投")).toBeVisible();
+    expect(screen.queryByText("4 次跳投")).not.toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText("分析模式"), "full");
-    await user.click(screen.getByRole("button", { name: "用此示例创建任务" }));
+    await user.click(screen.getByRole("button", { name: "创建任务" }));
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/workspace/tasks/preset-task"));
     const call = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/v1/tasks/from-preset"));
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({ preset_id: "quick-demo", mode: "full" });
@@ -775,7 +778,7 @@ describe("task and example result workspaces", () => {
     expect(await screen.findAllByText("Completed")).toHaveLength(2);
     expect(screen.queryByText("completed")).not.toBeInTheDocument();
     expect(screen.getByText("Quick")).toBeVisible();
-    expect(screen.getByText("Upload")).toBeVisible();
+    expect(screen.queryByText("Upload")).not.toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Timeline" }));
     expect(within(screen.getByRole("tabpanel", { name: "Timeline" })).getByRole("list")).toHaveTextContent("Jump shot");
     expect(screen.getByText(/Made/)).toBeVisible();
@@ -812,8 +815,9 @@ describe("task and example result workspaces", () => {
     });
     renderAt("/workspace/tasks/task-1");
 
-    await waitFor(() => expect(document.querySelector(".detail-progress small")).toHaveTextContent("已完成"));
-    expect(document.querySelector(".detail-progress small")).not.toHaveTextContent("Complete");
+    expect(await screen.findAllByText("已完成")).toHaveLength(2);
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(taskStageMessageLabel("zh", "Complete")).toBe("已完成");
     expect(taskStageMessageLabel("zh", "Worker handoff 7/9")).toBe("Worker handoff 7/9");
   });
 
@@ -865,7 +869,7 @@ describe("task and example result workspaces", () => {
       if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "running", progress: 20, stage_message: "人体感知与匿名跟踪" }));
     });
     const english = renderAt("/workspace/tasks/task-1");
-    await waitFor(() => expect(document.querySelector(".detail-progress small")).toHaveTextContent("Person detection and anonymous tracking"));
+    await waitFor(() => expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "20% · Person detection and anonymous tracking"));
     expect(document.querySelector(".media-placeholder b")).toHaveTextContent("Person detection and anonymous tracking");
     english.unmount();
 
@@ -876,7 +880,7 @@ describe("task and example result workspaces", () => {
       if (url.pathname === "/api/v1/tasks/task-1") return json(task({ status: "running", progress: 20, stage_message: "Validating cam_01" }));
     });
     renderAt("/workspace/tasks/task-1");
-    await waitFor(() => expect(document.querySelector(".detail-progress small")).toHaveTextContent("正在验证机位 1"));
+    await waitFor(() => expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "20% · 正在验证机位 1"));
     expect(document.querySelector(".media-placeholder b")).toHaveTextContent("正在验证机位 1");
   });
 });
