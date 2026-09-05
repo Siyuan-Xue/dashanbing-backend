@@ -2,7 +2,7 @@ export const workspaceCopy = {
   zh: {
     workspaceNav: "工作台导航", createTask: "创建任务", tasks: "任务列表", recent: "最近任务", settings: "设置",
     sidebarExpand: "展开侧边栏", sidebarCollapse: "收起侧边栏", labelSeparator: "：", minutes: "分钟", makeRate: "命中率", mediaLoading: "正在加载视频", mediaError: "视频加载失败", reloadMedia: "重新加载视频", light: "浅色", dark: "深色", settingsNav: "设置导航", uploadCount: "已验证视频",
-    account: "账户", menuOpen: "打开工作台菜单", menuClose: "关闭工作台菜单", github: "GitHub", api: "API",
+    account: "账户", userInfo: "用户信息", menuOpen: "打开工作台菜单", menuClose: "关闭工作台菜单", github: "GitHub", api: "API",
     newTitle: "创建分析任务", newBody: "上传注册视频与四路机位视频，完成后提交分析。",
     taskTitle: "任务标题", defaultTitle: "未命名训练", titleRequired: "请输入任务标题", titleTooLong: "任务标题不能超过 120 个字符", mode: "分析模式", quick: "快速", full: "完整", uploadHint: "点击或拖放视频到这里",
     submit: "提交分析", submitting: "正在提交…", replace: "替换", retry: "重试", uploaded: "已验证", uploadFailed: "上传失败",
@@ -22,7 +22,7 @@ export const workspaceCopy = {
   en: {
     workspaceNav: "Workspace navigation", createTask: "Create task", tasks: "Tasks", recent: "Recent tasks", settings: "Settings",
     sidebarExpand: "Expand sidebar", sidebarCollapse: "Collapse sidebar", labelSeparator: ": ", minutes: "min", makeRate: "Make rate", mediaLoading: "Loading video", mediaError: "Video could not be loaded", reloadMedia: "Reload video", light: "Light", dark: "Dark", settingsNav: "Settings navigation", uploadCount: "Verified videos",
-    account: "Account", menuOpen: "Open workspace menu", menuClose: "Close workspace menu", github: "GitHub", api: "API",
+    account: "Account", userInfo: "User information", menuOpen: "Open workspace menu", menuClose: "Close workspace menu", github: "GitHub", api: "API",
     newTitle: "Create analysis task", newBody: "Upload an enrollment video and four camera views to start.",
     taskTitle: "Task title", defaultTitle: "Untitled session", titleRequired: "Enter a task title", titleTooLong: "Task title cannot exceed 120 characters", mode: "Analysis mode", quick: "Quick", full: "Full", uploadHint: "Click or drop a video here",
     submit: "Submit analysis", submitting: "Submitting…", replace: "Replace", retry: "Retry", uploaded: "Verified", uploadFailed: "Upload failed",
