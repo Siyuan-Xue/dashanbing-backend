@@ -200,3 +200,20 @@ for (const width of [390,1440]) for (const locale of locales) for (const theme o
     }
   });
 }
+
+for (const width of [320,390]) for (const theme of themes) {
+  test(`filter popover fits narrow viewport ${width} ${theme}`, async ({page}) => {
+    await setup(page, "list", "/workspace/tasks", "zh", theme, width, 480);
+    await page.getByRole("button", {name:"筛选",exact:true}).click();
+    const popover = page.locator(".task-filter-popover");
+    const bounds = await popover.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(480);
+    await expect(page).toHaveScreenshot(`task-filters-${width}-${theme}.png`);
+    await page.getByRole("button", {name:"重置",exact:true}).click();
+    await page.getByRole("button", {name:"确认：应用筛选"}).click();
+    await expect(popover).toBeHidden();
+  });
+}

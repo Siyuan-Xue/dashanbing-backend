@@ -560,7 +560,7 @@ describe("task list workflows", () => {
     await user.click(screen.getByRole("button", { name: "筛选" }));
     await user.selectOptions(screen.getByLabelText("状态"), "failed");
     await user.selectOptions(screen.getByLabelText("分析模式"), "quick");
-    await user.click(screen.getByRole("button", { name: "应用筛选" }));
+    await user.click(screen.getByRole("button", { name: "确认：应用筛选" }));
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("q=%E5%91%A8%E4%B8%89&status=failed&mode=quick&page=1&page_size=10"));
     await user.click(screen.getByRole("button", { name: "下一页" }));
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("page=2"));

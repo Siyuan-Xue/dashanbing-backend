@@ -36,7 +36,12 @@ export function TaskListPage() {
   const filterControl = useRef<HTMLDivElement>(null);
   const filterButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (!filtersOpen) return;
+    if (!filtersOpen) {
+      const applied = new URLSearchParams(query);
+      setStatus(applied.get("status") || "");
+      setMode(applied.get("mode") || "");
+      return;
+    }
     filterControl.current?.querySelector("select")?.focus();
     const dismiss = (event: KeyboardEvent) => {
       if (event.key === "Escape") { event.preventDefault(); setFiltersOpen(false); filterButton.current?.focus(); }
@@ -47,7 +52,7 @@ export function TaskListPage() {
     window.addEventListener("keydown", dismiss);
     window.addEventListener("pointerdown", outside);
     return () => { window.removeEventListener("keydown", dismiss); window.removeEventListener("pointerdown", outside); };
-  }, [filtersOpen]);
+  }, [filtersOpen, query]);
 
   useEffect(() => {
     const current = new URLSearchParams(query);
@@ -140,11 +145,11 @@ export function TaskListPage() {
       <form className="task-filters" onSubmit={applyFilters}>
         <label className="search-field"><span className="sr-only">{wt("search")}</span><Icon name="search"/><input type="search" aria-label={wt("search")} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={wt("search")}/></label>
         <div className="task-filter-control" ref={filterControl} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFiltersOpen(false); }}>
-          <button ref={filterButton} className={`button button-quiet button-icon${status || mode ? " has-filters" : ""}`} type="button" aria-label={wt("filter")} title={wt("filter")} aria-expanded={filtersOpen} aria-controls="task-filter-options" onClick={() => setFiltersOpen(value => !value)}><Icon name="filter"/></button>
+          <button ref={filterButton} className={`button button-quiet${searchParams.get("status") || searchParams.get("mode") ? " has-filters" : ""}`} type="button" aria-label={wt("filter")} title={wt("filter")} aria-expanded={filtersOpen} aria-controls="task-filter-options" onClick={() => setFiltersOpen(value => !value)}><Icon name="filter"/><span>{wt("filter")}</span></button>
           {filtersOpen && <div id="task-filter-options" className="task-filter-popover">
-            <label><span>{wt("status")}</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">{wt("allStatuses")}</option>{statusValues.map((value) => <option key={value} value={value}>{taskStatusLabel(locale, value)}</option>)}</select></label>
-            <label><span>{wt("mode")}</span><select value={mode} onChange={(event) => setMode(event.target.value)}><option value="">{wt("allModes")}</option><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select></label>
-            <button className="button button-primary button-icon" type="submit" aria-label={wt("applyFilters")} title={wt("applyFilters")}><Icon name="check"/></button>
+            <label><span>{wt("status")}</span><span className="filter-select"><select className={!status ? "is-empty" : undefined} value={status} onChange={(event) => setStatus(event.target.value)}><option value="">{wt("allStatuses")}</option>{statusValues.map((value) => <option key={value} value={value}>{taskStatusLabel(locale, value)}</option>)}</select><Icon name="chevronDown" size={16}/></span></label>
+            <label><span>{wt("mode")}</span><span className="filter-select"><select className={!mode ? "is-empty" : undefined} value={mode} onChange={(event) => setMode(event.target.value)}><option value="">{wt("allModes")}</option><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select><Icon name="chevronDown" size={16}/></span></label>
+            <div className="task-filter-actions"><button className="button button-quiet" type="button" onClick={() => { setStatus(""); setMode(""); }}>{wt("resetFilters")}</button><button className="button button-primary" type="submit" aria-label={`${wt("confirm")}${wt("labelSeparator")}${wt("applyFilters")}`}>{wt("confirm")}</button></div>
           </div>}
         </div>
       </form>
