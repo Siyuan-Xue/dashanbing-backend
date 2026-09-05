@@ -140,7 +140,7 @@ export function WorkspaceShell() {
         <div className="workspace-sidebar-bottom">
           <Link to="/workspace/settings" className="workspace-account" aria-label={`${wt("account")}${wt("labelSeparator")}${user?.username || ""}`} title={user?.username}><span className="workspace-avatar"><Icon name="user" size={18}/></span></Link>
           <div className="workspace-utility-row">
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label={wt("github")} title={wt("github")}><Icon name="github"/></a>
+            <a href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label={wt("github")} title={wt("github")}><Icon name="github" size={18}/></a>
             <a href="/api/docs" aria-label={wt("api")} title={wt("api")}><Icon name="code" size={18}/></a>
             <Link to="/workspace/settings" aria-label={wt("settings")} title={wt("settings")}><Icon name="settings" size={18}/></Link>
           </div>

@@ -38,6 +38,7 @@
 .workspace-utility-row { display: flex; align-items: center; gap: 3px; }
 .workspace-utility-row a { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: var(--muted); }
 .workspace-utility-row a:hover { color: var(--text); background: var(--surface-subtle); }
+.workspace-utility-row a:first-child svg { fill: currentColor; stroke: none; }
 .workspace-sidebar[hidden] { display: none; }
 .workspace-sidebar.is-floating { inset: 64px auto 8px 8px; width: 260px; padding: 16px 12px 12px; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-md); }
 .workspace-collapsed-header { height: 64px; width: fit-content; max-width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--surface); }

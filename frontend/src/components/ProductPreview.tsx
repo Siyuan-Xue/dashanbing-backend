@@ -15,7 +15,7 @@ export function ProductPreview({ decorative = false }: { decorative?: boolean })
       <span className="product-preview-nav"><Icon name="plus" size={16}/>{wt("createTask")}</span>
       <span className="product-preview-nav active"><Icon name="layers" size={16}/>{wt("tasks")}</span>
       <small>{wt("recent")}</small><span className="product-preview-recent"><i/>{t("quickTitle")}</span>
-      <div className="product-preview-account"><span><Icon name="user" size={16}/></span><Icon name="github"/><Icon name="code" size={16}/><Icon name="settings" size={16}/></div>
+      <div className="product-preview-account"><span><Icon name="user" size={16}/></span><Icon name="github" size={16}/><Icon name="code" size={16}/><Icon name="settings" size={16}/></div>
     </aside>
     <div className="product-preview-content">
       <header><b>{t("previewTitle")}</b><span><Icon name="check" size={13}/>{t("previewStatus")}</span></header>

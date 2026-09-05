@@ -93,7 +93,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .icon-button:hover, .text-button:hover { background: var(--surface-subtle); color: var(--text); }
 .text-button { height: 32px; padding: 0 4px; border-radius: 6px; gap: 6px; font-size: 16px; }
 .language-button .icon { display: none; }
-.icon-github { color: var(--text); }
+.github-button svg { fill: currentColor; stroke: none; }
 .button { min-height: 38px; border: 1px solid transparent; border-radius: 6px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; font-size: 14px; line-height: 1.4; transition: background .15s, border-color .15s; }
 .button-primary { color: var(--on-action); background: var(--action); }
 .button-primary:hover { background: color-mix(in srgb, var(--action) 82%, var(--canvas)); }

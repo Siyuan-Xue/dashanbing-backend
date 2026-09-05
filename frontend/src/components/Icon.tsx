@@ -15,8 +15,7 @@ const paths: Record<IconName, React.ReactNode> = {
   clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></>,
   code: <><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14"/></>,
   file: <><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v5h5"/></>,
-  // A smaller cat cutout leaves a wider, solid circle around the mark.
-  github: <path fillRule="evenodd" d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Z M7.128 7.476c-0.464 -1.16 -0.116 -2.668 0.116 -3.016 1.508 0 2.668 1.044 3.016 1.276a9.28 9.28 0 0 1 3.48 0c0.348 -0.232 1.508 -1.276 3.016 -1.276 0.232 0.348 0.58 1.856 0.116 3.016 1.276 1.16 1.856 2.32 1.856 3.596 0 3.248 -1.856 4.292 -4.06 4.524 0.464 0.464 0.696 1.16 0.696 2.088V21.28H8.636v-2.784c-2.204 0.464 -3.016 -0.812 -3.48 -1.74 -0.348 -0.696 -0.812 -1.044 -1.276 -1.276 -0.464 -0.348 -0.232 -0.58 0.232 -0.58 0.812 0 1.392 0.696 1.74 1.16 0.812 1.16 1.856 1.044 2.784 0.812 0.116 -0.58 0.348 -1.044 0.696 -1.276 -2.204 -0.232 -4.06 -1.276 -4.06 -4.524 0 -1.276 0.58 -2.436 1.856 -3.596Z"/>,
+  github: <path d="M12 2.8a9.3 9.3 0 0 0-2.9 18.1c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.6 1 1.6 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1a9.6 9.6 0 0 1 5.1 0c2-1.3 2.8-1 2.8-1 .6 1.4.2 2.4.1 2.7.7.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .4.2.6.7.5A9.3 9.3 0 0 0 12 2.8Z"/>,
   language: <><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21C9.5 18.5 8.2 15.5 8.2 12S9.5 5.5 12 3Z"/></>,
   layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
   menu: <path d="M4 7h16M4 12h16M4 17h16"/>,
@@ -34,5 +33,5 @@ const paths: Record<IconName, React.ReactNode> = {
 };
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
-  return <svg aria-hidden="true" className={name === "github" ? "icon icon-github" : "icon"} width={size} height={size} viewBox="0 0 24 24" fill={name === "github" ? "currentColor" : "none"} stroke={name === "github" ? "none" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+  return <svg aria-hidden="true" className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
