@@ -140,11 +140,12 @@
 .task-filter-control > .button[aria-expanded="true"] { background: var(--border); color: var(--text); }
 .task-filter-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 10; width: min(360px, calc(100vw - 40px)); max-height: calc(100dvh - 180px); overflow-y: auto; overscroll-behavior: contain; padding: 24px; display: grid; gap: 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-md); }
 .task-filter-popover > label { gap: 10px; color: var(--text); font-size: 14px; }
-.filter-select { position: relative; display: block; }
-.task-filter-popover select { appearance: none; height: 44px; padding: 0 40px 0 14px; border: 1px solid transparent; border-radius: 9px; background: var(--surface-subtle); color: var(--text); cursor: pointer; }
+.filter-select, .workspace-select { position: relative; display: block; min-width: 0; }
+.task-filter-popover select, .workspace-select select { width: 100%; appearance: none; height: 44px; padding: 0 40px 0 14px; border: 1px solid transparent; border-radius: 9px; background: var(--surface-subtle); color: var(--text); cursor: pointer; font: inherit; font-size: 14px; }
 .task-filter-popover select.is-empty { color: var(--muted); }
-.task-filter-popover select:hover { border-color: var(--border-strong); }
-.filter-select > .icon { position: absolute; top: 14px; right: 14px; pointer-events: none; color: var(--muted); }
+.task-filter-popover select:hover, .workspace-select select:hover:not(:disabled) { border-color: var(--border-strong); }
+.workspace-select select:disabled { opacity: .55; cursor: not-allowed; }
+.filter-select > .icon, .workspace-select > .icon { position: absolute; top: 50%; right: 14px; transform: translateY(-50%); pointer-events: none; color: var(--muted); }
 .task-filter-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 2px; }
 .task-filter-actions .button { min-width: 82px; min-height: 40px; padding-inline: 20px; }
 .task-filter-actions .button-quiet { background: var(--surface-subtle); border-color: transparent; }
@@ -286,9 +287,7 @@
 .task-history b { display: block; font-size: 13px; font-weight: 500; }
 .task-history time { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .preset-run { max-width: 100%; flex: none; display: flex; align-items: center; gap: 10px; }
-.preset-mode { position: relative; display: block; }
-.preset-mode select { height: 38px; padding: 0 34px 0 12px; appearance: none; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
-.preset-mode > .icon { position: absolute; right: 10px; top: 11px; color: var(--muted); pointer-events: none; }
+.preset-mode { display: block; }
 .preset-run .button { white-space: nowrap; }
 
 /* Account settings shown directly in the main content area. */

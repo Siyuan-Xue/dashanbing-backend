@@ -98,7 +98,7 @@ try {
           }
           return [...new Set(bottoms)].sort((a, b) => a - b);
         };
-        return { video: box(".media-stage"), report: box("#analyst .analyst-report"), summaryLines: lines("[data-report-summary]"), textLines: lines("#analyst .analyst-report"), rawTop: box(".result-insights-panel").y };
+        return { video: box(".media-stage"), analyst: box("#analyst"), report: box("#analyst .analyst-report"), raw: box(".result-insights-panel"), composer: box(".analyst-composer"), summaryLines: lines("[data-report-summary]"), textLines: lines("#analyst .analyst-report") };
       });
       const clips = captureClips(layout, viewport);
       for (const kind of ["main", "analyst"]) {

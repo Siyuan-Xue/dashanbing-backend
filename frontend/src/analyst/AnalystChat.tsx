@@ -92,15 +92,14 @@ function ChatSession({ source, style, subjectId, comparisonId, disabled, evidenc
   const waiting = messages.some(pending);
   const blocked = disabled || sending || recovering || waiting;
   return <section className="analyst-chat" aria-label={t("chat")}>
-    <h3><Icon name="chat" size={18}/>{t("chat")}</h3>
-    <div ref={logRef} className="analyst-messages" onScroll={event => { const log = event.currentTarget; nearBottom.current = log.scrollHeight - log.scrollTop - log.clientHeight <= 40; }} role="log" aria-live="polite" aria-label={t("chat")}>
-      {!messages.length && <p className="analyst-muted">{t("chatEmpty")}</p>}
+    <header className="analyst-chat-header"><h3><Icon name="chat" size={16}/>{t("chat")}</h3><div className="analyst-quick-questions">{(["quickReview", "quickPractice", "quickCompare", "quickRoast"] as const).map(key => <button key={key} type="button" disabled={blocked} title={`${t("fillQuestion")} · ${t(key)}`} onClick={() => { if (!blocked) { setText(t(key)); textareaRef.current?.focus(); } }}>{t(key)}</button>)}</div></header>
+    {messages.length > 0 && <div ref={logRef} className="analyst-messages" onScroll={event => { const log = event.currentTarget; nearBottom.current = log.scrollHeight - log.scrollTop - log.clientHeight <= 40; }} role="log" aria-live="polite" aria-label={t("chat")}>
       {messages.map(message => <article className={`analyst-message ${message.role}`} key={message.id}><span>{t(message.role === "user" ? "user" : "assistant")}</span><p>{message.content || (pending(message) ? t("responding") : t("failed"))}</p>{message.role === "assistant" && <EvidenceLinks ids={message.citations} evidence={evidence} onEvidence={onEvidence}/>} {message.status === "failed" && message.content && <small>{t("failed")}</small>}</article>)}
-    </div>
+    </div>}
     {error && <p className="analyst-error" role="alert">{t("chatError")} {conversationId && <button className="table-action" type="button" title={t("restore")} aria-label={t("restore")} onClick={() => { setRecovering(true); setRevision(value => value + 1); }}><Icon name="refresh" size={16}/></button>}</p>}
-    <div className="analyst-quick-questions">{(["quickReview", "quickPractice", "quickCompare", "quickRoast"] as const).map(key => <button key={key} type="button" disabled={blocked} title={`${t("fillQuestion")} · ${t(key)}`} onClick={() => { if (!blocked) { setText(t(key)); textareaRef.current?.focus(); } }}>{t(key)}</button>)}</div>
+
     <form className="analyst-composer" onSubmit={event => { event.preventDefault(); void send(); }}>
-      <textarea ref={textareaRef} aria-label={t("ask")} placeholder={t("prompt")} value={text} maxLength={4000} rows={3} disabled={blocked} onChange={event => setText(event.target.value)}/>
+      <textarea ref={textareaRef} aria-label={t("ask")} placeholder={t("prompt")} value={text} maxLength={4000} rows={2} disabled={blocked} onChange={event => setText(event.target.value)}/>
       <button className="button button-primary button-icon" type="submit" disabled={blocked || !text.trim()} title={t("send")} aria-label={t("send")}><Icon name="arrow" size={18}/></button>
     </form>
   </section>;

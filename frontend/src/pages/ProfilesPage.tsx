@@ -1,3 +1,4 @@
+import { WorkspaceSelect } from "../components/WorkspaceSelect";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -65,7 +66,7 @@ function ProfileEditor({ profile, onSaved, onClose }: { profile: TrainingProfile
     finally { if (active.current) { setBusy(false); saving.current = false; } }
   };
   return <form className="profile-editor" onSubmit={event => { event.preventDefault(); void save(); }}><h2>{t(profile ? "editProfile" : "newProfile")}</h2>
-    <fieldset disabled={busy}><label><span>{t("kind")}</span><select value={draft.kind} disabled={Boolean(profile)} onChange={event => setDraft({ ...draft, kind: event.target.value as ProfileInput["kind"] })}><option value="player">{t("playerKind")}</option><option value="team">{t("teamKind")}</option></select></label>
+    <fieldset disabled={busy}><label><span>{t("kind")}</span><WorkspaceSelect value={draft.kind} disabled={Boolean(profile)} onChange={event => setDraft({ ...draft, kind: event.target.value as ProfileInput["kind"] })}><option value="player">{t("playerKind")}</option><option value="team">{t("teamKind")}</option></WorkspaceSelect></label>
     <label><span>{t("name")}</span><input required maxLength={120} autoFocus value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })}/></label>
     <label><span>{t("goals")}</span><textarea rows={3} maxLength={4000} value={draft.goals} onChange={event => setDraft({ ...draft, goals: event.target.value })}/></label>
     <label><span>{t("notes")}</span><textarea rows={4} maxLength={8000} value={draft.notes} onChange={event => setDraft({ ...draft, notes: event.target.value })}/></label></fieldset>

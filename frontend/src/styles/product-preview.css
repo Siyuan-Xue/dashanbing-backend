@@ -65,7 +65,7 @@
 .hero-analyst-preview picture { display: block; }
 .hero-analyst-detail-section { border-top: 1px solid var(--border); padding: 20px 0 0; }
 .hero-analyst-detail-section > p { margin: 0 20px 16px; color: var(--muted); font-size: 12px; }
-.hero-analyst-detail { max-width: 720px; margin-inline: auto; }
+.hero-analyst-detail { width: 100%; margin-inline: auto; }
 .hero-analyst-preview picture img { display: block; width: 100%; height: auto; }
 .hero-analyst-state { display: flex; align-items: center; gap: 9px; padding: 20px 24px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
 .hero-analyst-state .icon { color: var(--brand); }

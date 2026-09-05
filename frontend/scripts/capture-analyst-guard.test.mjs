@@ -17,22 +17,29 @@ test("rejects named or linked subjects and unrelated report players", () => {
   assert.throws(() => assertVerifiedReport(state, "zh", "a".repeat(64)));
 });
 
-test("all 16 crops include native video/conclusion or report detail, exclude raw tabs and remain bounded", () => {
-  for (const locale of ["zh", "en"]) for (const theme of ["light", "dark"]) for (const viewport of ["desktop", "mobile"]) {
+test("all 16 crops preserve video/data/analyst order and exclude the intervening raw tabs", () => {
+  for (const viewport of ["desktop", "mobile"]) {
     const mobile = viewport === "mobile";
-    const y = mobile ? 520 : 1000;
-    const layout = { video: { x: 16, y: 200, width: mobile ? 358 : 1120, height: mobile ? 202 : 630 }, report: { x: 16, y, width: mobile ? 358 : 725, height: 1800 }, summaryLines: [y + 68, y + 96, y + 124, y + 152, y + 180], textLines: Array.from({ length: 60 }, (_, i) => y + 68 + i * 28), rawTop: y + 2000 };
-    const clips = captureClips(layout, viewport);
-    assert.deepEqual(Object.keys(clips), ["main", "analyst"]);
-    assert.equal(clips.main.y, layout.video.y);
-    assert.ok(clips.main.y + clips.main.height >= layout.summaryLines[1]);
-    assert.ok(clips.main.height <= (mobile ? 640 : 1040));
-    assert.equal(clips.analyst.width, layout.report.width);
-    assert.equal(clips.analyst.y, layout.report.y);
-    assert.ok(clips.analyst.height <= (mobile ? 420 : 480));
-    for (const clip of Object.values(clips)) assert.ok(clip.y + clip.height < layout.rawTop, `${locale}/${theme}/${viewport}`);
+    const width = mobile ? 358 : 1120;
+    const video = { x: 16, y: 200, width, height: mobile ? 202 : 630 };
+    const raw = { x: 16, y: video.y + video.height + 16, width, height: 400 };
+    const analyst = { x: 16, y: raw.y + raw.height + 16, width, height: 1800 };
+    const y = analyst.y + 150;
+    const layout = { video, raw, analyst, report: { x: 16, y, width: mobile ? 358 : 725, height: 1600 }, summaryLines: [y + 68, y + 96], textLines: Array.from({ length: 50 }, (_, i) => y + 68 + i * 28) };
+    for (const locale of ["zh", "en"]) for (const theme of ["light", "dark"]) {
+      const clips = captureClips(layout, viewport);
+      assert.equal(clips.main.height, video.height);
+      assert.equal(clips.main.y, video.y);
+      assert.ok(clips.main.y + clips.main.height <= raw.y);
+      assert.equal(clips.analyst.y, analyst.y);
+      assert.equal(clips.analyst.width, analyst.width);
+      assert.ok(clips.analyst.height <= (mobile ? 620 : 900));
+      assert.ok(clips.analyst.y + clips.analyst.height >= layout.summaryLines[0]);
+      assert.ok(clips.analyst.y >= raw.y + raw.height, `${locale}/${theme}/${viewport}`);
+    }
+    assert.throws(() => captureClips({ ...layout, analyst: { ...analyst, y: video.y } }, viewport));
+    assert.throws(() => captureClips({ ...layout, summaryLines: [] }, viewport));
   }
-  assert.throws(() => captureClips({ video: { x: 0, y: 0, width: 400, height: 300 }, report: { x: 0, y: 2000, width: 400, height: 500 }, summaryLines: [2050], textLines: [2050], rawTop: 3000 }, "mobile"));
 });
 
 test("publishes only a complete 16-image matrix from the same facts and stable localized report", () => {

@@ -1,6 +1,6 @@
 import { useLocale } from "../providers/LocaleProvider";
 const copy = {
-  title: ["AI 分析师", "AI analyst"], collapse: ["收起 AI 分析师", "Collapse AI analyst"], expand: ["展开 AI 分析师", "Expand AI analyst"], jump: ["跳转 AI 分析师", "Go to AI analyst"],
+  title: ["AI 分析师", "AI analyst"], configure: ["配置", "Configure"], jump: ["跳转 AI 分析师", "Go to AI analyst"],
   coach: ["教练", "Coach"], roast: ["锐评", "Roast"], style: ["分析风格", "Analysis style"], report: ["训练报告", "Training report"], chat: ["继续聊聊", "Ask a follow-up"],
   loading: ["正在读取分析", "Loading analysis"], disabled: ["AI 尚未配置", "AI is not configured"], unavailable: ["AI 分析师暂不可用", "AI analyst unavailable"], retry: ["重试 AI 分析师", "Retry analyst"],
   waiting: ["报告尚未生成", "Report not generated yet"], presetWaiting: ["示例报告尚未就绪", "Preset report is not ready"], queued: ["分析已排队", "Analysis queued"], running: ["正在分析", "Analyzing"], failed: ["分析未完成", "Analysis failed"], generate: ["生成报告", "Generate report"], regenerate: ["重新生成报告", "Regenerate report"],

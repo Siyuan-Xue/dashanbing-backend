@@ -21,10 +21,10 @@ The script launches fresh browser contexts with service workers blocked, checks 
 
 Each desktop/mobile × light/dark × zh/en combination produces two native browser screenshot crops, for **16 WebP assets**:
 
-- `main`: the real video frame and the first two to four lines of the review conclusion, at most 1040 CSS pixels tall on desktop or 640 on mobile
-- `analyst`: an independent crop of the report column, ending at a text line boundary, at most 480 CSS pixels tall on desktop or 420 on mobile
+- `main`: the actual video player at its native dimensions
+- `analyst`: an independent crop of the analyst section, including its title, configuration trigger and report, followed by the compact follow-up area when it fits, ending at the composer or a report text-line boundary, at most 900 CSS pixels tall on desktop or 620 on mobile
 
-The old overview/timeline/JSON tabs, account navigation, and task header are outside both crops. The real video is paused at six seconds for a stable frame. Both images are captured from the same loaded page without changing or composing report content. All captures use device pixel ratio 2; the homepage chooses the matching mobile sources rather than shrinking desktop text. PNG-to-WebP conversion does not resize or edit content. A layout that cannot fit both video and a conclusion fails capture instead of publishing a long page or omitting the conclusion.
+The result page order is video → overview/timeline/JSON → analyst. The intervening data tabs, account navigation, and task header are outside both independent crops. The real video is paused at six seconds for a stable frame. Both images are captured from the same loaded page without changing or composing report content. All captures use device pixel ratio 2; the homepage chooses the matching mobile sources rather than shrinking desktop text. PNG-to-WebP conversion does not resize or edit content. A layout that has the wrong section order or cannot fit the analyst conclusion fails capture. The tool never stitches the report over the intervening data section.
 
 The version 2 manifest records `kind`, locale/theme/viewport, pixel dimensions, `pixel_ratio`, report ID, canonical report hash and facts hash for every image. All 16 must share the same facts hash; each language must share the same report ID and report hash across both crops, both themes and both viewports. The complete matrix is checked before the manifest is published atomically. No account identifiers or credentials are included. Review the crops for readable text and appropriate anonymity before delivering the static assets.
 

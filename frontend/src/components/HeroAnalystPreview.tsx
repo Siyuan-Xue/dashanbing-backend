@@ -28,7 +28,7 @@ export function HeroAnalystPreview({ decorative = false }: { decorative?: boolea
     const detail = kind === "analyst";
     return <picture className={detail ? "hero-analyst-detail" : undefined}>
       <source media="(max-width: 767px)" type="image/webp" srcSet={`${mobile.src} ${mobile.width}w`} sizes="calc(100vw - 20px)" width={mobile.width / mobile.pixel_ratio} height={mobile.height / mobile.pixel_ratio}/>
-      <img src={desktop.src} srcSet={`${desktop.src} ${desktop.width}w`} sizes={detail ? "(max-width: 767px) calc(100vw - 20px), 720px" : "(max-width: 1279px) calc(100vw - 48px), min(80vw, 1360px)"} width={desktop.width / desktop.pixel_ratio} height={desktop.height / desktop.pixel_ratio} alt={t(detail ? "screenshotDetail" : "screenshot")} loading={decorative || detail ? "lazy" : "eager"} fetchPriority={decorative || detail ? "low" : "high"} decoding="async" onError={() => setAssetFailed(true)}/>
+      <img src={desktop.src} srcSet={`${desktop.src} ${desktop.width}w`} sizes="(max-width: 767px) calc(100vw - 20px), (max-width: 1279px) calc(100vw - 48px), min(80vw, 1360px)" width={desktop.width / desktop.pixel_ratio} height={desktop.height / desktop.pixel_ratio} alt={t(detail ? "screenshotDetail" : "screenshot")} loading={decorative || detail ? "lazy" : "eager"} fetchPriority={decorative || detail ? "low" : "high"} decoding="async" onError={() => setAssetFailed(true)}/>
     </picture>;
   };
   const main = picture(decorative ? "analyst" : "main");

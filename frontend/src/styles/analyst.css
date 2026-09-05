@@ -1,47 +1,61 @@
-.analyst-panel { min-width: 0; padding: 20px 0 24px; border-bottom: 1px solid var(--border); scroll-margin-top: 76px; }
+.analyst-panel { min-width: 0; padding: 24px 0; border-top: 1px solid var(--border); scroll-margin-top: 76px; }
 .result-media-panel { scroll-margin-top: 76px; }
 .analyst-anchor, .analyst-header h2 > .icon { color: var(--brand); }
-.analyst-header, .analyst-header-actions, .analyst-report-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.analyst-header { margin-bottom: 14px; }
-.analyst-header h2 { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 18px; font-weight: 500; }
-.analyst-header-actions { gap: 6px; }
-.analyst-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.analyst-header, .analyst-report-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.analyst-header { flex-wrap: wrap; margin-bottom: 24px; }
+.analyst-header h2 { display: flex; align-items: center; gap: 9px; margin: 0 auto 0 0; font-size: 20px; font-weight: 600; }
+.analyst-settings { flex: none; }
+.analyst-settings > .button { min-height: 38px; padding: 0 12px; border-radius: 8px; }
+.analyst-settings-popover { z-index: 20; width: min(224px, calc(100vw - 32px)); padding: 18px; gap: 18px; }
+.analyst-settings-popover[hidden] { display: none; }
+.analyst-columns { min-width: 0; }
 .analyst-report, .analyst-chat { min-width: 0; }
 .analyst-report h3, .analyst-chat h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
-.analyst-report-heading { min-height: 40px; }
-.analyst-summary { margin: 12px 0 20px; font-size: 16px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
-.analyst-report-section { margin: 20px 0; }
-.analyst-report h4 { margin: 0 0 8px; color: var(--text-soft); font-size: 12px; font-weight: 500; }
+.analyst-report { position: relative; }
+.analyst-report-heading { position: absolute; top: -8px; right: 0; }
+.analyst-summary { max-width: 76ch; margin: 0 40px 28px 0; font-size: 18px; font-weight: 500; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.analyst-report-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px 48px; }
+.analyst-report-section { margin: 0 0 24px; }
+.analyst-report-section:last-child { margin-bottom: 0; }
+.analyst-report h4 { margin: 0 0 14px; color: var(--text-soft); font-size: 13px; font-weight: 500; }
 .analyst-report-section p { display: inline; margin: 0; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
 .analyst-report-section ul, .analyst-report-section ol { margin: 0; padding-left: 20px; }
 .analyst-report-section li { padding: 5px 0; line-height: 1.8; overflow-wrap: anywhere; }
+.analyst-report-section .analyst-key-plays { padding: 0; list-style: none; }
+.analyst-key-plays li { display: flex; align-items: baseline; gap: 12px; padding: 0 0 14px; }
+.analyst-key-plays li:last-child { padding-bottom: 0; }
+.analyst-play-index { color: var(--brand); font-size: 11px; font-variant-numeric: tabular-nums; flex: none; }
+.analyst-key-plays li > div { min-width: 0; }
+.analyst-key-plays .evidence-links { display: block; margin: 2px 0 0 -5px; }
+.analyst-practice ol { padding-left: 18px; }
+.analyst-practice li { padding: 0 0 14px 6px; }
 .analyst-practice h4, .analyst-practice li::marker { color: var(--accent); }
-.analyst-provenance, .analyst-muted, .analyst-context-status { color: var(--muted); font-size: 12px; line-height: 1.7; }
-.analyst-provenance { padding-top: 12px; border-top: 1px solid var(--border); }
+.analyst-muted, .analyst-context-status { color: var(--muted); font-size: 12px; line-height: 1.7; }
 .analyst-state { min-height: 180px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 12px; color: var(--muted); font-size: 13px; }
 .analyst-state > .icon { color: var(--brand); }
 .analyst-state b { font-weight: 400; }
 .analyst-state p { margin: 0; overflow-wrap: anywhere; }
-.analyst-warning, .analyst-error { color: var(--accent); font-size: 12px; overflow-wrap: anywhere; }
+.analyst-error { color: var(--accent); font-size: 12px; overflow-wrap: anywhere; }
 .evidence-links { display: inline; }
 .evidence-link { min-height: 30px; display: inline-flex; align-items: center; gap: 2px; margin: 0 3px; padding: 3px 5px; border: 0; border-radius: 4px; color: var(--brand); background: transparent; font: inherit; font-size: 12px; vertical-align: baseline; }
 .evidence-link:hover { background: var(--brand-soft); }
-.analyst-context { display: flex; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.analyst-context label, .profile-editor label { min-width: 0; display: grid; gap: 6px; font-size: 12px; color: var(--text-soft); }
-.analyst-context label { flex: 1 1 160px; max-width: 250px; }
+.analyst-context { display: grid; gap: 18px; min-width: 0; }
+.profile-editor label { min-width: 0; display: grid; gap: 6px; font-size: 12px; color: var(--text-soft); }
+.analyst-context label, .analyst-style { display: grid; gap: 8px; font-size: 14px; color: var(--text); width: 100%; min-width: 0; max-width: none; }
 .analyst-context-status { display: flex; align-items: center; gap: 4px; align-self: flex-end; min-height: 34px; }
-.analyst-context select, .analyst-style select, .profile-editor select, .profile-editor input, .profile-editor textarea { width: 100%; min-height: 36px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font: inherit; }
-.analyst-style select { width: auto; border: 0; background: var(--surface-subtle); font-size: 12px; }
-.analyst-chat { display: flex; flex-direction: column; padding-top: 20px; border-top: 1px solid var(--border); }
-.analyst-chat > h3 { min-height: 40px; }
+.profile-editor input, .profile-editor textarea { width: 100%; min-height: 36px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font: inherit; }
+.analyst-chat { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+.analyst-chat-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.analyst-chat > h3 { min-height: 28px; color: var(--text-soft); }
 .analyst-chat h3 .icon { color: var(--accent); }
-.analyst-messages { min-height: 130px; max-height: 430px; overflow-y: auto; overscroll-behavior: contain; flex: 1; padding-right: 8px; scrollbar-width: thin; }
-.analyst-message { margin: 16px 0; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.analyst-messages { max-height: 320px; overflow-y: auto; overscroll-behavior: contain; padding-right: 8px; scrollbar-width: thin; }
+.analyst-message { margin: 12px 0; }
 .analyst-message > span { color: var(--brand); font-size: 11px; }
 .analyst-message.user > span { color: var(--muted); }
 .analyst-message p { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.8; }
-.analyst-composer { display: flex; align-items: flex-end; gap: 8px; padding: 10px 0 0; border-top: 1px solid var(--border); }
-.analyst-composer textarea { min-width: 0; flex: 1; resize: vertical; min-height: 74px; max-height: 220px; border: 0; padding: 6px 0; color: var(--text); background: transparent; font: inherit; font-size: 13px; line-height: 1.7; }
+.analyst-composer { display: flex; align-items: flex-end; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-subtle); }
+.analyst-composer:focus-within { border-color: var(--brand); }
+.analyst-composer textarea { min-width: 0; flex: 1; resize: vertical; min-height: 44px; max-height: 180px; border: 0; outline: 0; padding: 0; color: var(--text); background: transparent; font: inherit; font-size: 13px; line-height: 1.7; }
 .analyst-composer .button { min-height: 36px; width: 36px; padding: 8px; flex: none; }
 .analyst-composer textarea:disabled { opacity: .55; cursor: not-allowed; }
 .profiles-page > .detail-header { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 12px; }
@@ -72,19 +86,19 @@
 .profile-history-metrics { margin-top: 10px; }
 .profile-history-metrics b { margin-left: 4px; color: var(--text); font-weight: 500; }
 @media (min-width: 1280px) {
-  .analyst-columns { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px; }
-  .analyst-chat { padding: 0 0 0 24px; border-top: 0; border-left: 1px solid var(--border); }
+  .analyst-report-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
 }
 @media (max-width: 767px) {
   .analyst-panel { padding: 18px 0; }
-  .analyst-context { gap: 10px; }
-  .analyst-context label { max-width: none; flex-basis: calc(50% - 10px); }
+  .analyst-header { flex-wrap: nowrap; gap: 12px; margin-bottom: 20px; }
+  .analyst-header h2 { font-size: 18px; }
+  .analyst-summary { margin-right: 28px; font-size: 16px; }
   .analyst-messages { max-height: 330px; }
   .profiles-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .profiles-list { flex-direction: row; overflow-x: auto; }
   .profiles-list button { flex: 0 0 auto; max-width: 210px; }
 }
-.analyst-quick-questions { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 14px 0 12px; }
-.analyst-quick-questions button { min-height: 32px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text-soft); font: inherit; font-size: 11px; text-align: left; }
-.analyst-quick-questions button:hover:not(:disabled) { color: var(--brand); border-color: var(--brand); }
+.analyst-quick-questions { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; }
+.analyst-quick-questions button { min-height: 30px; padding: 3px 0; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; text-align: left; }
+.analyst-quick-questions button:hover:not(:disabled) { color: var(--brand); }
 .analyst-quick-questions button:disabled { opacity: .5; cursor: not-allowed; }

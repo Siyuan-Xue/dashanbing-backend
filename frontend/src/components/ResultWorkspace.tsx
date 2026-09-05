@@ -70,7 +70,6 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
         {src ? <ResultVideo key={src} src={src} seek={seek} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><div>{task && ["queued", "running"].includes(task.status) ? <><span className="analysis-orbit" aria-hidden="true"/><b>{taskStageMessageLabel(locale, task.stage_message)}</b><p>{task.progress}%</p></> : <><span className="media-empty-icon" aria-hidden="true">▷</span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
       </div>
     </section>
-    {analystSource && <AnalystPanel ready={Boolean(result) && (!task || task.status === "completed")} source={analystSource} accountId={accountId} onEvidence={seekEvidence}/>}
     <section className="result-insights-panel" aria-label={wt("resultViews")}>
       <div className="insight-tabs" role="tablist" aria-label={wt("resultViews")} onKeyDown={navigateTabs}>
         {insightKinds.map((tab) => <button key={tab} type="button" id={`${id}-${tab}`} role="tab" aria-selected={rightTab === tab} aria-controls={`${id}-insight-panel`} tabIndex={rightTab === tab ? 0 : -1} onClick={() => setRightTab(tab)}>{wt(tab)}</button>)}
@@ -90,5 +89,6 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
       </div>
       {result && downloadUrl && <a className="result-download" href={downloadUrl} download aria-label={wt("downloadJson")} title={wt("downloadJson")}><Icon name="download"/></a>}
     </section>
+    {analystSource && <AnalystPanel ready={Boolean(result) && (!task || task.status === "completed")} source={analystSource} accountId={accountId} onEvidence={seekEvidence}/>}
   </div>;
 }

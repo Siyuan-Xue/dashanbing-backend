@@ -20,6 +20,26 @@ function install(report: ReportState = completed) {
 }
 beforeEach(() => { localStorage.setItem("dashanbing-locale", "en"); sessionStorage.clear(); });
 
+test("settings are dismissible while the analyst report always stays visible", async () => {
+  install();
+  const user = userEvent.setup();
+  render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  const summary = await screen.findByText("Your recorded shot went in");
+  const trigger = screen.getByRole("button", { name: "Configure" });
+  expect(screen.queryByRole("dialog", { name: "Configure" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /Collapse AI/ })).not.toBeInTheDocument();
+  await user.click(trigger);
+  expect(screen.getByRole("dialog", { name: "Configure" })).toBeVisible();
+  expect(screen.getByLabelText("Current player")).toHaveFocus();
+  await user.keyboard("{Escape}");
+  expect(trigger).toHaveFocus();
+  expect(summary).toBeVisible();
+  await user.click(trigger);
+  await user.click(summary);
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(summary).toBeVisible();
+});
+
 test("unknown analyst routes show a recoverable state without breaking other result views", async () => {
   vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Unknown API")));
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
@@ -65,9 +85,9 @@ test("evidence seeks the active camera's own time, including before metadata and
   expect(phases.currentTime).toBe(2);
   const sections = document.querySelector(".result-workspace")!.children;
   expect(sections[0]).toHaveClass("result-media-panel");
-  expect(sections[1]).toHaveAttribute("id", "analyst");
-  expect(sections[2]).toHaveClass("result-insights-panel");
-  expect(within(sections[1] as HTMLElement).getByRole("button", { name: "Collapse AI analyst" })).toHaveAttribute("aria-expanded", "true");
+  expect(sections[1]).toHaveClass("result-insights-panel");
+  expect(sections[2]).toHaveAttribute("id", "analyst");
+  expect(within(sections[2] as HTMLElement).getByRole("button", { name: "Configure" })).toHaveAttribute("aria-expanded", "false");
 });
 
 test("context association submits all subjects and clears comparison when the team changes", async () => {
@@ -80,6 +100,7 @@ test("context association submits all subjects and clears comparison when the te
   });
   const user = userEvent.setup();
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  await user.click(screen.getByRole("button", { name: "Configure" }));
   await user.selectOptions(await screen.findByLabelText("Current player"), "s1");
   await user.selectOptions(screen.getByLabelText("Link player profile"), "p1");
   await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/v1/tasks/t1/analyst/context", expect.objectContaining({ method: "PUT", body: JSON.stringify({ subjects: [{ id: "s1", profile_id: "p1" }], team_profile_id: null, comparison_id: null }) })));
@@ -102,6 +123,7 @@ test("tasks without a completed result cannot chat while a completed result can 
 test("localizes backend-generated subject labels without changing subject ids", async () => {
   install({ ...completed, facts: context.facts, subjects: [{ id: "s1", label: "球员 1" }] });
   render(<LocaleProvider><AnalystPanel source={{ kind: "preset", id: "quick-demo" }} onEvidence={() => {}}/></LocaleProvider>);
+  await userEvent.click(screen.getByRole("button", { name: "Configure" }));
   expect(await screen.findByRole("option", { name: "Player 1" })).toHaveValue("s1");
 });
 
@@ -116,6 +138,7 @@ test("a personal scope keeps the full summary but hides another profile's compar
   const user = userEvent.setup();
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
   expect(await screen.findByText("Full team baseline")).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Configure" }));
   await user.selectOptions(await screen.findByLabelText("Current player"), "s1");
   // First linking can return an automatic global team baseline even in a personal scope.
   await user.selectOptions(screen.getByLabelText("Team profile"), "team1");
