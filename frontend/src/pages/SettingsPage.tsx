@@ -1,4 +1,3 @@
-import { useLocation } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { WorkspaceState } from "../components/WorkspaceState";
 import { formatRetentionDuration } from "../localization";
@@ -10,7 +9,6 @@ import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 
 export function SettingsPage() {
   const wt = useWorkspaceCopy();
-  const { hash } = useLocation();
   const { locale, toggleLocale } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { value: usage, error, reload } = useLoadable(workspaceApi.usage);
@@ -19,10 +17,6 @@ export function SettingsPage() {
   ] as const : [];
   return <div className="workspace-page settings-page">
     <header className="workspace-page-header"><div><h1>{wt("settings")}</h1></div></header>
-    <div className="settings-layout">
-      <nav className="settings-nav" aria-label={wt("settingsNav")}>
-        {(["usage", "retention", "preferences"] as const).map((section) => <a key={section} href={`#${section}`} aria-current={(hash || "#usage") === `#${section}` ? "location" : undefined}><Icon name={section === "usage" ? "chart" : section === "retention" ? "clock" : "settings"} size={18}/>{wt(section)}</a>)}
-      </nav>
       <div className="settings-content">
         <section id="usage" className="settings-section" aria-labelledby="usage-heading">
           <h2 id="usage-heading">{wt("usage")}</h2>
@@ -37,6 +31,5 @@ export function SettingsPage() {
           <div className="preference-rows"><div><span><b>{wt("language")}</b><small>{locale === "zh" ? "简体中文" : "English"}</small></span><button className="button button-outline" type="button" onClick={toggleLocale}>{locale === "zh" ? "English" : "中文"}</button></div><div><span><b>{wt("theme")}</b><small>{wt(theme === "dark" ? "dark" : "light")}</small></span><button className="button button-outline" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? (locale === "zh" ? "切换到浅色主题" : "Switch to light theme") : (locale === "zh" ? "切换到深色主题" : "Switch to dark theme")}>{theme === "dark" ? <Icon name="sun" size={18}/> : <Icon name="moon" size={18}/>}{wt(theme === "dark" ? "light" : "dark")}</button></div></div>
         </section>
       </div>
-    </div>
   </div>;
 }

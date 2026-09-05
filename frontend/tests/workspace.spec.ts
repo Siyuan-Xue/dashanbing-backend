@@ -153,7 +153,7 @@ test("task list filters through the real query contract and detail switches medi
   await page.getByRole("button", { name: "筛选", exact: true }).click();
   await page.getByLabel("状态").selectOption("completed");
   await page.getByLabel("分析模式").selectOption("quick");
-  await page.getByRole("button", { name: "应用筛选" }).click();
+  await page.getByRole("button", { name: "确认：应用筛选" }).click();
   await expect(page).toHaveURL(/q=%E5%91%A8%E4%B8%89&status=completed&mode=quick&page=1&page_size=10/);
   await expect.poll(() => observed).toContain("q=%E5%91%A8%E4%B8%89");
   await page.getByRole("link", { name: "周三投篮训练" }).first().click();
@@ -333,11 +333,35 @@ test("resizing across the drawer breakpoint restores usable navigation and docum
   await expect(page.getByRole("button", { name: "打开工作台菜单" })).toBeFocused();
 });
 
-test("settings internal navigation reaches the real preference controls", async ({ page }) => {
+test("settings shows content directly and keeps preference controls usable", async ({ page }) => {
   await page.goto("/workspace/settings");
-  await page.getByRole("navigation", { name: "设置导航" }).getByRole("link", { name: "界面偏好" }).click();
-  await expect(page).toHaveURL(/#preferences$/);
+  await expect(page.getByRole("navigation", { name: "设置导航" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "用量与配额" })).toBeVisible();
+  await page.getByRole("button", { name: "English" }).scrollIntoViewIfNeeded();
   await expect(page.getByRole("button", { name: "English" })).toBeInViewport();
   await page.getByRole("button", { name: "English" }).click();
   await expect(page.getByRole("heading", { name: "Interface preferences" })).toBeVisible();
+});
+
+
+test("filter reset clears options on confirm while preserving search and page size", async ({ page }) => {
+  await page.goto("/workspace/tasks?q=training&status=failed&mode=full&page=2&page_size=20");
+  const trigger = page.getByRole("button", { name: "筛选", exact: true });
+  await trigger.click();
+  await expect(page.getByLabel("状态")).toHaveValue("failed");
+  await page.getByRole("button", { name: "重置", exact: true }).click();
+  await expect(page.getByLabel("状态")).toHaveValue("");
+  await expect(page.getByLabel("分析模式")).toHaveValue("");
+  await expect(page).toHaveURL(/status=failed/);
+  await expect(trigger).toHaveClass(/has-filters/);
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await expect(page.getByLabel("状态")).toHaveValue("failed");
+  await expect(page.getByLabel("分析模式")).toHaveValue("full");
+  await page.getByRole("button", { name: "重置", exact: true }).click();
+  await page.getByRole("button", { name: "确认：应用筛选" }).click();
+  await expect(page).toHaveURL(/q=training&page=1&page_size=20$/);
+  await expect(trigger).toBeFocused();
+  await expect(trigger).not.toHaveClass(/has-filters/);
 });
