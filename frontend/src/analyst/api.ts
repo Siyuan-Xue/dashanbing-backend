@@ -1,5 +1,5 @@
 import { jsonInit, request } from "../workspace/api";
-import type { AnalystContext, AnalystLocale, AnalystSource, AnalystStyle, ContextInput, Conversation, Observation, ProfileInput, ReportState, TrainingProfile } from "./types";
+import type { AnalystContext, ComparisonReportState, AnalystLocale, AnalystSource, AnalystStyle, ContextInput, Conversation, Observation, ProfileInput, ReportState, TrainingProfile } from "./types";
 const encode = encodeURIComponent;
 const root = "/api/v1";
 export const analystPath = (source: AnalystSource) => `${root}/${source.kind === "task" ? "tasks" : "presets"}/${encode(source.id)}/analyst`;
@@ -20,6 +20,8 @@ export const analystApi = {
     if (source.kind === "preset") return Promise.reject(new Error("Preset reports are read only"));
     return request<ReportState>(`${analystPath(source)}/report`, { ...jsonInit("POST", { locale, style, regenerate }), signal });
   },
+  comparisons: (source: AnalystSource, locale: AnalystLocale, style: AnalystStyle, signal?: AbortSignal) => request<{ items: ComparisonReportState[] }>(`${analystPath(source)}/comparisons?${new URLSearchParams({ locale, style })}`, { signal }).then(value => { if (!value || !Array.isArray(value.items)) throw new Error("Invalid comparison response"); return value.items; }),
+  compare: (source: AnalystSource, comparison_id: string, locale: AnalystLocale, style: AnalystStyle, signal?: AbortSignal) => request<ComparisonReportState>(`${analystPath(source)}/comparisons`, { ...jsonInit("POST", { comparison_id, locale, style }), signal }),
   createConversation: (source: AnalystSource, scope: { subject_id?: string; comparison_id?: string; locale: AnalystLocale; style: AnalystStyle }, signal?: AbortSignal) => request<Conversation>(`${root}/analyst/conversations`, { ...jsonInit("POST", { [source.kind === "task" ? "task_id" : "preset_id"]: source.id, ...scope }), signal }),
   conversation: (id: string, signal?: AbortSignal) => request<Conversation>(`${root}/analyst/conversations/${encode(id)}`, { signal }),
   send: (id: string, content: string, requestId: string, signal?: AbortSignal) => request<{ message_id: string; job_id: string }>(`${root}/analyst/conversations/${encode(id)}/messages`, { ...jsonInit("POST", { content, request_id: requestId }), signal }),

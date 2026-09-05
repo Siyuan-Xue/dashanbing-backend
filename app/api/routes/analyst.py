@@ -11,10 +11,10 @@ from app.api.deps import get_current_user
 from app.database import get_session
 from app.models import User
 from app.analyst_models import AnalystConversation
-from app.analyst_reports import ConversationCreate, ConversationPublic, Locale, MessageAccepted, MessageCreate, ReportRequest, ReportState, Style
+from app.analyst_reports import ComparisonRequest, ComparisonReportState, ComparisonReports, ConversationCreate, ConversationPublic, Locale, MessageAccepted, MessageCreate, ReportRequest, ReportState, Style
 from app.services.analyst import (
-    configured, conversation_messages, current_report, digest, facts_and_memory,
-    message_public, owned_conversation, owned_task, pack, request_report,
+    configured, conversation_messages, current_report, current_comparisons, digest, facts_and_memory,
+    message_public, owned_conversation, owned_task, pack, request_report, request_comparison,
     require_complete, require_configured, replay_message, submit_message,
 )
 from app.services.analyst_facts import load_task_facts, load_preset_facts
@@ -42,6 +42,33 @@ def generate_report(task_id: str, payload: ReportRequest, request: Request, sess
     if task.updated_at != version:
         raise HTTPException(409, '任务已变化，请重新读取结果')
     result = request_report(request.app, session, task, facts=facts, **payload.model_dump())
+    session.commit()
+    return result
+
+
+@router.get('/tasks/{task_id}/analyst/comparisons', response_model=ComparisonReports)
+def get_comparisons(task_id: str, request: Request, locale: Locale = 'zh', style: Style = 'coach',
+                    session: Session = Depends(get_session), user: User = Depends(get_current_user)):
+    task = owned_task(session, task_id, user.id)
+    return current_comparisons(request.app, session, task, locale, style)
+
+
+@router.post('/tasks/{task_id}/analyst/comparisons', response_model=ComparisonReportState, status_code=202)
+def generate_comparison(task_id: str, payload: ComparisonRequest, request: Request,
+                        session: Session = Depends(get_session), user: User = Depends(get_current_user)):
+    owner_id = user.id
+    task = owned_task(session, task_id, owner_id)
+    require_complete(task)
+    require_configured(request.app)
+    version = task.updated_at
+    facts = load_task_facts(request.app, task)
+    session.rollback()
+    session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+    task = owned_task(session, task_id, owner_id)
+    require_complete(task)
+    if task.updated_at != version:
+        raise HTTPException(409, '任务已变化，请重新读取结果')
+    result = request_comparison(request.app, session, task, facts=facts, **payload.model_dump())
     session.commit()
     return result
 

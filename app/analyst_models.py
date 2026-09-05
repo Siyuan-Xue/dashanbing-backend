@@ -61,12 +61,18 @@ class TrainingObservation(SQLModel, table=True):
 
 class AnalystReport(SQLModel, table=True):
     __tablename__ = "analyst_report"
-    __table_args__ = (CheckConstraint("status IN ('queued', 'running', 'completed', 'failed')", name="ck_analyst_report_status"),)
+    __table_args__ = (
+        CheckConstraint("status IN ('queued', 'running', 'completed', 'failed')", name="ck_analyst_report_status"),
+        CheckConstraint("kind IN ('session', 'comparison')", name="ck_analyst_report_kind"),
+    )
 
     id: str = Field(default_factory=new_id, primary_key=True)
     owner_id: int = Field(foreign_key="user.id", index=True)
     task_id: str | None = Field(default=None, index=True)
     preset_id: str | None = None
+    kind: str = "session"
+    # Snapshot identity; memory revocation explicitly removes dependent reports.
+    comparison_id: str | None = None
     cache_key: str = Field(unique=True, index=True)
     status: str = "queued"
     locale: str = "zh"

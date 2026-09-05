@@ -215,10 +215,12 @@ def test_comparisons_are_same_mode_distinct_inputs_and_selected_default_reaches_
     assert link(client, "current", profile, comparison=own_id).status_code == 422
 
 
-def seed_analyst_work(session, owner, task, suffix):
+def seed_analyst_work(session, owner, task, suffix, report_kind="comparison"):
     from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport
 
-    report = AnalystReport(owner_id=owner, task_id=task, cache_key=f"cache-{suffix}", status="completed", body_json='{"old":"memory"}')
+    # These fixtures exercise memory-dependent snapshots; pure session reports
+    # are covered separately and survive memory-only mutations.
+    report = AnalystReport(owner_id=owner, task_id=task, kind=report_kind, cache_key=f"cache-{suffix}", status="completed", body_json='{"old":"memory"}')
     conversation = AnalystConversation(owner_id=owner, task_id=task)
     session.add_all([report, conversation])
     session.flush()
@@ -304,7 +306,7 @@ def test_profile_delete_removes_derived_history_and_unlinks_context_without_touc
     assert context.json()["comparisons"] == []
 
 
-def test_real_0009_upgrade_roundtrip_and_metadata_agree(tmp_path, monkeypatch):
+def test_analyst_upgrade_roundtrip_and_head_metadata_agree(tmp_path, monkeypatch):
     from alembic import command
     from alembic.config import Config
     from alembic.autogenerate import compare_metadata
@@ -315,6 +317,7 @@ def test_real_0009_upgrade_roundtrip_and_metadata_agree(tmp_path, monkeypatch):
     config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
     command.upgrade(config, "20260905_0008")
     command.upgrade(config, "20260905_0009")
+    command.upgrade(config, "head")
     engine = create_database_engine(f"sqlite:///{tmp_path / 'migration.db'}")
     names = {"training_profile", "task_subject", "training_observation", "analyst_report", "analyst_conversation", "analyst_message", "analyst_job"}
     assert names <= set(inspect(engine).get_table_names())
@@ -323,7 +326,7 @@ def test_real_0009_upgrade_roundtrip_and_metadata_agree(tmp_path, monkeypatch):
         assert compare_metadata(context, SQLModel.metadata) == []
     command.downgrade(config, "20260905_0008")
     assert not names & set(inspect(engine).get_table_names())
-    command.upgrade(config, "20260905_0009")
+    command.upgrade(config, "head")
     assert names <= set(inspect(engine).get_table_names())
 
 
@@ -437,6 +440,140 @@ def read_memory(client, task_id, subject_id=None, comparison_id=None):
         return memory_context(session, task, load_task_facts(client.app, task), subject_id, comparison_id)
 
 
+@pytest.mark.parametrize("kind", ["player", "team"])
+def test_first_link_explicit_null_disables_comparison_despite_valid_history(api, kind):
+    from app.analyst_models import TaskSubject, TrainingObservation
+    from app.services.training_profiles import COMPARISON_SUBJECT, TEAM_SUBJECT
+
+    client, add_task = api
+    profile = create_profile(client, kind=kind)
+    assignment = {kind: profile}
+    add_task("previous", dataset="old", day=1)
+    assert link(client, "previous", **assignment).status_code == 200
+    previous_id = client.get(f"/api/v1/training-profiles/{profile}/history").json()[0]["id"]
+    add_task("current", dataset="new", day=3)
+    assert read_memory(client, "current")["comparison_status"] == "unlinked"
+
+    response = link(client, "current", comparison=None, **assignment)
+    assert response.status_code == 200, response.text
+    assert [row["id"] for row in response.json()["comparisons"]] == [previous_id]
+    assert response.json()["comparison_id"] is None
+    subject_id = "player_1" if kind == "player" else TEAM_SUBJECT
+    with Session(client.app.state.engine) as session:
+        assert session.get(TaskSubject, ("current", subject_id)).profile_id == profile
+        assert session.get(TaskSubject, ("current", COMPARISON_SUBJECT)).label == "none"
+        assert session.get(TaskSubject, ("current", TEAM_SUBJECT)).selected_comparison_id is None
+        observation = session.exec(select(TrainingObservation).where(
+            TrainingObservation.source_task_id == "current")).one()
+        assert observation.profile_id == profile
+
+    # New history and a later link-only edit must not turn comparison back on.
+    add_task("late-confirmed", dataset="late", day=2)
+    assert link(client, "late-confirmed", **assignment).status_code == 200
+    payload = ({"subjects": [{"id": "player_1", "profile_id": profile}]} if kind == "player"
+               else {"team_profile_id": profile})
+    omitted = client.put("/api/v1/tasks/current/analyst/context", json=payload)
+    assert omitted.status_code == 200, omitted.text
+    assert omitted.json()["comparison_id"] is None
+    assert client.get("/api/v1/tasks/current/analyst/context").json()["comparison_id"] is None
+    memory = read_memory(client, "current", "player_1" if kind == "player" else None)
+    assert memory["profile"]["id"] == profile
+    assert len(memory["observations"]) == 2
+    assert memory["comparison_status"] == "disabled"
+    assert memory["comparison_id"] is None
+    assert memory["comparison"] is None
+    assert memory["comparison_scope"] is None
+
+
+@pytest.mark.parametrize("comparison_fields, preference, status", [
+    ({}, "none", "disabled"),
+    ({"comparison_id": None}, "none", "disabled"),
+])
+def test_first_link_without_history_disables_comparison_for_omission_and_null(api, comparison_fields, preference, status):
+    from app.analyst_models import TaskSubject
+    from app.services.training_profiles import COMPARISON_SUBJECT
+
+    client, add_task = api
+    profile = create_profile(client)
+    add_task("current")
+    response = client.put("/api/v1/tasks/current/analyst/context", json={
+        "subjects": [{"id": "player_1", "profile_id": profile}], **comparison_fields,
+    })
+    assert response.status_code == 200, response.text
+    assert response.json()["comparison_id"] is None
+    assert response.json()["comparisons"] == []
+    assert read_memory(client, "current", "player_1")["comparison_status"] == status
+    with Session(client.app.state.engine) as session:
+        assert session.get(TaskSubject, ("current", COMPARISON_SUBJECT)).label == preference
+
+
+@pytest.mark.parametrize("preference", ["none", "auto", "explicit"])
+def test_repeated_context_preserves_reports_but_changed_baseline_invalidates(api, preference):
+    from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport, TaskSubject, TrainingObservation
+    from app.services.training_profiles import COMPARISON_SUBJECT, TEAM_SUBJECT
+
+    client, add_task = api
+    profile = create_profile(client)
+    for task_id, day in (("older", 1), ("nearest", 2)):
+        add_task(task_id, dataset=task_id, day=day)
+        assert link(client, task_id, profile).status_code == 200
+    history = {row["task_id"]: row["id"] for row in client.get(f"/api/v1/training-profiles/{profile}/history").json()}
+    add_task("current", dataset="new", day=3)
+    payload = {"subjects": [{"id": "player_1", "profile_id": profile}]}
+    initial_id = {"none": None, "auto": history["nearest"], "explicit": history["older"]}[preference]
+    if preference != "auto":
+        payload["comparison_id"] = initial_id
+    response = client.put("/api/v1/tasks/current/analyst/context", json=payload)
+    assert response.status_code == 200, response.text
+    if preference == "auto":
+        # Automatic preferences exist only in legacy records, never new links.
+        with Session(client.app.state.engine) as session:
+            marker = session.get(TaskSubject, ("current", COMPARISON_SUBJECT))
+            marker.label = "auto"
+            session.add(marker)
+            team = session.get(TaskSubject, ("current", TEAM_SUBJECT))
+            team.selected_comparison_id = initial_id
+            session.add(team)
+            session.commit()
+        response = client.get("/api/v1/tasks/current/analyst/context")
+    assert response.json()["comparison_id"] == initial_id
+    with Session(client.app.state.engine) as session:
+        assert session.get(TaskSubject, ("current", COMPARISON_SUBJECT)).label == preference
+        work = seed_analyst_work(session, 1, "current", "baseline")
+        observation_id = session.exec(select(TrainingObservation).where(
+            TrainingObservation.source_task_id == "current")).one().id
+        protected = list(zip((AnalystReport, AnalystConversation, AnalystMessage, AnalystJob), work)) + [
+            (TaskSubject, ("current", "player_1")), (TaskSubject, ("current", TEAM_SUBJECT)),
+            (TaskSubject, ("current", COMPARISON_SUBJECT)), (TrainingObservation, observation_id),
+        ]
+        before = [session.get(model, key).model_dump(mode="json") for model, key in protected]
+
+    repeated = client.put("/api/v1/tasks/current/analyst/context", json=payload)
+    assert repeated.status_code == 200, repeated.text
+    assert repeated.json()["comparison_id"] == initial_id
+    with Session(client.app.state.engine) as session:
+        after = [session.get(model, key).model_dump(mode="json") if session.get(model, key) else None
+                 for model, key in protected]
+        assert after == before
+
+    # Enabling comparison, opting out of auto, or switching an explicit baseline
+    # must revoke a report already generated with the confirmed context.
+    changed_id = None if preference == "auto" else history["nearest"]
+    changed = client.put("/api/v1/tasks/current/analyst/context", json={**payload, "comparison_id": changed_id})
+    assert changed.status_code == 200, changed.text
+    assert changed.json()["comparison_id"] == changed_id
+    memory = read_memory(client, "current", "player_1")
+    assert memory["comparison_id"] == changed_id
+    assert memory["comparison_status"] == ("disabled" if changed_id is None else "selected")
+    with Session(client.app.state.engine) as session:
+        assert session.get(AnalystReport, work[0]) is None
+        assert session.get(AnalystJob, work[3]).status == "failed"
+        assert json.loads(session.get(AnalystJob, work[3]).payload_json) == {"automatic": False}
+        message = session.get(AnalystMessage, work[2])
+        assert message.status == "failed" and message.content == ""
+        assert session.get(TrainingObservation, observation_id).model_dump(mode="json") == before[-1]
+
+
 def test_no_common_action_is_not_comparable_even_with_same_profile_and_mode(api):
     client, add_task = api
     profile = create_profile(client)
@@ -444,17 +581,17 @@ def test_no_common_action_is_not_comparable_even_with_same_profile_and_mode(api)
     add_task("current", dataset="new", day=2)
     assert link(client, "previous", profile).status_code == 200
     old_id = client.get(f"/api/v1/training-profiles/{profile}/history").json()[0]["id"]
-    response = link(client, "current", profile)
+    response = client.put("/api/v1/tasks/current/analyst/context", json={"subjects": [{"id": "player_1", "profile_id": profile}]})
     assert response.status_code == 200
     assert response.json()["comparisons"] == []
     assert response.json()["comparison_id"] is None
     memory = read_memory(client, "current", "player_1")
     assert memory["comparison"] is None
-    assert memory["comparison_status"] == "no_comparable_history"
+    assert memory["comparison_status"] == "disabled"
     assert link(client, "current", profile, comparison=old_id).status_code == 422
 
 
-def test_first_link_defaults_to_latest_valid_history_and_explicit_none_survives_later_edits(api):
+def test_first_link_lists_valid_history_without_selecting_it_and_explicit_none_survives(api):
     client, add_task = api
     profile = create_profile(client)
     historical = [("older", 1, "full", [("raw-secret", "jump_shot")]),
@@ -467,14 +604,14 @@ def test_first_link_defaults_to_latest_valid_history_and_explicit_none_survives_
         add_task(task, dataset=task, day=day, mode=mode, actions=actions)
         assert link(client, task, profile).status_code == 200
     add_task("current", dataset="current", day=5)
-    result = link(client, "current", profile)
+    result = client.put("/api/v1/tasks/current/analyst/context", json={"subjects": [{"id": "player_1", "profile_id": profile}]})
     assert result.status_code == 200
     rows = result.json()["comparisons"]
     assert [row["task_id"] for row in rows] == ["nearest", "older"]
-    assert result.json()["comparison_id"] == rows[0]["id"]
-    assert read_memory(client, "current", "player_1")["comparison"]["task_id"] == "nearest"
+    assert result.json()["comparison_id"] is None
+    assert read_memory(client, "current", "player_1")["comparison"] is None
     # A later explicit null is durable, rather than requesting another default.
-    assert link(client, "current", profile).json()["comparison_id"] is None
+    assert link(client, "current", profile, comparison=None).json()["comparison_id"] is None
     assert client.patch(f"/api/v1/training-profiles/{profile}", json={"notes": "Manual edit"}).status_code == 200
     add_task("late-confirmed", dataset="late", day=4)
     assert link(client, "late-confirmed", profile).status_code == 200
@@ -500,12 +637,15 @@ def test_person_comparisons_do_not_use_another_players_actions_or_team_metrics(a
     for task in ("jump", "layup"):
         assert link(client, task, player, team).status_code == 200
     add_task("current", dataset="new", day=3, actions=[("raw-secret", "layup"), ("raw-second", "jump_shot")])
-    response = link(client, "current", player, team)
+    response = client.put("/api/v1/tasks/current/analyst/context", json={
+        "subjects": [{"id": "player_1", "profile_id": player}], "team_profile_id": team,
+    })
     assert response.status_code == 200
     candidates = response.json()["comparisons"]
     assert not any(row["task_id"] == "jump" and row["profile_id"] == player for row in candidates)
     assert any(row["task_id"] == "jump" and row["profile_id"] == team for row in candidates)
-    memory = read_memory(client, "current", "player_1")
+    selected = next(row['id'] for row in candidates if row['task_id'] == 'layup' and row['profile_id'] == player)
+    memory = read_memory(client, "current", "player_1", comparison_id=selected)
     assert memory["comparison"]["task_id"] == "layup"
     assert memory["comparison"]["profile_id"] == player
     scope = memory["comparison_scope"]
@@ -522,14 +662,15 @@ def test_partial_action_overlap_marks_aggregate_shot_rates_as_not_comparable(api
     add_task("previous", dataset="old", day=1, actions=[("raw-secret", "jump_shot"), ("raw-secret", "layup")])
     assert link(client, "previous", profile).status_code == 200
     add_task("current", dataset="new", day=2)
-    assert link(client, "current", profile).status_code == 200
-    memory = read_memory(client, "current", "player_1")
+    assert client.put("/api/v1/tasks/current/analyst/context", json={"subjects": [{"id": "player_1", "profile_id": profile}]}).status_code == 200
+    selected = client.get('/api/v1/tasks/current/analyst/context').json()['comparisons'][0]['id']
+    memory = read_memory(client, "current", "player_1", comparison_id=selected)
     assert memory["comparison"] is not None
     assert memory["comparison_scope"]["actions"] == ["jump_shot"]
     assert memory["comparison_scope"]["shot_totals_comparable"] is False
 
 
-def test_automatic_comparison_keeps_expired_confirmed_stats_and_skips_malformed_history(api):
+def test_explicit_comparison_keeps_expired_confirmed_stats_and_skips_malformed_history(api):
     from app.analyst_models import TrainingObservation
     from app.services.training_profiles import cleanup_analyst_task
 
@@ -543,9 +684,11 @@ def test_automatic_comparison_keeps_expired_confirmed_stats_and_skips_malformed_
                     occurred_at=datetime(2026, 9, 2, tzinfo=timezone.utc), metrics_json="not json"))
         session.commit()
     add_task("current", dataset="new", day=3)
-    response = link(client, "current", profile)
+    response = client.put("/api/v1/tasks/current/analyst/context", json={"subjects": [{"id": "player_1", "profile_id": profile}]})
     assert response.status_code == 200
-    memory = read_memory(client, "current", "player_1")
+    assert response.json()['comparison_id'] is None
+    assert len(response.json()['comparisons']) == 1
+    memory = read_memory(client, "current", "player_1", comparison_id=response.json()['comparisons'][0]['id'])
     assert memory["comparison"] is not None
     assert memory["comparison"]["task_id"] is None
     assert memory["comparison"]["media_available"] is False

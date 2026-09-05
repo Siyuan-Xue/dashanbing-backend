@@ -171,7 +171,13 @@ def test_explicit_scope_and_legacy_owner_reset(scoped_work, scope):
         prepare_id, prepare_before = prepare.id, prepare.model_dump()
         invalidate_memory(session, 1, **kwargs)
         session.commit()
-        assert session.get(AnalystJob, prepare_id).model_dump() == prepare_before
+        if scope == "all":
+            revoked_prepare = session.get(AnalystJob, prepare_id)
+            assert revoked_prepare.status == "failed"
+            assert revoked_prepare.request_id == prepare_before['request_id']
+            assert json.loads(revoked_prepare.payload_json) == {"automatic": True}
+        else:
+            assert session.get(AnalystJob, prepare_id).model_dump() == prepare_before
 
     affected = ("a", "b", "preset") if scope == "all" else ("a",) if scope in {"task", "profile"} else ()
     for key in affected:

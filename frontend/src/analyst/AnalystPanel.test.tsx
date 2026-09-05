@@ -15,6 +15,7 @@ function install(report: ReportState = completed) {
     if (input.endsWith("/context")) return json(context);
     if (input === "/api/v1/training-profiles") return json([]);
     if (input.includes("/report")) return json(report);
+    if (input.includes("/comparisons")) return json({ items: [] });
     throw new Error(`Unknown route ${init?.method || "GET"} ${input}`);
   }));
 }
@@ -30,7 +31,7 @@ test("settings are dismissible while the analyst report always stays visible", a
   expect(screen.queryByRole("button", { name: /Collapse AI/ })).not.toBeInTheDocument();
   await user.click(trigger);
   expect(screen.getByRole("dialog", { name: "Configure" })).toBeVisible();
-  expect(screen.getByLabelText("Current player")).toHaveFocus();
+  expect(screen.getByLabelText("Analysis style")).toHaveFocus();
   await user.keyboard("{Escape}");
   expect(trigger).toHaveFocus();
   expect(summary).toBeVisible();
@@ -90,7 +91,7 @@ test("evidence seeks the active camera's own time, including before metadata and
   expect(within(sections[2] as HTMLElement).getByRole("button", { name: "Configure" })).toHaveAttribute("aria-expanded", "false");
 });
 
-test("context association submits all subjects and clears comparison when the team changes", async () => {
+test("profile bindings are confirmed together without regenerating the original report", async () => {
   install();
   const fetcher = vi.mocked(fetch); const base = fetcher.getMockImplementation()!;
   fetcher.mockImplementation(async (input, init) => {
@@ -100,13 +101,24 @@ test("context association submits all subjects and clears comparison when the te
   });
   const user = userEvent.setup();
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  await screen.findByText("Your recorded shot went in");
+  await user.click(screen.getByRole("button", { name: "Bind profiles" }));
+  const dialog = screen.getByRole("dialog", { name: "Bind profiles" });
+  await waitFor(() => expect(within(dialog).getByLabelText("Player 1")).toBeEnabled());
+  await user.selectOptions(within(dialog).getByLabelText("Player 1"), "p1");
+  await user.selectOptions(within(dialog).getByLabelText("Team"), "team1");
+  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "PUT")).toHaveLength(0);
+  await user.click(within(dialog).getByRole("button", { name: "Confirm" }));
+  await waitFor(() => expect(dialog).not.toBeInTheDocument());
+  const writes = fetcher.mock.calls.filter(([, init]) => init?.method === "PUT");
+  expect(writes).toHaveLength(1);
+  expect(JSON.parse(String(writes[0][1]?.body))).toEqual({ subjects: [{ id: "s1", profile_id: "p1" }], team_profile_id: "team1", comparison_id: null });
+  expect(await screen.findByText("Your recorded shot went in")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Configure" }));
-  await user.selectOptions(await screen.findByLabelText("Current player"), "s1");
-  await user.selectOptions(screen.getByLabelText("Link player profile"), "p1");
-  await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/v1/tasks/t1/analyst/context", expect.objectContaining({ method: "PUT", body: JSON.stringify({ subjects: [{ id: "s1", profile_id: "p1" }], team_profile_id: null, comparison_id: null }) })));
-  await waitFor(() => expect(screen.getByLabelText("Team profile")).toBeEnabled());
-  await user.selectOptions(screen.getByLabelText("Team profile"), "team1");
-  await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/v1/tasks/t1/analyst/context", expect.objectContaining({ body: JSON.stringify({ subjects: [{ id: "s1", profile_id: "p1" }], team_profile_id: "team1", comparison_id: null }) })));
+  expect(within(screen.getByRole("dialog", { name: "Configure" })).getAllByRole("combobox")).toHaveLength(1);
+  expect(screen.queryByLabelText("History comparison")).not.toBeInTheDocument();
+  expect(document.querySelector("[data-report-id]")).toHaveAttribute("data-report-id", "r1");
+  expect(fetcher.mock.calls.filter(([url]) => String(url).includes("/report"))).toHaveLength(1);
 });
 
 test("tasks without a completed result cannot chat while a completed result can chat before its report exists", async () => {
@@ -123,14 +135,13 @@ test("tasks without a completed result cannot chat while a completed result can 
 test("localizes backend-generated subject labels without changing subject ids", async () => {
   install({ ...completed, facts: context.facts, subjects: [{ id: "s1", label: "球员 1" }] });
   render(<LocaleProvider><AnalystPanel source={{ kind: "preset", id: "quick-demo" }} onEvidence={() => {}}/></LocaleProvider>);
-  await userEvent.click(screen.getByRole("button", { name: "Configure" }));
   expect(await screen.findByRole("option", { name: "Player 1" })).toHaveValue("s1");
 });
 
 test("a personal scope keeps the full summary but hides another profile's comparison and omits it from chat", async () => {
   const teamHistory = { id: "team-history", profile_id: "team1", task_id: null, occurred_at: "2026-09-01", mode: "quick", metrics: {}, media_available: false };
   vi.stubGlobal("fetch", vi.fn(async (input: string, init?: RequestInit) => {
-    if (input.endsWith("/context")) return json(init?.method === "PUT" ? { ...context, team_profile_id: "team1", comparison_id: teamHistory.id, comparisons: [teamHistory] } : context);
+    if (input.endsWith("/context")) return json({ ...context, team_profile_id: "team1", comparison_id: teamHistory.id, comparisons: [teamHistory] });
     if (input === "/api/v1/training-profiles") return json([{ id: "team1", kind: "team", name: "Team A" }]);
     if (input.includes("/report")) return json({ ...completed, report: { ...completed.report, comparison: { text: "Full team baseline", evidence_ids: [] } } });
     return json({ detail: "Test stops before posting a message" }, 503);
@@ -138,15 +149,67 @@ test("a personal scope keeps the full summary but hides another profile's compar
   const user = userEvent.setup();
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
   expect(await screen.findByText("Full team baseline")).toBeVisible();
-  await user.click(screen.getByRole("button", { name: "Configure" }));
-  await user.selectOptions(await screen.findByLabelText("Current player"), "s1");
-  // First linking can return an automatic global team baseline even in a personal scope.
-  await user.selectOptions(screen.getByLabelText("Team profile"), "team1");
-  await waitFor(() => expect(screen.getByLabelText("Team profile")).toBeEnabled());
+  await user.selectOptions(await screen.findByLabelText("View player"), "s1");
   expect(screen.getByText("Your recorded shot went in")).toBeVisible();
   expect(screen.queryByText("Full team baseline")).not.toBeInTheDocument();
-  expect(within(screen.getByLabelText("Compare with")).queryByRole("option", { name: /Team A/ })).not.toBeInTheDocument();
+  expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "PUT")).toHaveLength(0);
   await user.type(screen.getByLabelText("Ask the analyst"), "My next practice?");
   await user.click(screen.getByRole("button", { name: "Send" }));
   await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/v1/analyst/conversations", expect.objectContaining({ method: "POST", body: JSON.stringify({ task_id: "t1", subject_id: "s1", locale: "en", style: "coach" }) })));
+});
+
+test("changing configuration is a draft until applied, then loads the chosen report style", async () => {
+  install();
+  const fetcher = vi.mocked(fetch); const base = fetcher.getMockImplementation()!;
+  fetcher.mockImplementation(async (input, init) => String(input).includes("style=roast") ? json({ ...completed, report: { ...completed.report!, id: "roast-report", style: "roast", summary: "A different tone, the same recorded shot" } }) : base(input, init));
+  const user = userEvent.setup();
+  render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  await screen.findByText("Your recorded shot went in");
+  await user.click(screen.getByRole("button", { name: "Configure" }));
+  await user.selectOptions(screen.getByLabelText("Analysis style"), "roast");
+  expect(screen.getByText("Your recorded shot went in")).toBeVisible();
+  expect(fetcher.mock.calls.some(([url]) => String(url).includes("style=roast"))).toBe(false);
+  await user.click(screen.getByRole("button", { name: "Apply and update analysis" }));
+  expect(await screen.findByText("A different tone, the same recorded shot")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Configure" })).toHaveAttribute("aria-expanded", "false");
+});
+
+test("profile context can recover independently while keeping the original report", async () => {
+  install(); const fetcher = vi.mocked(fetch), base = fetcher.getMockImplementation()!;
+  let fail = true;
+  fetcher.mockImplementation(async (input, init) => String(input).endsWith("/context") && fail ? json({ detail: "Unavailable" }, 503) : base(input, init));
+  const user = userEvent.setup();
+  render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  await screen.findByText("Your recorded shot went in");
+  expect(screen.getByRole("button", { name: "Bind profiles" })).toBeDisabled();
+  fail = false; await user.click(screen.getByRole("button", { name: "Reload profiles" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Bind profiles" })).toBeEnabled());
+  expect(fetcher.mock.calls.filter(([url]) => String(url).includes("/report"))).toHaveLength(1);
+});
+
+test("confirmed binding refreshes revoked chat answers but preserves the original report and unsent question", async () => {
+  install(); const fetcher = vi.mocked(fetch), base = fetcher.getMockImplementation()!;
+  let changed = false;
+  sessionStorage.setItem("analyst:7:task:t1:::en:coach", "conversation-1");
+  fetcher.mockImplementation(async (input, init) => {
+    const url = String(input);
+    if (url === "/api/v1/training-profiles") return json([{ id: "p1", kind: "player", name: "Alex" }]);
+    if (url.endsWith("/context") && init?.method === "PUT") { changed = true; return json({ ...context, subjects: [{ ...context.subjects[0], profile_id: "p1" }] }); }
+    if (url.endsWith("/conversations/conversation-1")) return json({ id: "conversation-1", messages: [{ id: "q1", role: "user", content: "My earlier question", citations: [], status: "completed" }, { id: "a1", role: "assistant", content: changed ? "" : "Old linked answer", citations: [], status: changed ? "failed" : "completed" }] });
+    return base(input, init);
+  });
+  const user = userEvent.setup();
+  render(<LocaleProvider><AnalystPanel accountId={7} source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  await screen.findByText("Old linked answer");
+  await user.type(screen.getByLabelText("Ask the analyst"), "Unsent next question");
+  await user.click(screen.getByRole("button", { name: "Bind profiles" }));
+  const dialog = screen.getByRole("dialog", { name: "Bind profiles" });
+  await waitFor(() => expect(within(dialog).getByLabelText("Player 1")).toBeEnabled());
+  await user.selectOptions(within(dialog).getByLabelText("Player 1"), "p1");
+  await user.click(within(dialog).getByRole("button", { name: "Confirm" }));
+  await waitFor(() => expect(screen.queryByText("Old linked answer")).not.toBeInTheDocument());
+  expect(await screen.findByText("My earlier question")).toBeVisible();
+  expect(screen.getByLabelText("Ask the analyst")).toHaveValue("Unsent next question");
+  expect(fetcher.mock.calls.filter(([url]) => String(url).includes("/report"))).toHaveLength(1);
+  expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith("/conversations/conversation-1"))).toHaveLength(2);
 });

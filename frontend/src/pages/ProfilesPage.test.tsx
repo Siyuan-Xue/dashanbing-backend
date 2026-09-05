@@ -22,7 +22,7 @@ test("creates, edits confirmed goals and notes, reads retained history, and dele
   await user.click(await screen.findByRole("button", { name: "New profile" }));
   await user.type(screen.getByLabelText("Name"), "Alex");
   await user.type(screen.getByLabelText("Training goals"), "Balance");
-  await user.type(screen.getByLabelText("Confirmed notes"), "Left-handed");
+  await user.type(screen.getByLabelText("Additional notes"), "Left-handed");
   await user.click(screen.getByRole("button", { name: "Save" }));
   expect(await screen.findByRole("heading", { name: "Alex" })).toBeVisible();
   expect(screen.getByText("Left-handed")).toBeVisible();

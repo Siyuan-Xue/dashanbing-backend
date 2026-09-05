@@ -5,7 +5,7 @@ import { analystApi } from "./api";
 import { useAnalystCopy } from "./copy";
 import { EvidenceLinks } from "./EvidenceLinks";
 import type { AnalystMessage, AnalystSource, AnalystStyle, Evidence } from "./types";
-export type ChatProps = { source: AnalystSource; style: AnalystStyle; subjectId: string; comparisonId: string | null; accountId?: number; disabled: boolean; evidence: Evidence[]; onEvidence: (value: Evidence) => void };
+export type ChatProps = { refreshKey?: number; source: AnalystSource; style: AnalystStyle; subjectId: string; comparisonId: string | null; accountId?: number; disabled: boolean; evidence: Evidence[]; onEvidence: (value: Evidence) => void };
 const pending = (message: AnalystMessage) => message.status === "running" || message.status === "queued";
 const stored = (key: string | null) => { try { return key ? sessionStorage.getItem(key) : null; } catch { return null; } };
 const persist = (key: string | null, id: string) => { try { if (key) sessionStorage.setItem(key, id); } catch { /* Session storage may be disabled */ } };
@@ -15,7 +15,7 @@ export function AnalystChat(props: ChatProps) {
   const key = `analyst:${props.accountId}:${props.source.kind}:${props.source.id}:${props.subjectId}:${props.comparisonId || ""}:${locale}:${props.style}`;
   return <ChatSession key={key} {...props} storageKey={props.accountId === undefined ? null : key}/>;
 }
-function ChatSession({ source, style, subjectId, comparisonId, disabled, evidence, onEvidence, storageKey }: ChatProps & { storageKey: string | null }) {
+function ChatSession({ refreshKey = 0, source, style, subjectId, comparisonId, disabled, evidence, onEvidence, storageKey }: ChatProps & { storageKey: string | null }) {
   const t = useAnalystCopy(); const { locale } = useLocale();
   const [conversationId, setConversationId] = useState<string | null>(() => stored(storageKey));
   const conversationRef = useRef(conversationId);
@@ -29,8 +29,13 @@ function ChatSession({ source, style, subjectId, comparisonId, disabled, evidenc
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
+  const previousContext = useRef(refreshKey);
   useEffect(() => {
     const controller = new AbortController(); controllerRef.current = controller;
+    if (previousContext.current !== refreshKey) {
+      previousContext.current = refreshKey;
+      setMessages([]); setRecovering(Boolean(conversationId));
+    }
     posting.current = false; setSending(false);
     let timer: ReturnType<typeof setTimeout> | undefined;
     let stream: EventSource | null = null;
@@ -60,7 +65,7 @@ function ChatSession({ source, style, subjectId, comparisonId, disabled, evidenc
     };
     void refresh(true);
     return () => { controller.abort(); clearTimeout(timer); close(); };
-  }, [conversationId, disabled, revision]);
+  }, [conversationId, disabled, revision, refreshKey]);
   useEffect(() => {
     if (nearBottom.current && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [messages]);

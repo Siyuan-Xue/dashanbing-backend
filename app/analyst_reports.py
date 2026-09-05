@@ -15,6 +15,11 @@ class ReportRequest(BaseModel):
     regenerate: bool = False
 
 
+class ComparisonRequest(ReportRequest):
+    model_config = ConfigDict(extra="forbid")
+    comparison_id: str = Field(min_length=1)
+
+
 class EvidenceComment(BaseModel):
     model_config = ConfigDict(extra="forbid")
     text: str = Field(min_length=1, max_length=3000)
@@ -46,6 +51,14 @@ class ReportState(BaseModel):
     status: Literal["disabled", "waiting", "queued", "running", "completed", "failed"]
     report: ReportPublic | None = None
     error: str | None = None
+
+
+class ComparisonReportState(ReportState):
+    comparison_id: str
+
+
+class ComparisonReports(BaseModel):
+    items: list[ComparisonReportState] = Field(default_factory=list)
 
 
 class ConversationCreate(BaseModel):

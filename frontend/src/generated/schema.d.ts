@@ -503,6 +503,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{task_id}/analyst/comparisons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Comparisons */
+        get: operations["get_comparisons_api_v1_tasks__task_id__analyst_comparisons_get"];
+        put?: never;
+        /** Generate Comparison */
+        post: operations["generate_comparison_api_v1_tasks__task_id__analyst_comparisons_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/presets/{preset_id}/analyst/report": {
         parameters: {
             query?: never;
@@ -927,6 +945,46 @@ export interface components {
         Body_upload_task_input_api_v1_tasks__task_id__inputs__slot__put: {
             /** File */
             file: string;
+        };
+        /** ComparisonReportState */
+        ComparisonReportState: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "disabled" | "waiting" | "queued" | "running" | "completed" | "failed";
+            report?: components["schemas"]["ReportPublic"] | null;
+            /** Error */
+            error?: string | null;
+            /** Comparison Id */
+            comparison_id: string;
+        };
+        /** ComparisonReports */
+        ComparisonReports: {
+            /** Items */
+            items?: components["schemas"]["ComparisonReportState"][];
+        };
+        /** ComparisonRequest */
+        ComparisonRequest: {
+            /**
+             * Locale
+             * @default zh
+             * @enum {string}
+             */
+            locale: "zh" | "en";
+            /**
+             * Style
+             * @default coach
+             * @enum {string}
+             */
+            style: "coach" | "roast";
+            /**
+             * Regenerate
+             * @default false
+             */
+            regenerate: boolean;
+            /** Comparison Id */
+            comparison_id: string;
         };
         /** ContextSubject */
         ContextSubject: {
@@ -2484,6 +2542,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_comparisons_api_v1_tasks__task_id__analyst_comparisons_get: {
+        parameters: {
+            query?: {
+                locale?: "zh" | "en";
+                style?: "coach" | "roast";
+            };
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonReports"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_comparison_api_v1_tasks__task_id__analyst_comparisons_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComparisonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonReportState"];
                 };
             };
             /** @description Validation Error */

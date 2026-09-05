@@ -69,7 +69,7 @@ function ProfileEditor({ profile, onSaved, onClose }: { profile: TrainingProfile
     <fieldset disabled={busy}><label><span>{t("kind")}</span><WorkspaceSelect value={draft.kind} disabled={Boolean(profile)} onChange={event => setDraft({ ...draft, kind: event.target.value as ProfileInput["kind"] })}><option value="player">{t("playerKind")}</option><option value="team">{t("teamKind")}</option></WorkspaceSelect></label>
     <label><span>{t("name")}</span><input required maxLength={120} autoFocus value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })}/></label>
     <label><span>{t("goals")}</span><textarea rows={3} maxLength={4000} value={draft.goals} onChange={event => setDraft({ ...draft, goals: event.target.value })}/></label>
-    <label><span>{t("notes")}</span><textarea rows={4} maxLength={8000} value={draft.notes} onChange={event => setDraft({ ...draft, notes: event.target.value })}/></label></fieldset>
+    <label><span>{t("notes")}</span><textarea placeholder={t("notesHelp")} rows={4} maxLength={8000} value={draft.notes} onChange={event => setDraft({ ...draft, notes: event.target.value })}/></label></fieldset>
     {error && <p className="analyst-error" role="alert">{t("saveError")}</p>}
     <div className="profile-editor-actions"><button className="button button-outline" type="button" disabled={busy} onClick={onClose}>{t("cancel")}</button><button className="button button-primary" disabled={busy || !draft.name.trim()} type="submit">{t("save")}</button></div>
   </form>;

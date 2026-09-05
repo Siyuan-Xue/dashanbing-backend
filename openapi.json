@@ -1476,6 +1476,126 @@
         }
       }
     },
+    "/api/v1/tasks/{task_id}/analyst/comparisons": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Get Comparisons",
+        "operationId": "get_comparisons_api_v1_tasks__task_id__analyst_comparisons_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh",
+                "en"
+              ],
+              "type": "string",
+              "default": "zh",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "style",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "coach",
+                "roast"
+              ],
+              "type": "string",
+              "default": "coach",
+              "title": "Style"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComparisonReports"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Generate Comparison",
+        "operationId": "generate_comparison_api_v1_tasks__task_id__analyst_comparisons_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComparisonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComparisonReportState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/presets/{preset_id}/analyst/report": {
       "get": {
         "tags": [
@@ -2792,6 +2912,104 @@
           "file"
         ],
         "title": "Body_upload_task_input_api_v1_tasks__task_id__inputs__slot__put"
+      },
+      "ComparisonReportState": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "waiting",
+              "queued",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "comparison_id": {
+            "type": "string",
+            "title": "Comparison Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "comparison_id"
+        ],
+        "title": "ComparisonReportState"
+      },
+      "ComparisonReports": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ComparisonReportState"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "title": "ComparisonReports"
+      },
+      "ComparisonRequest": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Locale",
+            "default": "zh"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "coach",
+              "roast"
+            ],
+            "title": "Style",
+            "default": "coach"
+          },
+          "regenerate": {
+            "type": "boolean",
+            "title": "Regenerate",
+            "default": false
+          },
+          "comparison_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Comparison Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "comparison_id"
+        ],
+        "title": "ComparisonRequest"
       },
       "ContextSubject": {
         "properties": {

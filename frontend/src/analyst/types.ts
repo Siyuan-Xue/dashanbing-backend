@@ -14,5 +14,6 @@ export type ContextInput = Pick<AnalystContext, "team_profile_id" | "comparison_
 export type CitedText = { text: string; evidence_ids: string[] };
 export type AnalystReport = { id: string; summary: string; highlights: CitedText[]; players: (CitedText & { subject_id: string })[]; comparison: CitedText | null; suggestions: string[]; model: string; locale: AnalystLocale; style: AnalystStyle; created_at: string };
 export type ReportState = { status: "disabled" | "waiting" | "queued" | "running" | "completed" | "failed"; report: AnalystReport | null; error: string | null; facts?: AnalystFacts; subjects?: Subject[]; provenance?: { provider: "glm"; verified: boolean; facts_hash: string } | null };
+export type ComparisonReportState = ReportState & { comparison_id: string };
 export type AnalystMessage = { id: string; role: "user" | "assistant"; content: string; citations: string[]; status: "queued" | "running" | "completed" | "failed" };
 export type Conversation = { id: string; messages: AnalystMessage[] };

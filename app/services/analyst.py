@@ -14,11 +14,13 @@ from fastapi import HTTPException
 from sqlmodel import Session, select
 
 from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport
-from app.analyst_reports import ReportBody, ReportPublic, ReportState, MessagePublic
+from app.analyst_reports import ComparisonReportState, ComparisonReports, ReportBody, ReportPublic, ReportState, MessagePublic
 from app.models import Analysis, User, utc_now
 
 logger = logging.getLogger(__name__)
 PROMPT_VERSION = "basketball-analyst-v1"
+SESSION_PROMPT_VERSION = "basketball-session-v2"
+COMPARISON_PROMPT_VERSION = "basketball-comparison-v1"
 MAX_ATTEMPTS = 3
 RECONCILE_SECONDS = 60
 RECONCILE_BATCH_SIZE = 100
@@ -77,8 +79,66 @@ def facts_and_memory(app, session: Session, *, task: Analysis | None = None, pre
     return facts, memory
 
 
-def report_key(app, task: Analysis, facts, memory: dict, locale: str, style: str) -> str:
-    return digest({"owner": task.owner_id, "task": task.id, "facts": facts.model_dump(), "memory": memory, "locale": locale, "style": style, "model": app.state.settings.glm_model, "prompt": PROMPT_VERSION})
+def report_key(app, task: Analysis, facts, memory: dict, locale: str, style: str, *, kind="session") -> str:
+    return digest({"owner": task.owner_id, "task": task.id, "kind": kind, "facts": facts.model_dump(),
+                   "memory": memory if kind == "comparison" else {}, "locale": locale, "style": style,
+                   "model": app.state.settings.glm_model,
+                   "prompt": COMPARISON_PROMPT_VERSION if kind == "comparison" else SESSION_PROMPT_VERSION})
+
+
+def _session_report(app, session: Session, task: Analysis, facts, locale: str, style: str):
+    key = report_key(app, task, facts, {}, locale, style)
+    row = session.exec(select(AnalystReport).where(
+        AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
+        AnalystReport.kind == "session", AnalystReport.cache_key == key)).first()
+    if row:
+        return row
+    # Old cache keys included mutable memory. Reuse a verified original without
+    # rewriting its ID, body, timestamps or producing job during GET or migration.
+    candidates = session.exec(select(AnalystReport, AnalystJob).join(
+        AnalystJob, AnalystJob.report_id == AnalystReport.id).where(
+        AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
+        AnalystReport.kind == "session", AnalystReport.locale == locale, AnalystReport.style == style,
+        AnalystReport.model == app.state.settings.glm_model,
+        AnalystJob.owner_id == task.owner_id, AnalystJob.task_id == task.id, AnalystJob.kind == "report",
+    ).order_by(AnalystReport.created_at.desc(), AnalystReport.id.desc(), AnalystJob.created_at.desc())).all()
+    for row, job in candidates:
+        try:
+            payload = json.loads(job.payload_json)
+            if ("report_kind" in payload or payload["facts"] != facts.model_dump(mode="json")
+                    or payload["locale"] != locale or payload["style"] != style):
+                continue
+            legacy_key = digest({"owner": task.owner_id, "task": task.id, "facts": payload["facts"],
+                                 "memory": payload["memory"], "locale": locale, "style": style,
+                                 "model": row.model, "prompt": PROMPT_VERSION})
+            if payload["cache_key"] == row.cache_key == legacy_key:
+                return row
+        except (ValueError, TypeError, KeyError):
+            continue
+    return None
+
+
+def _comparison_inputs(session: Session, task: Analysis, facts, comparison_id: str):
+    from app.analyst_schemas import AnalystMetrics
+    from app.services.training_profiles import memory_context
+    memory = memory_context(session, task, facts, comparison_id=comparison_id)
+    comparison = memory["comparison"]
+    if not comparison or not memory["comparison_scope"]:
+        raise HTTPException(422, "Comparison requires a linked profile and comparable history")
+    scope = memory["comparison_scope"]
+    profile_id, subject_id = scope["profile_id"], scope["subject_id"]
+    profile = next(profile for profile in memory["profiles"] if profile["id"] == profile_id)
+    if profile["kind"] != ("player" if subject_id is not None else "team"):
+        raise HTTPException(422, "Comparison profile kind does not match the subject")
+    memory = {**memory, "profile": profile, "profiles": [profile], "observations": [comparison],
+              "subject_id": subject_id, "subjects": [row for row in memory["subjects"] if row["profile_id"] == profile_id]}
+    if subject_id is not None:
+        facts = facts.model_copy(update={
+            "metrics": AnalystMetrics.model_validate(scope["current_metrics"]),
+            "subjects": [row for row in facts.subjects if row.id == subject_id],
+            "evidence": [row for row in facts.evidence if row.subject_id == subject_id],
+        })
+    return facts, memory
 
 
 def report_state(row: AnalystReport | None) -> ReportState:
@@ -96,14 +156,16 @@ def current_report(app, session: Session, task: Analysis, locale="zh", style="co
     if not configured(app):
         return ReportState(status="disabled")
     preparing = session.exec(select(AnalystJob).where(AnalystJob.task_id == task.id, AnalystJob.kind == "prepare").order_by(AnalystJob.created_at.desc())).first()
-    if preparing and preparing.status in {"queued", "running"}:
-        return ReportState(status=preparing.status)
     try:
-        facts, memory = facts_and_memory(app, session, task=task)
+        from app.services.analyst_facts import load_task_facts
+        facts = load_task_facts(app, task)
     except (FileNotFoundError, ValueError):
+        if preparing and preparing.status in {"queued", "running", "failed"}:
+            return ReportState(status=preparing.status, error=preparing.error if preparing.status == "failed" else None)
         return ReportState(status="failed", error="结果数据暂不可用，请稍后重试")
-    key = report_key(app, task, facts, memory, locale, style)
-    row = session.exec(select(AnalystReport).where(AnalystReport.cache_key == key, AnalystReport.owner_id == task.owner_id)).first()
+    row = _session_report(app, session, task, facts, locale, style)
+    if row is None and preparing and preparing.status in {"queued", "running"}:
+        return ReportState(status=preparing.status)
     if row is None and preparing and preparing.status == "failed":
         return ReportState(status="failed", error=preparing.error)
     return report_state(row)
@@ -112,21 +174,75 @@ def current_report(app, session: Session, task: Analysis, locale="zh", style="co
 def request_report(app, session: Session, task: Analysis, *, locale="zh", style="coach", regenerate=False, automatic=False, facts=None) -> ReportState:
     require_complete(task)
     require_configured(app)
-    facts, memory = facts_and_memory(app, session, task=task, facts=facts)
-    key = report_key(app, task, facts, memory, locale, style)
-    row = session.exec(select(AnalystReport).where(AnalystReport.cache_key == key)).first()
+    from app.services.analyst_facts import load_task_facts
+    facts = load_task_facts(app, task) if facts is None else facts
+    row = _session_report(app, session, task, facts, locale, style)
+    return _queue_report(app, session, task, facts, {}, row, locale=locale, style=style,
+                         regenerate=regenerate, automatic=automatic)
+
+
+def _queue_report(app, session: Session, task: Analysis, facts, memory, row, *, locale, style,
+                  regenerate=False, automatic=False, kind="session", comparison_id=None) -> ReportState:
     if row and (row.status in {"queued", "running"} or (row.status == "completed" and not regenerate)):
         return report_state(row)
     if not automatic:
         limit_requests(app, session, task.owner_id)
+    key = report_key(app, task, facts, memory, locale, style, kind=kind)
     if row is None:
-        row = AnalystReport(owner_id=task.owner_id, task_id=task.id, cache_key=key, status="queued", locale=locale, style=style, model=app.state.settings.glm_model)
+        row = AnalystReport(owner_id=task.owner_id, task_id=task.id, cache_key=key, status="queued", locale=locale, style=style,
+                            kind=kind, comparison_id=comparison_id, model=app.state.settings.glm_model)
     else:
-        row.status = "queued"; row.error = None; row.updated_at = utc_now()
+        row.cache_key = key; row.status = "queued"; row.error = None; row.updated_at = utc_now()
     session.add(row); session.flush()
-    job = AnalystJob(owner_id=task.owner_id, kind="report", task_id=task.id, report_id=row.id, request_id=str(uuid4()), payload_json=pack({"automatic": automatic, "cache_key": key, "facts": facts.model_dump(), "memory": memory, "locale": locale, "style": style}))
+    job = AnalystJob(owner_id=task.owner_id, kind="report", task_id=task.id, report_id=row.id, request_id=str(uuid4()), payload_json=pack({
+        "automatic": automatic, "cache_key": key, "facts": facts.model_dump(), "memory": memory, "locale": locale, "style": style,
+        "report_kind": kind, "comparison_id": comparison_id,
+        "prompt_version": COMPARISON_PROMPT_VERSION if kind == "comparison" else SESSION_PROMPT_VERSION}))
     session.add(job); session.flush()
     return report_state(row)
+
+
+def request_comparison(app, session: Session, task: Analysis, *, comparison_id: str, locale="zh", style="coach", regenerate=False, facts=None):
+    from app.services.analyst_facts import load_task_facts
+    require_complete(task)
+    require_configured(app)
+    facts = load_task_facts(app, task) if facts is None else facts
+    facts, memory = _comparison_inputs(session, task, facts, comparison_id)
+    key = report_key(app, task, facts, memory, locale, style, kind="comparison")
+    row = session.exec(select(AnalystReport).where(
+        AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
+        AnalystReport.kind == "comparison", AnalystReport.cache_key == key)).first()
+    state = _queue_report(app, session, task, facts, memory, row, locale=locale, style=style,
+                          regenerate=regenerate, kind="comparison", comparison_id=comparison_id)
+    return ComparisonReportState(**state.model_dump(), comparison_id=comparison_id)
+
+
+def current_comparisons(app, session: Session, task: Analysis, locale="zh", style="coach") -> ComparisonReports:
+    from app.services.analyst_facts import load_task_facts
+    require_complete(task)
+    rows = session.exec(select(AnalystReport).where(
+        AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
+        AnalystReport.kind == "comparison", AnalystReport.locale == locale, AnalystReport.style == style,
+    ).order_by(AnalystReport.created_at, AnalystReport.id)).all()
+    if not rows:
+        return ComparisonReports()
+    facts = load_task_facts(app, task)
+    items = []
+    keys = {}
+    for row in rows:
+        if not row.comparison_id:
+            continue
+        if row.comparison_id not in keys:
+            try:
+                scoped_facts, memory = _comparison_inputs(session, task, facts, row.comparison_id)
+                keys[row.comparison_id] = report_key(app, task, scoped_facts, memory, locale, style, kind="comparison")
+            except HTTPException as error:
+                if error.status_code not in {404, 422}:
+                    raise
+                keys[row.comparison_id] = None
+        if row.cache_key == keys[row.comparison_id]:
+            items.append(ComparisonReportState(**report_state(row).model_dump(), comparison_id=row.comparison_id))
+    return ComparisonReports(items=items)
 
 
 def enqueue_completed(session: Session, task: Analysis, *, enabled: bool) -> None:
@@ -194,6 +310,10 @@ def system_prompt(payload: dict, *, report: bool) -> str:
     if report:
         prompt += "仅返回符合以下结构的JSON，不加Markdown代码围栏：" + pack(ReportBody.model_json_schema())
         prompt += "。summary控制在中文100字或英文55词以内，只写本场最值得关注的结论，缺失数据的限制一句带过。highlights与players中的事实结论应有evidence_ids，subject_id必须存在于facts.subjects，comparison仅在memory中有可比记录时填写。"
+        if payload.get("report_kind") == "comparison":
+            prompt += "这是用户另外请求的历史对比报告，不重写本场原始分析。summary和comparison必须聚焦所选历史与本场的变化、共同动作、样本量和不可直接比较的限制，comparison必须填写。只比较memory.comparison_scope对应的球员或球队，不引入其他档案或历史。仅本场事实可引用facts.evidence，历史指标来自所选记录，不为历史编造视频证据。"
+        else:
+            prompt += "这是独立的本场分析，只使用facts，不使用档案、目标、备注或历史比较，comparison必须为null。"
     else:
         prompt += "使用简洁文本回答，证据紧跟相关表述，格式为 [event-1]，只能使用提供的真实证据ID。"
     return prompt
@@ -218,6 +338,23 @@ def validate_report(body: dict, facts: dict, memory: dict) -> ReportBody:
             raise ValueError("Evidence belongs to a different player")
     if re.search(r"\bstu_\d+\b|/(?:root|Users|home)/", pack(body)):
         raise ValueError("Private identifier in report")
+    return report
+
+
+def validate_comparison_report(body: dict, facts: dict, memory: dict) -> ReportBody:
+    scope, comparison, profile = memory.get("comparison_scope"), memory.get("comparison"), memory.get("profile")
+    if not scope or not comparison or not profile or not memory.get("comparison_id"):
+        raise ValueError("Missing comparison snapshot")
+    subject_id = scope.get("subject_id")
+    if (comparison["id"] != memory["comparison_id"] or comparison["profile_id"] != scope["profile_id"]
+            or profile["id"] != scope["profile_id"] or profile["kind"] != ("player" if subject_id is not None else "team")):
+        raise ValueError("Comparison scope does not match the profile")
+    if subject_id is not None and ({row["id"] for row in facts["subjects"]} != {subject_id}
+            or any(row.get("subject_id") != subject_id for row in facts["evidence"])):
+        raise ValueError("Comparison facts belong to a different player")
+    report = validate_report(body, facts, memory)
+    if report.comparison is None:
+        raise ValueError("Comparison report must include the selected baseline")
     return report
 
 
@@ -258,6 +395,7 @@ class AnalystSupervisor:
             has_report = select(AnalystReport.id).where(
                 AnalystReport.task_id == Analysis.id,
                 AnalystReport.owner_id == Analysis.owner_id,
+                AnalystReport.kind == "session",
                 AnalystReport.locale == "zh", AnalystReport.style == "coach",
             ).exists()
             blocked_prepare = select(AnalystJob.id).where(
@@ -388,12 +526,17 @@ class AnalystSupervisor:
             row = session.get(AnalystReport, job.report_id)
             if not row:
                 session.rollback(); self._discard(job_id); return
+            payload = {**payload, "report_kind": row.kind}
+            if row.kind == "session":
+                # Also isolate a queued original produced before this migration.
+                payload["memory"] = {}
             row.status = "running"; session.add(row); session.commit()
         response = await self._provider().complete_json([
             {"role": "system", "content": system_prompt(payload, report=True)},
             {"role": "user", "content": pack({"facts": payload["facts"], "memory": payload["memory"]})},
         ], request_id=job.request_id)
-        body = validate_report(response.data, payload["facts"], payload["memory"])
+        validator = validate_comparison_report if payload["report_kind"] == "comparison" else validate_report
+        body = validator(response.data, payload["facts"], payload["memory"])
         with Session(self.app.state.engine) as session:
             session.connection().exec_driver_sql("BEGIN IMMEDIATE")
             current = session.get(AnalystJob, job_id)

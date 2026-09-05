@@ -38,19 +38,32 @@ def revoke_snapshots(session: Session, owner_id: int, *, task_ids: set[str] | No
     if profiles:
         tasks.update(row.task_id for row in session.exec(select(TaskSubject).where(
             TaskSubject.owner_id == owner_id, TaskSubject.profile_id.in_(profiles))).all())
-    jobs = list(session.exec(select(AnalystJob).where(AnalystJob.owner_id == owner_id, AnalystJob.kind != "prepare")).all())
+    jobs = list(session.exec(select(AnalystJob).where(AnalystJob.owner_id == owner_id)).all())
     reports = list(session.exec(select(AnalystReport).where(AnalystReport.owner_id == owner_id)).all())
     conversations = list(session.exec(select(AnalystConversation).where(AnalystConversation.owner_id == owner_id)).all())
     messages = list(session.exec(select(AnalystMessage).where(AnalystMessage.owner_id == owner_id)).all())
     by_message = {row.id: row for row in messages}
-    affected_jobs = {row.id for row in jobs if all_snapshots or row.task_id in tasks
-                     or _memory_depends(row.payload_json, tasks, profiles, observations)}
-    affected_reports = {row.id for row in reports if all_snapshots or row.task_id in tasks}
+    session_reports = {row.id for row in reports if row.kind == "session"}
+    comparison_reports = {row.id for row in reports if row.kind == "comparison"}
+    protected_jobs = set()
+    if not all_snapshots:
+        for job in jobs:
+            try:
+                kind = json.loads(job.payload_json).get("report_kind", "session")
+            except (ValueError, TypeError, AttributeError):
+                kind = "session"
+            if job.kind == "prepare" or (job.kind == "report" and
+                    (job.report_id in session_reports or job.report_id not in comparison_reports and kind == "session")):
+                protected_jobs.add(job.id)
+    affected_jobs = {row.id for row in jobs if row.id not in protected_jobs and (all_snapshots or row.task_id in tasks
+                     or _memory_depends(row.payload_json, tasks, profiles, observations))}
+    affected_reports = {row.id for row in reports if all_snapshots or row.kind == "comparison" and (
+        row.task_id in tasks or row.comparison_id in observations)}
     affected_conversations = {row.id for row in conversations if all_snapshots or row.task_id in tasks
                               or row.comparison_id in observations}
     for job in jobs:
         if job.id in affected_jobs:
-            if job.report_id:
+            if job.report_id and (all_snapshots or job.report_id not in session_reports):
                 affected_reports.add(job.report_id)
             if job.message_id in by_message:
                 affected_conversations.add(by_message[job.message_id].conversation_id)
@@ -66,7 +79,7 @@ def revoke_snapshots(session: Session, owner_id: int, *, task_ids: set[str] | No
             session.add(message)
     for job in jobs:
         answer = by_message.get(job.message_id)
-        if (job.id in affected_jobs or job.report_id in affected_reports
+        if job.id not in protected_jobs and (job.id in affected_jobs or job.report_id in affected_reports
                 or answer and answer.conversation_id in affected_conversations):
             _scrub_job(session, job)
     for report in reports:

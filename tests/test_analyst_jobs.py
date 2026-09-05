@@ -661,7 +661,7 @@ def test_task_deletion_while_provider_waits_cannot_leave_completed_analyst_orpha
 
 @pytest.mark.parametrize("kind", ["report", "message"])
 @pytest.mark.parametrize("late_error", [False, True])
-def test_memory_invalidation_while_provider_waits_preserves_revocation_and_quota(job_client, report_body, kind, late_error):
+def test_memory_changes_preserve_inflight_session_but_revoke_chat_without_refunding_quota(job_client, report_body, kind, late_error):
     client = job_client
     client.app.state.settings = client.app.state.settings.model_copy(update={"analyst_daily_limit": 1})
     profile = client.post("/api/v1/training-profiles", json={"kind": "player", "name": "Player"})
@@ -681,12 +681,27 @@ def test_memory_invalidation_while_provider_waits_preserves_revocation_and_quota
             updated = client.patch(f"/api/v1/training-profiles/{profile.json()['id']}", json={"goals": "Changed goal"})
             assert updated.status_code == 200, updated.text
             revoked = get_row(client, AnalystJob, job.id)
-            assert revoked.status == "failed"
-            assert json.loads(revoked.payload_json) == {"automatic": False}
+            if kind == "report":
+                assert revoked.status == "running"
+                assert revoked.payload_json == job.payload_json
+                assert revoked.report_id == job.report_id
+            else:
+                assert revoked.status == "failed"
+                assert json.loads(revoked.payload_json) == {"automatic": False}
         finally:
             provider.release.set()
             await asyncio.wait_for(running, timeout=2)
         ledger = get_row(client, AnalystJob, job.id)
+        if kind == "report":
+            assert ledger.status == ("queued" if late_error else "completed")
+            assert get_row(client, AnalystReport, job.report_id).status == ledger.status
+            assert ledger.payload_json == job.payload_json
+            assert ledger.request_id == job.request_id
+            assert ledger.created_at == job.created_at
+            assert ledger.attempts == 1
+            assert json.loads(ledger.usage_json) == ({} if late_error else USAGE)
+            assert await analyst.AnalystSupervisor(client.app).run_once() is False
+            return
         assert ledger.status == "failed"
         assert ledger.attempts == 1
         assert ledger.created_at == job.created_at
@@ -703,7 +718,7 @@ def test_memory_invalidation_while_provider_waits_preserves_revocation_and_quota
         assert await analyst.AnalystSupervisor(client.app).run_once() is False
 
     asyncio.run(run())
-    assert client.post(report_url(client), json={"locale": "en", "regenerate": True}).status_code == 429
+    assert client.post(report_url(client), json={"locale": "en", "style": "roast", "regenerate": True}).status_code == 429
     conversation_id = create_conversation(client)
     assert submit(client, conversation_id, request_id="after-invalidation").status_code == 429
     assert_video_completed(client)
@@ -770,7 +785,7 @@ def test_get_report_exposes_failed_prepare_after_validation_retries_are_exhauste
     # Restore the real fact loader before GET to distinguish failed preparation
     # state from a GET-time artifact error.
     with monkeypatch.context() as patch:
-        patch.setattr(analyst, "facts_and_memory", unavailable_facts)
+        patch.setattr('app.services.analyst_facts.load_task_facts', unavailable_facts)
         for attempt in (1, 2, 3):
             make_due(client, job.id)
             assert run_once(client) is True
@@ -1089,22 +1104,24 @@ def test_reconcile_preserves_existing_manual_report_and_terminal_failures(job_cl
     assert len(all_rows(client, AnalystJob)) == 1
 
 
-def test_reconcile_refreshes_report_revoked_by_confirmed_memory_change(job_client, report_body):
+def test_reconcile_preserves_original_report_after_confirmed_memory_change(job_client, report_body):
     client = job_client
     supervisor = analyst.AnalystSupervisor(client.app)
     client.app.state.glm_client = ScriptedProvider(reports=[report_body, report_body])
     assert supervisor.reconcile_completed() == 1
     assert run_once(client) and run_once(client)
     original_id = all_rows(client, AnalystReport)[0].id
+    original = get_row(client, AnalystReport, original_id).model_dump(mode='json')
+    original_jobs = [row.model_dump(mode='json') for row in all_rows(client, AnalystJob)]
     from app.services.analyst_invalidation import revoke_snapshots
     with Session(client.app.state.engine) as session:
         revoke_snapshots(session, client.owner_id, task_ids={client.task_id})
         session.commit()
-    assert supervisor.reconcile_completed() == 1
     assert supervisor.reconcile_completed() == 0
-    assert run_once(client) and run_once(client)
+    assert run_once(client) is False
     assert client.get(report_url(client)).json()['status'] == 'completed'
-    assert all_rows(client, AnalystReport)[0].id != original_id
+    assert get_row(client, AnalystReport, original_id).model_dump(mode='json') == original
+    assert [row.model_dump(mode='json') for row in all_rows(client, AnalystJob)] == original_jobs
     assert len([j for j in all_rows(client, AnalystJob) if j.kind == 'prepare']) == 1
 
 

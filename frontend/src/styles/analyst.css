@@ -4,7 +4,16 @@
 .analyst-header, .analyst-report-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .analyst-header { flex-wrap: wrap; margin-bottom: 24px; }
 .analyst-header h2 { display: flex; align-items: center; gap: 9px; margin: 0 auto 0 0; font-size: 20px; font-weight: 600; }
+.analyst-header-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.analyst-bind-button { background: var(--surface-subtle); border: 0; min-height: 38px; padding: 0 12px; border-radius: 8px; }
 .analyst-settings { flex: none; }
+.analyst-config-help { margin: -6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.analyst-context .analyst-config-apply { min-height: 38px; padding: 8px; border-radius: 8px; font-size: 12px; white-space: normal; }
+.analyst-player-review-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.analyst-player-review-heading h4 { margin: 0; }
+.analyst-player-review-heading .workspace-select { width: 144px; flex: none; }
+.analyst-player-paragraph + .analyst-player-paragraph { margin-top: 14px; }
+.analyst-player-paragraph h5 { margin: 0 0 6px; font-size: 13px; font-weight: 500; }
 .analyst-settings > .button { min-height: 38px; padding: 0 12px; border-radius: 8px; }
 .analyst-settings-popover { z-index: 20; width: min(224px, calc(100vw - 32px)); padding: 18px; gap: 18px; }
 .analyst-settings-popover[hidden] { display: none; }
@@ -90,8 +99,11 @@
 }
 @media (max-width: 767px) {
   .analyst-panel { padding: 18px 0; }
-  .analyst-header { flex-wrap: nowrap; gap: 12px; margin-bottom: 20px; }
-  .analyst-header h2 { font-size: 18px; }
+  .analyst-header { flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .analyst-header h2 { font-size: 18px; gap: 6px; }
+  .analyst-header-actions { gap: 6px; }
+  .analyst-bind-button, .analyst-settings > .button { padding: 0 8px; gap: 5px; font-size: 12px; }
+  .analyst-bind-button > .icon { display: none; }
   .analyst-summary { margin-right: 28px; font-size: 16px; }
   .analyst-messages { max-height: 330px; }
   .profiles-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
@@ -102,3 +114,20 @@
 .analyst-quick-questions button { min-height: 30px; padding: 3px 0; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; text-align: left; }
 .analyst-quick-questions button:hover:not(:disabled) { color: var(--brand); }
 .analyst-quick-questions button:disabled { opacity: .5; cursor: not-allowed; }
+
+.analyst-comparisons { margin-top: 28px; min-width: 0; }
+.analyst-comparison-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.analyst-comparison-heading h3 { margin: 0; font-size: 16px; font-weight: 500; color: var(--brand); }
+.analyst-comparison-control > .button { min-height: 38px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.analyst-comparison-picker { left: 0; right: auto; width: min(280px, calc(100vw - 48px)); padding: 18px; gap: 16px; z-index: 20; }
+.analyst-comparison-picker label { display: grid; gap: 8px; font-size: 14px; }
+.analyst-comparison-picker > .button { min-height: 38px; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+.analyst-comparison-list { display: grid; gap: 28px; }
+.analyst-comparison-report { margin-top: 18px; max-width: 88ch; }
+.analyst-comparison-report h4 { margin: 0 0 12px; font-size: 13px; font-weight: 400; color: var(--muted); }
+.analyst-comparison-report p, .analyst-comparison-report li { font-size: 14px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.analyst-comparison-report p { margin: 0 0 12px; }
+.analyst-comparison-report .analyst-comparison-summary { font-size: 16px; font-weight: 500; }
+.analyst-comparison-report ul { padding-left: 18px; margin: 0; }
+.analyst-comparison-practice { margin-top: 16px; }
+.analyst-comparison-practice h5 { margin: 0 0 8px; font-size: 13px; font-weight: 500; color: var(--accent); }

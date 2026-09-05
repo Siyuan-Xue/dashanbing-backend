@@ -218,3 +218,35 @@ def test_storage_deletion_migration_creates_durable_fixed_target_outbox(
     }
     assert set(primary_key) == {"analysis_id", "target"}
     assert foreign_keys == []
+
+
+def test_separate_comparison_migration_preserves_original_reports_and_jobs(tmp_path, monkeypatch):
+    database_url = f"sqlite:///{tmp_path / 'comparison-migration.db'}"
+    monkeypatch.setenv('BASKETBALL_DATABASE_URL', database_url)
+    config = _alembic_config()
+    command.upgrade(config, '20260905_0009')
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(text("INSERT INTO user (id, username, hashed_password) VALUES (1, 'original', 'hash')"))
+        for status in ('queued', 'running', 'completed', 'failed'):
+            connection.execute(text("""INSERT INTO analyst_report (id, owner_id, task_id, cache_key, status, body_json)
+                VALUES (:id, 1, 'old-task', :cache, :status, :body)"""),
+                {'id': status, 'cache': f'original-{status}', 'status': status, 'body': '{ "summary": "Original bytes" }'})
+            connection.execute(text("""INSERT INTO analyst_job (id, owner_id, kind, task_id, report_id, status, payload_json, usage_json)
+                VALUES (:id, 1, 'report', 'old-task', :id, :status, :payload, :usage)"""),
+                {'id': status, 'status': status, 'payload': '{ "automatic": false, "facts": {} }', 'usage': '{"total_tokens":42}'})
+        reports = [dict(row) for row in connection.execute(text('SELECT * FROM analyst_report ORDER BY id')).mappings()]
+        jobs = [dict(row) for row in connection.execute(text('SELECT * FROM analyst_job ORDER BY id')).mappings()]
+    command.upgrade(config, 'head')
+    with engine.connect() as connection:
+        upgraded = [dict(row) for row in connection.execute(text('SELECT * FROM analyst_report ORDER BY id')).mappings()]
+        assert [{key: row[key] for key in original} for row, original in zip(upgraded, reports)] == reports
+        assert all(row['kind'] == 'session' and row['comparison_id'] is None for row in upgraded)
+        assert [dict(row) for row in connection.execute(text('SELECT * FROM analyst_job ORDER BY id')).mappings()] == jobs
+        constraints = inspect(connection).get_check_constraints('analyst_report')
+        assert any(row['name'] == 'ck_analyst_report_kind' for row in constraints)
+    command.downgrade(config, '20260905_0009')
+    with engine.connect() as connection:
+        assert [dict(row) for row in connection.execute(text('SELECT * FROM analyst_report ORDER BY id')).mappings()] == reports
+        assert [dict(row) for row in connection.execute(text('SELECT * FROM analyst_job ORDER BY id')).mappings()] == jobs
+    command.upgrade(config, 'head')

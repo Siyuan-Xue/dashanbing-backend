@@ -295,9 +295,10 @@ def update_task_context(session: Session, task: Analysis, facts: AnalystFacts, u
                   and any(desired.values()))
     if update.comparison_id:
         preference, selected = "explicit", update.comparison_id
-    elif first_link:
-        preference, selected = "auto", None
     elif "comparison_id" in update.model_fields_set:
+        # An explicit opt-out also applies to the first profile link.
+        preference, selected = "none", None
+    elif first_link:
         preference, selected = "none", None
     else:
         preference, selected = old_mode, old_selected
