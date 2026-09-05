@@ -21,7 +21,7 @@
 .workspace-nav { flex-shrink: 0; display: grid; gap: 6px; }
 .workspace-nav a { min-height: 40px; padding: 7px 11px; border: 2px solid transparent; display: flex; align-items: center; gap: 10px; border-radius: 12px; color: var(--text-soft); font-size: 14px; font-weight: 500; }
 .workspace-nav a:hover { color: var(--text); background: var(--surface); }
-.workspace-nav .workspace-create { color: var(--brand); background: var(--brand-soft); }
+.workspace-nav .workspace-create { color: var(--brand); }
 .workspace-nav a.active { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
 .workspace-recent { min-height: 0; flex: 1; padding-top: 16px; overflow-y: auto; border-top: 1px solid var(--border); }
 .workspace-recent h2 { margin: 0 10px 8px; color: var(--muted); font-size: 12px; font-weight: 400; }
