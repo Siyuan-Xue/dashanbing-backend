@@ -17,3 +17,6 @@ export type ReportState = { status: "disabled" | "waiting" | "queued" | "running
 export type ComparisonReportState = ReportState & { comparison_id: string };
 export type AnalystMessage = { id: string; role: "user" | "assistant"; content: string; citations: string[]; status: "queued" | "running" | "completed" | "failed" };
 export type Conversation = { id: string; messages: AnalystMessage[] };
+
+export type ReportVariant = ReportState & { subject_id: string | null; locale: AnalystLocale; style: AnalystStyle };
+export type ReportCollection = { items: ReportVariant[]; facts: AnalystFacts; subjects: Subject[]; provenance?: ReportState["provenance"] };

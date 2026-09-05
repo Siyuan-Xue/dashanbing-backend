@@ -22,7 +22,7 @@ The script launches fresh browser contexts with service workers blocked, checks 
 Each desktop/mobile × light/dark × zh/en combination produces two native browser screenshot crops, for **16 WebP assets**:
 
 - `main`: the actual video player at its native dimensions
-- `analyst`: an independent crop of the analyst section, including its title, configuration trigger and report, followed by the compact follow-up area when it fits, ending at the composer or a report text-line boundary, at most 900 CSS pixels tall on desktop or 620 on mobile
+- `analyst`: an independent crop of the analyst section, including its title, configuration trigger and report, followed by the compact follow-up area when it fits, ending at the composer or a report text-line boundary, at most 540 CSS pixels tall on desktop or 420 on mobile
 
 The result page order is video → overview/timeline/JSON → analyst. The intervening data tabs, account navigation, and task header are outside both independent crops. The real video is paused at six seconds for a stable frame. Both images are captured from the same loaded page without changing or composing report content. All captures use device pixel ratio 2; the homepage chooses the matching mobile sources rather than shrinking desktop text. PNG-to-WebP conversion does not resize or edit content. A layout that has the wrong section order or cannot fit the analyst conclusion fails capture. The tool never stitches the report over the intervening data section.
 

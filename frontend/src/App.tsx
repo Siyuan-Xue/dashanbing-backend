@@ -6,6 +6,7 @@ import { AuthPage } from "./pages/AuthPage";
 import { ExampleDetailPage } from "./pages/ExampleDetailPage";
 import { HomePage } from "./pages/HomePage";
 import { NewTaskPage } from "./pages/NewTaskPage";
+import { ProfileDetailPage } from "./pages/ProfileDetailPage";
 import { ProfilesPage } from "./pages/ProfilesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { TaskDetailRoute } from "./pages/TaskDetailPage";
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="tasks/:taskId" element={<TaskDetailRoute/>}/>
             <Route path="examples/:presetId" element={<ExampleDetailPage/>}/>
             <Route path="profiles" element={<ProfilesPage/>}/>
+            <Route path="profiles/:profileId" element={<ProfileDetailPage/>}/>
             <Route path="settings" element={<SettingsPage/>}/>
           </Route>
         </Route>

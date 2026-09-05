@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale } from "../providers/LocaleProvider";
 import { Icon } from "../components/Icon";
-import { WorkspaceSelect } from "../components/WorkspaceSelect";
 import { analystApi } from "./api";
 import { AnalystChat } from "./AnalystChat";
 import { ContextControls } from "./ContextControls";
@@ -9,7 +8,7 @@ import { ComparisonReports } from "./ComparisonReports";
 import { ProfileBindingsDialog } from "./ProfileBindingsDialog";
 import { EvidenceLinks } from "./EvidenceLinks";
 import { useAnalystCopy } from "./copy";
-import { useReport } from "./useReport";
+import { useReports } from "./useReports";
 import type { AnalystContext, AnalystSource, AnalystStyle, CitedText, Evidence } from "./types";
 
 type Props = { ready?: boolean; source: AnalystSource; accountId?: number; onEvidence: (evidence: Evidence) => void };
@@ -35,8 +34,9 @@ function AnalystSession(props: Props) {
 }
 function AnalystBody({ source, accountId, onEvidence, style, onStyle, ready = true }: Props & { style: AnalystStyle; onStyle: (value: AnalystStyle) => void }) {
   const t = useAnalystCopy(); const { locale } = useLocale();
-  const { state, error, busy, generate, reload } = useReport(source, locale, style, ready);
   const [context, setContext] = useState<AnalystContext | null>(null); const [subjectId, setSubjectId] = useState("");
+  const { collection, state, error, busy, generate, reload } = useReports(source, locale, style, subjectId || null, ready, accountId);
+  const [comparisonToolbar, setComparisonToolbar] = useState<HTMLDivElement | null>(null);
   const [contextError, setContextError] = useState(false), [contextRevision, setContextRevision] = useState(0);
   useEffect(() => {
     if (source.kind !== "task" || !ready) return;
@@ -47,53 +47,56 @@ function AnalystBody({ source, accountId, onEvidence, style, onStyle, ready = tr
   }, [source.kind, source.id, ready, contextRevision]);
   const [bindingOpen, setBindingOpen] = useState(false);
   const [chatRevision, setChatRevision] = useState(0);
-  const [updating, setUpdating] = useState(false);
-  useEffect(() => { if (state?.status === "completed" || state?.status === "failed" || state?.status === "disabled" || error) setUpdating(false); }, [state, error]);
-  const facts = context?.facts || state?.facts;
-  const subjects = (context?.subjects || state?.subjects || []).map(subject => ({ ...subject, label: locale === "en" ? subject.label.replace(/^球员\s*(\d+)$/, "Player $1") : subject.label }));
+  const facts = collection?.facts || context?.facts;
+  const subjects = (collection?.subjects || context?.subjects || []).map(subject => ({ ...subject, label: locale === "en" ? subject.label.replace(/^球员\s*(\d+)$/, "Player $1") : subject.label }));
   const evidence = facts?.evidence || [];
-  const report = state?.status === "completed" ? state.report : null;
+  const report = state?.report || null;
   const queued = state?.status === "queued" || state?.status === "running";
   const cited = (item: CitedText) => <><p>{item.text}</p><EvidenceLinks ids={item.evidence_ids} evidence={evidence} onEvidence={onEvidence}/></>;
   const disabled = !ready || !state || state.status === "disabled" || Boolean(error);
   return <>
-    <header className="analyst-header">
+    <header className="analyst-header" role="toolbar" aria-label={t("title")}>
       <h2 id="analyst-heading"><Icon name="sparkles"/>{t("title")}</h2>
       <div className="analyst-header-actions">
-        {source.kind === "task" && <button type="button" className="button analyst-bind-button" disabled={!context || !ready} aria-haspopup="dialog" onClick={() => setBindingOpen(true)}><Icon name="team" size={16}/><span>{t("bindProfiles")}</span></button>}
-        <AnalystSettings>{(open, close) => <ContextControls style={style} open={open} disabled={!ready || busy} onApply={value => { onStyle(value); setUpdating(true); reload(); }} onClose={close}/>}</AnalystSettings>
+        <AnalystSettings><ContextControls style={style} subjectId={subjectId} subjects={subjects} disabled={!ready} onStyle={onStyle} onSubject={setSubjectId}/></AnalystSettings>
+        {source.kind === "task" && <button type="button" className="button analyst-bind-button" disabled={!context || !ready} aria-label={t("bindProfiles")} title={t("bindProfiles")} aria-haspopup="dialog" onClick={() => setBindingOpen(true)}><Icon name="team" size={16}/><span>{t("bindProfiles")}</span></button>}
+        <div className="analyst-comparison-toolbar" ref={setComparisonToolbar}/>
+        {error ? <button className="table-action analyst-refresh" type="button" aria-label={t("retry")} title={t("retry")} onClick={reload}><Icon name="refresh" size={18}/></button> : source.kind === "task" && !disabled && <button className="table-action analyst-refresh" type="button" disabled={busy || queued} aria-label={t(report ? "regenerate" : "generate")} title={t(report ? "regenerate" : "generate")} onClick={() => void generate()}><Icon name="refresh" spin={busy || queued} size={18}/></button>}
+        {contextError && <button className="table-action" type="button" aria-label={t("retryContext")} title={t("retryContext")} onClick={() => setContextRevision(value => value + 1)}><Icon name="refresh" size={16}/></button>}
       </div>
     </header>
-    {contextError && <p className="analyst-error" role="status">{t("contextError")}<button className="table-action" type="button" aria-label={t("retryContext")} title={t("retryContext")} onClick={() => setContextRevision(value => value + 1)}><Icon name="refresh" size={16}/></button></p>}
+    {contextError && <p className="analyst-error" role="status">{t("contextError")}</p>}
     {bindingOpen && context && <ProfileBindingsDialog source={source} context={context} onClose={() => setBindingOpen(false)} onSaved={value => { setContext(value); setChatRevision(revision => revision + 1); }}/>}
     <div id="analyst-body"><div className="analyst-columns">
       <section className="analyst-report" aria-label={t("report")} data-report-status={error ? "unavailable" : state?.status || "loading"} data-report-id={report?.id} data-report-model={report?.model}>
-        <div className="analyst-report-heading"><h3 className="sr-only">{t("report")}</h3>{source.kind === "task" && !disabled && !queued && <button className="table-action" type="button" disabled={busy} aria-label={t(report ? "regenerate" : "generate")} title={t(report ? "regenerate" : "generate")} onClick={() => void generate()}><Icon name={report ? "refresh" : "sparkles"} size={18}/></button>}</div>
-        {error ? <div className="analyst-state" role="status"><Icon name="alert"/><b>{t("unavailable")}</b><button className="table-action" type="button" aria-label={t("retry")} title={t("retry")} onClick={reload}><Icon name="refresh"/></button></div> : !state ? <p className="analyst-muted" role="status">{t(updating ? "updating" : "loading")}</p> : report ? <>
+        <h3 className="sr-only">{t("report")}</h3>
+        {error && <p className="analyst-error" role="status">{t("unavailable")}</p>}
+        {report && (busy || queued || state?.status === "failed") && <p className="analyst-muted" role="status">{t(busy ? "updating" : queued ? state!.status as "queued" | "running" : "failed")}{state?.error && ` · ${state.error}`}</p>}
+        {report ? <>
           <p className="analyst-summary" data-report-summary>{report.summary}</p>
           <div className="analyst-report-grid"><div className="analyst-evidence-column">
           {report.highlights.length > 0 && <div className="analyst-report-section"><h4>{t("highlights")}</h4><ul className="analyst-key-plays">{report.highlights.map((item, index) => <li key={index}><span className="analyst-play-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><div>{cited(item)}</div></li>)}</ul></div>}
-          {subjects.length > 0 && <div className="analyst-report-section analyst-player-review">
-            <div className="analyst-player-review-heading"><h4>{t("playerReview")}</h4><WorkspaceSelect aria-label={t("viewPlayer")} value={subjectId} onChange={event => setSubjectId(event.target.value)}><option value="">{t("all")}</option>{subjects.map(subject => <option key={subject.id} value={subject.id}>{subject.label}</option>)}</WorkspaceSelect></div>
-            {report.players.filter(player => !subjectId || player.subject_id === subjectId).map((player, index) => <div className="analyst-player-paragraph" key={`${player.subject_id}:${index}`}><h5>{subjects.find(subject => subject.id === player.subject_id)?.label || player.subject_id}</h5>{cited(player)}</div>)}
+          {report.players.length > 0 && <div className="analyst-report-section analyst-player-review">
+            <h4>{t("playerReview")}</h4>
+            {report.players.map((player, index) => <div className="analyst-player-paragraph" key={`${player.subject_id}:${index}`}><h5>{subjects.find(subject => subject.id === player.subject_id)?.label || player.subject_id}</h5>{cited(player)}</div>)}
           </div>}
-          {report.comparison && !subjectId && <div className="analyst-report-section"><h4>{t("comparison")}</h4>{cited(report.comparison)}</div>}
+          {report.comparison && <div className="analyst-report-section"><h4>{t("comparison")}</h4>{cited(report.comparison)}</div>}
           </div>
           {report.suggestions.length > 0 && <div className="analyst-report-section analyst-practice"><h4>{t("suggestions")}</h4><ol>{report.suggestions.map((suggestion, index) => <li key={index}>{suggestion}</li>)}</ol></div>}
           </div>
-        </> : <div className="analyst-state" role="status"><Icon name={state.status === "disabled" ? "sparkles" : "clock"}/><b>{t(state.status === "waiting" && source.kind === "preset" ? "presetWaiting" : state.status === "completed" ? "unavailable" : state.status)}</b>{state.error && <p>{state.error}</p>}</div>}
+        </> : error ? null : !state ? <p className="analyst-muted" role="status">{t("loading")}</p> : <div className="analyst-state" role="status"><Icon name={state.status === "disabled" ? "sparkles" : "clock"}/><b>{t(state.status === "waiting" && source.kind === "preset" ? "presetWaiting" : state.status === "completed" ? "unavailable" : state.status)}</b>{state.error && <p>{state.error}</p>}</div>}
       </section>
-      {source.kind === "task" && context && <ComparisonReports source={source} context={context} style={style} disabled={disabled} onEvidence={onEvidence}/>}
+      {source.kind === "task" && context && <ComparisonReports toolbarTarget={comparisonToolbar} source={source} context={context} style={style} disabled={disabled} onEvidence={onEvidence}/>}
       <AnalystChat refreshKey={chatRevision} source={source} accountId={accountId} style={style} subjectId={subjectId} comparisonId={null} evidence={evidence} onEvidence={onEvidence} disabled={disabled}/>
     </div></div>
   </>;
 }
 
-function AnalystSettings({ children }: { children: (open: boolean, close: () => void) => React.ReactNode }) {
+function AnalystSettings({ children }: { children: React.ReactNode }) {
   const t = useAnalystCopy(); const [open, setOpen] = useState(false);
-  const [placement, setPlacement] = useState({ above: false, maxHeight: 400 });
+  const [placement, setPlacement] = useState({ above: false, maxHeight: 400, right: 0 });
   const root = useRef<HTMLDivElement>(null); const trigger = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const position = () => {
       const anchor = root.current?.getBoundingClientRect();
@@ -102,7 +105,7 @@ function AnalystSettings({ children }: { children: (open: boolean, close: () => 
       const below = window.innerHeight - anchor.bottom - 20;
       const above = anchor.top - 20;
       const showAbove = below < panel.scrollHeight && above > below;
-      setPlacement({ above: showAbove, maxHeight: Math.max(80, showAbove ? above : below) });
+      setPlacement({ right: anchor.right - Math.min(window.innerWidth - 16, Math.max(panel.offsetWidth + 16, anchor.right)), above: showAbove, maxHeight: Math.max(80, showAbove ? above : below) });
     };
     position();
     root.current?.querySelector("select")?.focus({ preventScroll: true });
@@ -115,7 +118,7 @@ function AnalystSettings({ children }: { children: (open: boolean, close: () => 
     return () => { window.removeEventListener("keydown", dismiss); window.removeEventListener("pointerdown", outside); window.removeEventListener("resize", position); window.removeEventListener("scroll", position, true); };
   }, [open]);
   return <div className="task-filter-control analyst-settings" ref={root} onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}>
-    <button className="button" type="button" ref={trigger} aria-expanded={open} aria-controls="analyst-settings" aria-haspopup="dialog" onClick={() => setOpen(value => !value)}><Icon name="filter" size={16}/>{t("configure")}</button>
-    <div className="task-filter-popover analyst-settings-popover" id="analyst-settings" role="dialog" aria-label={t("configure")} hidden={!open} style={{ top: placement.above ? "auto" : undefined, bottom: placement.above ? "calc(100% + 10px)" : undefined, maxHeight: placement.maxHeight }}>{children(open, () => { setOpen(false); trigger.current?.focus(); })}</div>
+    <button className="button" type="button" ref={trigger} aria-label={t("configure")} title={t("configure")} aria-expanded={open} aria-controls="analyst-settings" aria-haspopup="dialog" onClick={() => setOpen(value => !value)}><Icon name="filter" size={16}/><span>{t("configure")}</span></button>
+    <div className="task-filter-popover analyst-settings-popover" id="analyst-settings" role="dialog" aria-label={t("configure")} hidden={!open} style={{ top: placement.above ? "auto" : undefined, bottom: placement.above ? "calc(100% + 10px)" : undefined, maxHeight: placement.maxHeight, right: placement.right }}>{children}</div>
   </div>;
 }

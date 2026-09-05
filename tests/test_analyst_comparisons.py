@@ -70,6 +70,12 @@ def comparison_body(body):
     return {**body, "comparison": {"text": "Compare the recorded sessions with their sample sizes", "evidence_ids": ["event-1"]}}
 
 
+def comparison_jobs(client):
+    return sorted((job for job in all_rows(client, AnalystJob)
+                   if json.loads(job.payload_json).get('report_kind') == 'comparison'),
+                  key=lambda job: job.created_at)
+
+
 def test_session_bytes_and_jobs_survive_binding_goals_comparison_and_history_changes(job_client, facts, report_body):
     client = job_client
     base = finish_base(client, report_body)
@@ -110,19 +116,32 @@ def test_comparison_snapshot_scopes_profiles_history_and_current_metrics(job_cli
     history(client, facts, subject='player_2', name='Unrelated private name')
     response = post_comparison(client, observation)
     assert response.status_code == 202, response.text
-    job = all_rows(client, AnalystJob)[0]
-    payload = json.loads(job.payload_json)
-    assert job.kind == 'report'
-    assert payload['report_kind'] == 'comparison' and payload['comparison_id'] == observation
-    assert [p['id'] for p in payload['memory']['profiles']] == [profile]
-    assert [o['id'] for o in payload['memory']['observations']] == [observation]
-    scope = payload['memory']['comparison_scope']
-    assert scope['subject_id'] == ('player_1' if kind == 'player' else None)
-    assert scope['current_metrics'] == (metrics_for_subject(facts, 'player_1') if kind == 'player' else facts.metrics).model_dump(mode='json')
-    assert 'Unrelated private name' not in job.payload_json
-    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)])
-    assert run_once(client)
-    assert client.get(comparison_url(client), params={"locale": "en"}).json()['items'][0]['status'] == 'completed'
+    jobs = comparison_jobs(client)
+    assert len(jobs) == 2
+    assert [json.loads(job.payload_json)['style'] for job in jobs] == ['coach', 'roast']
+    for job in jobs:
+        payload = json.loads(job.payload_json)
+        assert job.kind == 'report'
+        assert payload['report_kind'] == 'comparison' and payload['comparison_id'] == observation
+        assert [p['id'] for p in payload['memory']['profiles']] == [profile]
+        assert [o['id'] for o in payload['memory']['observations']] == [observation]
+        scope = payload['memory']['comparison_scope']
+        assert scope['subject_id'] == ('player_1' if kind == 'player' else None)
+        assert scope['current_metrics'] == (metrics_for_subject(facts, 'player_1') if kind == 'player' else facts.metrics).model_dump(mode='json')
+        assert 'Unrelated private name' not in job.payload_json
+        if kind == 'player':
+            assert {s['id'] for s in payload['facts']['subjects']} == {'player_1'}
+            assert {e['subject_id'] for e in payload['facts']['evidence']} == {'player_1'}
+    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)] * 2)
+    for job in jobs:
+        assert run_once(client)
+        assert get_row(client, AnalystJob, job.id).status == 'completed'
+        style = json.loads(job.payload_json)['style']
+        items = client.get(comparison_url(client), params={'locale': 'en', 'style': style}).json()['items']
+        assert len(items) == 1 and items[0]['status'] == 'completed'
+        assert items[0]['report']['style'] == style
+    assert run_once(client) is False
+    assert [call[1] for call in client.app.state.glm_client.calls] == [job.request_id for job in jobs]
 
 
 def test_session_generation_ignores_legacy_comparison_preference_and_memory(job_client, facts, report_body):
@@ -179,7 +198,8 @@ def test_legacy_original_lookup_preserves_rows_only_for_matching_inputs(job_clie
     assert snapshot(client, job) == before
 
 
-def test_comparison_validation_dedup_and_quota_are_separate_from_session(job_client, facts, report_body):
+@pytest.mark.parametrize('style', ['coach', 'roast'])
+def test_comparison_validation_dedup_and_quota_are_separate_from_session(job_client, facts, report_body, style):
     client = job_client
     base = finish_base(client, report_body)
     before = snapshot(client, base)
@@ -188,10 +208,32 @@ def test_comparison_validation_dedup_and_quota_are_separate_from_session(job_cli
     assert post_comparison(client, 'missing').status_code == 404
     _, observation = history(client, facts)
     client.app.state.settings.analyst_daily_limit = 2
-    assert post_comparison(client, observation).status_code == 202
-    assert post_comparison(client, observation).status_code == 202
-    assert len(all_rows(client, AnalystJob)) == 2
-    assert post_comparison(client, observation, style='roast').status_code == 429
+    alternate = 'roast' if style == 'coach' else 'coach'
+    assert post_comparison(client, observation, style=style).status_code == 202
+    jobs = comparison_jobs(client)
+    assert [json.loads(job.payload_json)['style'] for job in jobs] == [style, alternate]
+    assert [json.loads(job.payload_json)['automatic'] for job in jobs] == [False, True]
+    assert len({job.report_id for job in jobs}) == len({job.request_id for job in jobs}) == 2
+    pending = [snapshot(client, job) for job in jobs]
+    for requested in (style, alternate):
+        assert post_comparison(client, observation, style=requested).status_code == 202
+        assert post_comparison(client, observation, style=requested, regenerate=True).status_code == 202
+    assert len(all_rows(client, AnalystJob)) == 3
+    assert [snapshot(client, job) for job in jobs] == pending
+    assert sum(not json.loads(job.payload_json)['automatic'] for job in all_rows(client, AnalystJob)) == 2
+    assert post_comparison(client, observation, locale='zh', style=style).status_code == 429
+    assert len(all_rows(client, AnalystReport)) == 3
+    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)] * 2)
+    for job in jobs:
+        assert run_once(client)
+        assert get_row(client, AnalystJob, job.id).status == 'completed'
+    completed = [snapshot(client, job) for job in jobs]
+    for requested in (style, alternate):
+        assert post_comparison(client, observation, style=requested).json()['status'] == 'completed'
+        assert post_comparison(client, observation, style=requested, regenerate=True).status_code == 429
+    assert [snapshot(client, job) for job in jobs] == completed
+    assert len(all_rows(client, AnalystJob)) == 3
+    assert run_once(client) is False
     assert snapshot(client, base) == before
 
 
@@ -202,15 +244,31 @@ def test_failed_comparison_and_explicit_retry_leave_original_unchanged(job_clien
     before = snapshot(client, base)
     _, observation = history(client, facts)
     assert post_comparison(client, observation).status_code == 202
+    requested, sibling = comparison_jobs(client)
     client.app.state.glm_client = ScriptedProvider(reports=[GlmError('Unavailable', retryable=False)])
     assert run_once(client)
     item = client.get(comparison_url(client), params={'locale': 'en'}).json()['items'][0]
     assert item['status'] == 'failed' and item['error']
+    failed = snapshot(client, requested)
+    sibling_before = snapshot(client, sibling)
     assert snapshot(client, base) == before
     assert post_comparison(client, observation).status_code == 202
-    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)])
+    retried = comparison_jobs(client)[-1]
+    assert retried.id not in {requested.id, sibling.id}
+    assert retried.report_id == requested.report_id
+    assert snapshot(client, sibling) == sibling_before
+    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)] * 2)
+    # The existing sibling precedes the newly queued explicit retry.
     assert run_once(client)
+    assert get_row(client, AnalystJob, sibling.id).status == 'completed'
+    assert get_row(client, AnalystJob, retried.id).status == 'queued'
+    assert run_once(client)
+    assert get_row(client, AnalystJob, retried.id).status == 'completed'
     assert client.get(comparison_url(client), params={'locale': 'en'}).json()['items'][0]['status'] == 'completed'
+    assert get_row(client, AnalystJob, requested.id).model_dump(mode='json') == failed[1]
+    assert [call[1] for call in client.app.state.glm_client.calls] == [sibling.request_id, retried.request_id]
+    assert len(all_rows(client, AnalystJob)) == 4
+    assert run_once(client) is False
     assert snapshot(client, base) == before
 
 
@@ -221,6 +279,7 @@ def test_inflight_comparison_revocation_cannot_republish_and_preserves_session(j
     before = snapshot(client, base)
     profile, observation = history(client, facts)
     assert post_comparison(client, observation).status_code == 202
+    report_ids = {job.report_id for job in comparison_jobs(client)}
     async def run():
         provider = PausingProvider(comparison_body(report_body), error=ValueError('late') if late_error else None)
         client.app.state.glm_client = provider
@@ -232,9 +291,15 @@ def test_inflight_comparison_revocation_cannot_republish_and_preserves_session(j
     asyncio.run(run())
     assert client.get(comparison_url(client), params={'locale': 'en'}).json() == {'items': []}
     assert snapshot(client, base) == before
-    jobs = all_rows(client, AnalystJob)
-    revoked = next(job for job in jobs if job.id != base.id)
-    assert revoked.status == 'failed' and json.loads(revoked.payload_json) == {'automatic': False}
+    revoked = [job for job in all_rows(client, AnalystJob) if job.id != base.id]
+    assert len(revoked) == 2
+    assert all(job.status == 'failed' for job in revoked)
+    assert sorted(json.loads(job.payload_json)['automatic'] for job in revoked) == [False, True]
+    assert all(json.loads(job.payload_json) == {'automatic': json.loads(job.payload_json)['automatic']} for job in revoked)
+    assert all(job.report_id is None for job in revoked)
+    assert len(report_ids) == 2
+    assert all(get_row(client, AnalystReport, report_id) is None for report_id in report_ids)
+    assert run_once(client) is False
 
 
 def test_comparison_does_not_suppress_automatic_session_reconciliation(job_client, facts):
@@ -262,7 +327,7 @@ def test_explicit_cleanup_or_reset_removes_both_report_kinds(job_client, facts, 
     assert not any(job.status in {'queued', 'running'} for job in all_rows(client, AnalystJob))
 
 
-def test_concurrent_comparison_posts_and_regeneration_reuse_one_durable_job(job_client, facts, report_body):
+def test_concurrent_comparison_posts_and_regeneration_reuse_one_durable_job_per_style(job_client, facts, report_body):
     from concurrent.futures import ThreadPoolExecutor
     client = job_client
     base = finish_base(client, report_body)
@@ -271,23 +336,43 @@ def test_concurrent_comparison_posts_and_regeneration_reuse_one_durable_job(job_
     with ThreadPoolExecutor(max_workers=2) as pool:
         responses = list(pool.map(lambda _: post_comparison(client, observation), range(2)))
     assert [response.status_code for response in responses] == [202, 202]
-    assert len(all_rows(client, AnalystReport)) == len(all_rows(client, AnalystJob)) == 2
-    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body), comparison_body(report_body)])
+    assert len(all_rows(client, AnalystReport)) == len(all_rows(client, AnalystJob)) == 3
+    requested, sibling = comparison_jobs(client)
+    assert [json.loads(job.payload_json)['style'] for job in (requested, sibling)] == ['coach', 'roast']
+    client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)] * 3)
     assert run_once(client)
-    original = post_comparison(client, observation).json()['report']['id']
+    original = post_comparison(client, observation).json()['report']
+    original_job = get_row(client, AnalystJob, requested.id).model_dump()
+    sibling_before = snapshot(client, sibling)
     with ThreadPoolExecutor(max_workers=2) as pool:
         responses = list(pool.map(lambda _: post_comparison(client, observation, regenerate=True), range(2)))
     assert [response.status_code for response in responses] == [202, 202]
-    assert len(all_rows(client, AnalystReport)) == 2
-    assert len(all_rows(client, AnalystJob)) == 3
+    assert all(response.json()['report'] == original for response in responses)
+    assert len(all_rows(client, AnalystReport)) == 3
+    assert len(all_rows(client, AnalystJob)) == 4
+    refreshed = comparison_jobs(client)[-1]
+    assert refreshed.report_id == requested.report_id
+    assert refreshed.request_id != requested.request_id
+    assert snapshot(client, sibling) == sibling_before
+    assert sum(not json.loads(job.payload_json)['automatic'] for job in all_rows(client, AnalystJob)) == 3
     assert run_once(client)
-    assert post_comparison(client, observation).json()['report']['id'] == original
+    assert get_row(client, AnalystJob, sibling.id).status == 'completed'
+    assert get_row(client, AnalystJob, refreshed.id).status == 'queued'
+    sibling_completed = snapshot(client, sibling)
+    assert run_once(client)
+    assert get_row(client, AnalystJob, refreshed.id).status == 'completed'
+    assert post_comparison(client, observation).json()['report']['id'] == original['id']
+    assert snapshot(client, sibling) == sibling_completed
+    assert get_row(client, AnalystJob, requested.id).model_dump() == original_job
+    assert [call[1] for call in client.app.state.glm_client.calls] == [requested.request_id, sibling.request_id, refreshed.request_id]
+    assert len(all_rows(client, AnalystJob)) == 4
+    assert run_once(client) is False
     assert snapshot(client, base) == before
 
 
 def test_comparison_restart_recovers_same_report_and_request_without_touching_original(job_client, facts, report_body, monkeypatch):
     client = job_client
-    # Default locale avoids automatic preparation of an unrelated language.
+    # Default locale lets the startup collection backfill reuse this original.
     response = client.post(report_url(client), json={})
     assert response.status_code == 202
     client.app.state.glm_client = ScriptedProvider(reports=[report_body])
@@ -296,7 +381,8 @@ def test_comparison_restart_recovers_same_report_and_request_without_touching_or
     before = snapshot(client, base)
     _, observation = history(client, facts)
     assert post_comparison(client, observation).status_code == 202
-    job = next(job for job in all_rows(client, AnalystJob) if job.id != base.id)
+    job, sibling = comparison_jobs(client)
+    sibling_before = snapshot(client, sibling)
     with Session(client.app.state.engine) as session:
         current = session.get(AnalystJob, job.id)
         current.status = 'running'
@@ -316,6 +402,9 @@ def test_comparison_restart_recovers_same_report_and_request_without_touching_or
         try:
             assert get_row(client, AnalystJob, job.id).status == 'queued'
             assert get_row(client, AnalystReport, job.report_id).status == 'queued'
+            assert snapshot(client, sibling) == sibling_before
+            prepares = [row for row in all_rows(client, AnalystJob) if row.kind == 'prepare']
+            assert len(prepares) == 1 and prepares[0].status == 'queued'
             client.app.state.glm_client = ScriptedProvider(reports=[comparison_body(report_body)])
             assert await supervisor.run_once()
         finally:
@@ -325,6 +414,8 @@ def test_comparison_restart_recovers_same_report_and_request_without_touching_or
     assert recovered.status == 'completed' and recovered.attempts == 2
     assert recovered.report_id == job.report_id and recovered.request_id == job.request_id
     assert client.app.state.glm_client.calls[0][1] == job.request_id
+    assert snapshot(client, sibling) == sibling_before
+    assert len(all_rows(client, AnalystJob)) == 4
     assert snapshot(client, base) == before
 
 
@@ -430,15 +521,25 @@ def test_history_source_expiry_or_deletion_preserves_original_and_requires_expli
     assert post_comparison(client, observation).status_code == (202 if expired else 404)
 
 
-def test_comparison_list_filters_locale_style_and_never_queues_unrequested_history(job_client, facts):
+@pytest.mark.parametrize('style', ['coach', 'roast'])
+def test_comparison_list_filters_locale_style_and_never_queues_unrequested_history(job_client, facts, style):
     client = job_client
     _, observation = history(client, facts)
     history(client, facts, subject='player_2')
-    assert client.get(comparison_url(client), params={'locale': 'en'}).json() == {'items': []}
+    for locale in ('en', 'zh'):
+        for requested in ('coach', 'roast'):
+            assert client.get(comparison_url(client), params={'locale': locale, 'style': requested}).json() == {'items': []}
     assert all_rows(client, AnalystJob) == []
-    assert post_comparison(client, observation).status_code == 202
+    assert post_comparison(client, observation, style=style).status_code == 202
+    jobs = comparison_jobs(client)
+    alternate = 'roast' if style == 'coach' else 'coach'
+    assert [json.loads(job.payload_json)['style'] for job in jobs] == [style, alternate]
+    before = [snapshot(client, job) for job in jobs]
     assert client.get(comparison_url(client), params={'locale': 'zh'}).json() == {'items': []}
-    assert client.get(comparison_url(client), params={'locale': 'en', 'style': 'roast'}).json() == {'items': []}
-    items = client.get(comparison_url(client), params={'locale': 'en'}).json()['items']
-    assert len(items) == 1 and items[0]['comparison_id'] == observation
-    assert len(all_rows(client, AnalystJob)) == 1
+    for requested in ('coach', 'roast'):
+        items = client.get(comparison_url(client), params={'locale': 'en', 'style': requested}).json()['items']
+        assert len(items) == 1 and items[0]['comparison_id'] == observation
+        assert items[0]['status'] == 'queued' and items[0]['report'] is None
+    assert len(all_rows(client, AnalystJob)) == len(all_rows(client, AnalystReport)) == 2
+    assert [snapshot(client, job) for job in jobs] == before
+    assert client.app.state.glm_client.calls == []

@@ -33,8 +33,8 @@ test("all 16 crops preserve video/data/analyst order and exclude the intervening
       assert.ok(clips.main.y + clips.main.height <= raw.y);
       assert.equal(clips.analyst.y, analyst.y);
       assert.equal(clips.analyst.width, analyst.width);
-      assert.ok(clips.analyst.height <= (mobile ? 620 : 900));
-      assert.ok(clips.analyst.y + clips.analyst.height >= layout.summaryLines[0]);
+      assert.ok(clips.analyst.height <= (mobile ? 420 : 540));
+      assert.ok(clips.analyst.y + clips.analyst.height >= Math.max(...layout.summaryLines));
       assert.ok(clips.analyst.y >= raw.y + raw.height, `${locale}/${theme}/${viewport}`);
     }
     assert.throws(() => captureClips({ ...layout, analyst: { ...analyst, y: video.y } }, viewport));

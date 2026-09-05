@@ -30,7 +30,7 @@ export function ExampleDetailPage() {
 
   const create = async () => {
     setCreating(true); setCreateError("");
-    try { const created = await workspaceApi.createFromPreset(presetId, mode); navigate(`/workspace/tasks/${created.id}`); }
+    try { const created = await workspaceApi.createFromPreset(presetId, mode, locale); navigate(`/workspace/tasks/${created.id}`); }
     catch (reason) { setCreateError(reason instanceof Error ? reason.message : wt("loadFailed")); setCreating(false); }
   };
 

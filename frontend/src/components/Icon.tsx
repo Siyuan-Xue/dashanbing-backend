@@ -1,49 +1,36 @@
-export type IconName = "sparkles" | "chat" | "team" | "pencil" | "activity" | "stop" | "statusCheck" | "alert" | "ban" | "calendarX" | "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
+import {
+  Activity, ArrowRight, Ban, CalendarX, ChartColumn, Check, ChevronDown,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert,
+  CircleDot, Clock, Code, Copy, Download, File, Funnel, Globe, Layers,
+  LogOut, Menu, MessageCircle, Minus, Moon, Pencil, Play, Plus, RefreshCw,
+  Search, Settings, Sparkles, Square, Sun, Trash2, Upload, User, Users, X,
+  type LucideIcon,
+} from "lucide-react";
+import "../styles/ai-showcase.css";
 
-const paths: Record<IconName, React.ReactNode> = {
-  sparkles: <><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4m-2-2h4"/></>,
-  chat: <path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a4 4 0 0 1 4-4h6a8 8 0 0 1 8 8ZM7 9h10M7 13h6"/>,
-  team: <><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v3"/></>,
-  pencil: <><path d="m4 15 11-11 5 5L9 20H4v-5Zm9-9 5 5"/></>,
-  activity: <path d="M3 12h4l3-8 4 16 3-8h4"/>,
-  stop: <rect x="6" y="6" width="12" height="12" rx="1"/>,
-  statusCheck: <path d="m5 12 5 5 9-10"/>,
-  alert: <><path d="M12 5v8"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></>,
-  ban: <><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></>,
-  calendarX: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18m-12 3 6 5m0-5-6 5"/></>,
-  logout: <><path d="M9 4H4v16h5M9 12h12m-4-4 4 4-4 4"/></>,
-  collapse: <path d="m11 6-6 6 6 6m7-12-6 6 6 6"/>,
-  expand: <path d="m6 6 6 6-6 6m7-12 6 6-6 6"/>,
-  copy: <><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></>,
-  download: <><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></>,
-  chevronDown: <path d="m6 9 6 6 6-6"/>,
-  chevronLeft: <path d="m15 5-7 7 7 7"/>,
-  chevronRight: <path d="m9 5 7 7-7 7"/>,
-  filter: <path d="M3 4h18v3l-7 5v8l-4-2v-6L3 7V4Z"/>,
-  arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
-  basketball: <><circle cx="12" cy="12" r="9"/><path d="M3.6 9.2c5.2.2 9.7 4.4 10 9.7M8.5 4.7c4.8 3.6 7.2 8.2 7 14.1M4.2 15.7c4.5-3.5 9.6-5.1 15.5-4.7"/></>,
-  chart: <><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h21"/></>,
-  check: <path d="m5 12 4 4L19 6"/>,
-  clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></>,
-  code: <><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14"/></>,
-  file: <><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v5h5"/></>,
-  github: <path d="M12 2.8a9.3 9.3 0 0 0-2.9 18.1c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.6 1 1.6 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1a9.6 9.6 0 0 1 5.1 0c2-1.3 2.8-1 2.8-1 .6 1.4.2 2.4.1 2.7.7.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .4.2.6.7.5A9.3 9.3 0 0 0 12 2.8Z"/>,
-  language: <><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21C9.5 18.5 8.2 15.5 8.2 12S9.5 5.5 12 3Z"/></>,
-  layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
-  menu: <path d="M4 7h16M4 12h16M4 17h16"/>,
-  moon: <path d="M20 15.2A8.4 8.4 0 0 1 8.8 4 8.8 8.8 0 1 0 20 15.2Z"/>,
-  plus: <path d="M12 5v14M5 12h14"/>,
-  play: <path d="m9 7 8 5-8 5V7Z"/>,
-  refresh: <><path d="M20 7v5h-5"/><path d="M18.2 17.8a8 8 0 1 1 1.5-8.6L20 12"/></>,
-  search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
-  settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></>,
-  sun: <><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></>,
-  trash: <><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/></>,
-  upload: <><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 14v6h16v-6"/></>,
-  user: <><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></>,
-  x: <path d="m6 6 12 12M18 6 6 18"/>,
+export type IconName = "sparkles" | "chat" | "team" | "pencil" | "activity" | "stop" | "statusCheck" | "alert" | "ban" | "calendarX" | "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x" | "minus";
+
+// Preserve the public names used throughout the workspace. Lucide has no
+// basketball icon; CircleDot is its neutral ball-like symbol. Brands use assets.
+const icons: Record<Exclude<IconName, "github">, LucideIcon> = {
+  sparkles: Sparkles, chat: MessageCircle, team: Users, pencil: Pencil,
+  activity: Activity, stop: Square, statusCheck: Check, alert: CircleAlert,
+  ban: Ban, calendarX: CalendarX, logout: LogOut, collapse: ChevronsLeft,
+  expand: ChevronsRight, copy: Copy, download: Download, chevronLeft: ChevronLeft,
+  chevronDown: ChevronDown, chevronRight: ChevronRight, filter: Funnel,
+  arrow: ArrowRight, basketball: CircleDot, chart: ChartColumn, check: Check,
+  clock: Clock, code: Code, file: File, language: Globe, layers: Layers,
+  menu: Menu, moon: Moon, plus: Plus, minus: Minus, play: Play, refresh: RefreshCw,
+  search: Search, settings: Settings, sun: Sun, trash: Trash2, upload: Upload,
+  user: User, x: X,
 };
 
-export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
-  return <svg aria-hidden="true" className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+export function Icon({ name, size = 20, spin = false, className = "" }: { name: IconName; size?: number; spin?: boolean; className?: string }) {
+  if (name === "github") return <span aria-hidden="true" className={`icon icon-github ${className}`.trim()} style={{ width: size, height: size }}>
+    <img className="github-mark-light" src="/assets/brand/github-invertocat-black.svg" width={size} height={size} alt=""/>
+    <img className="github-mark-dark" src="/assets/brand/github-invertocat-white.svg" width={size} height={size} alt=""/>
+  </span>;
+  const Component = icons[name];
+  // Inline stroke/fill isolates official UI icons from legacy brand fill rules.
+  return <Component aria-hidden="true" focusable="false" className={`icon${spin ? " icon-spin" : ""} ${className}`.trim()} size={size} strokeWidth={1.8} style={{ fill: "none", stroke: "currentColor" }}/>;
 }

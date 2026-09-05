@@ -19,9 +19,9 @@ export function captureClips({ video, analyst, report, raw, composer, summaryLin
   const mobile = viewport === "mobile";
   const bottom = rect => rect.y + rect.height;
   if (![video, analyst, report, raw].every(rect => rect && Object.values(rect).every(Number.isFinite) && rect.width > 0 && rect.height > 0) || bottom(video) > raw.y + 1 || bottom(raw) > analyst.y + 1 || report.y < analyst.y || !summaryLines.length) throw new Error("Refusing capture: expected native video, data tabs, then analyst layout");
-  const detailLimit = Math.min(analyst.y + (mobile ? 620 : 900), bottom(analyst));
+  const detailLimit = Math.min(analyst.y + (mobile ? 420 : 540), bottom(analyst));
   const detailLines = textLines.filter(y => y >= report.y && y + 4 <= detailLimit).sort((a, b) => a - b);
-  if (!detailLines.length || detailLines.at(-1) < summaryLines[0]) throw new Error("Refusing capture: analyst crop would omit the conclusion");
+  if (!detailLines.length || detailLines.at(-1) < Math.max(...summaryLines)) throw new Error("Refusing capture: analyst crop would omit the conclusion");
   const clip = (rect, end) => ({ x: Math.floor(rect.x), y: Math.floor(rect.y), width: Math.floor(rect.width), height: Math.floor(end - Math.floor(rect.y)) });
   // Separate native crops preserve the result page's actual order without
   // compositing the report over the overview/timeline/JSON section in between

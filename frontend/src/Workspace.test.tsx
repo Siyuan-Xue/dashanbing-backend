@@ -18,6 +18,7 @@ const task = (overrides: Record<string, unknown> = {}) => ({
   id: "task-1",
   title: "周三投篮训练",
   mode: "quick",
+  analyst_locale: "zh",
   source_type: "upload",
   preset_id: null,
   status: "draft",
@@ -589,7 +590,8 @@ describe("task list workflows", () => {
     await user.click(screen.getByRole("button", { name: "删除周三投篮训练" }));
     expect(fetchMock).not.toHaveBeenCalledWith("/api/v1/tasks/queued-1", expect.objectContaining({ method: "DELETE" }));
     await user.click(within(screen.getByRole("dialog", { name: "删除任务" })).getByRole("button", { name: "确认删除" }));
-    expect(await screen.findByText("没有符合条件的任务")).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "还没有任务" })).toBeVisible();
+    expect(within(screen.getByRole("heading", { name: "还没有任务" }).closest(".workspace-state") as HTMLElement).getByRole("link", { name: "创建任务" })).toHaveAttribute("href", "/workspace/new");
   });
 });
 
@@ -768,7 +770,7 @@ describe("task and example result workspaces", () => {
     await user.click(screen.getByRole("button", { name: "创建任务" }));
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("/workspace/tasks/preset-task"));
     const call = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/v1/tasks/from-preset"));
-    expect(JSON.parse(String(call?.[1]?.body))).toEqual({ preset_id: "quick-demo", mode: "full" });
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({ preset_id: "quick-demo", mode: "full", analyst_locale: "zh" });
   });
 
   test.each([

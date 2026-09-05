@@ -8,13 +8,17 @@
 按 [GLM-5.3 官方文档](https://docs.bigmodel.cn/cn/guide/models/text/glm-5.3) 使用模型 API 的 Chat Completion 端点，保持思考开启，默认 max、temperature 1、最大输出 65536 tokens
 `BASKETBALL_GLM_TEMPERATURE` 可设置为 0–1，最多两位小数
 通过 `BASKETBALL_GLM_REASONING_EFFORT`、`BASKETBALL_GLM_MAX_TOKENS`、`BASKETBALL_GLM_TIMEOUT_SECONDS` 调整调用，默认超时 600 秒
-`BASKETBALL_ANALYST_CONCURRENCY` 默认 2，`BASKETBALL_ANALYST_DAILY_LIMIT` 默认每人每日 100 次主动追问和生成
+`BASKETBALL_ANALYST_CONCURRENCY` 默认及上限为 8，后台报告与追问共享总并发，`BASKETBALL_ANALYST_DAILY_LIMIT` 默认每人每日 100 次主动追问和生成
 未设置 Key 时显示尚未启用，视频任务和原始结果继续正常工作
-视频任务完成后自动生成中文教练报告，服务启动及运行期间每 60 秒补查已完成任务，每批最多补齐 100 个缺失报告
+视频任务完成后，按任务的 analyst_locale 为全场和每位匿名球员准备教练、球友吐槽两种完整报告，先全场后球员，旧任务和旧 API 默认中文
+服务启动及运行期间每 60 秒补查已完成任务，每批处理最多 100 个任务，只补齐缺少版本
 这会补齐 AI 启用前已完成的任务，保留已有报告，排队和执行中的报告不会重复生成
-结果页首次查看缺失的语言或风格版本时自动请求生成，沿用主动生成的每日配额；已完成版本直接读取，失败版本保留显式重试，公共示例保持只读
+前端一次读取并缓存整套报告，切换已完成球员或语气不发起生成、不消耗配额
+首次选择其他语言时补齐该语言整套报告，按一次主动操作计数；单份刷新按一次计数，仅替换当前球员、语气、语言，生成期间保留旧正文
+自动报告随任务配额，失败版本保留显式重试，公共示例保持只读
 本场报告只依据本场模型结果，绑定档案、修改训练目标或追加历史对比不会覆盖已生成的本场报告
-临时服务异常最多尝试 3 次，持续失败或源结果缺失会显示失败并保留重试入口，不无限调用付费接口
+临时服务异常最多尝试 3 次，429 限流时报告和追问共享退避，至少等候 30 秒并参考 Retry-After，供应商等待时间独立存入 analyst_provider_state，以便重启后新请求仍遵守限制
+并发配置不会提高智谱账户的供应商额度，持续失败或源结果缺失会显示失败并保留重试入口，不无限调用付费接口
 升级时先运行 `alembic upgrade head`，再启动单个应用进程，持久队列在重启后恢复
 Compose 保留本机 8000 端口绑定，应用网络允许向智谱发送 HTTPS 请求，旧的 internal 网络会阻止该请求
 
@@ -43,11 +47,11 @@ Compose 保留本机 8000 端口绑定，应用网络允许向智谱发送 HTTPS
 4. 绑定后有可比历史时，点击“对比训练”，选定历史训练并点击“生成对比报告”，结果追加在本场分析下方，档案页也能查看历史成绩和进入对应任务
 
 绑定用于确认这次训练属于谁，将训练记录存入档案，本场报告保持不变
-配置仅保留分析风格，选择尚未应用时保留原报告，训练目标和备注可用于对比报告与后续追问
+配置只含球员与语气两项，选择后立即显示对应的完整报告，训练目标和备注可用于对比报告与后续追问
 可选历史来自已绑定档案，需为同一分析模式且动作可比，没有档案或可比历史时会说明原因
 对比报告独立排队和保存，失败单独重试，刷新后恢复，重复请求复用同一份结果
-对比不会修改原分析、视频或统计，也不会自动生成额外的对比报告
-“球员表现”旁的选择器只切换个人段落与追问对象，不更改绑定，也不重新生成整场报告
+主动发起对比后同时准备两种语气，按一次操作计数，切换语气可查看另一版，对比不会修改原分析、视频或统计
+球员选择放在顶部配置中，切换整份个人结论、关键片段与训练建议，以及追问对象，不更改绑定
 同组视频重复分析不会作为多次训练重复累计，公共示例不写入个人档案
 关联错误可以更改或解除，跨任务相同的匿名球员编号不会自动合并
 
@@ -56,10 +60,10 @@ Compose 保留本机 8000 端口绑定，应用网络允许向智谱发送 HTTPS
 先完成前端，再为现有样例生成真实 GLM 报告：
 
 ```
-python scripts/generate_analyst_presets.py --presets quick-demo --locales zh en --styles coach
+python scripts/generate_analyst_presets.py --presets quick-demo --locales zh en --styles coach roast
 ```
 
-生成脚本没有 Key 时直接退出，不生成模拟报告
+生成脚本没有 Key 时直接退出，不生成模拟报告，默认保留有效版本并补齐全场与每位球员，可用 --force 明确覆盖已有版本
 报告保存在 runtime/analyst-presets，带有当前样例事实摘要的校验值
 示例接口仅接受校验匹配、模型为 glm-5.3 的已验证报告，首页使用截图静态资产，不触发模型调用
 前端截图脚本从该接口确认真实报告后，采集桌面和移动页面及分析师局部，随后生成首页素材清单
@@ -68,7 +72,8 @@ python scripts/generate_analyst_presets.py --presets quick-demo --locales zh en 
 
 ## 接口
 
-- GET/POST `/api/v1/tasks/{id}/analyst/report`，读取/请求生成报告
+- GET/POST `/api/v1/tasks/{id}/analyst/reports`，按 locale 读取/补齐整套报告，返回 items（含 subject_id、locale、style、status、report、error）、facts、subjects
+- GET/POST `/api/v1/tasks/{id}/analyst/report`，读取/刷新单份报告，可选 subject_id，省略代表全场
 - GET/PUT `/api/v1/tasks/{id}/analyst/context`，统一确认本场球员和球队档案，读取可比历史
 - GET/POST `/api/v1/tasks/{id}/analyst/comparisons`，读取/追加独立对比报告，POST 包含 comparison_id、locale、style，可选 regenerate，GET 返回 items，均不修改本场报告
 - `/api/v1/training-profiles`，档案创建、编辑、删除及历史查询
@@ -76,7 +81,8 @@ python scripts/generate_analyst_presets.py --presets quick-demo --locales zh en 
 - GET `/api/v1/analyst/conversations/{id}`，恢复已保存的问答
 - POST `/api/v1/analyst/conversations/{id}/messages`，使用 request_id 幂等提交问题
 - GET `/api/v1/analyst/conversations/{id}/events`，SSE 发送 message 快照和 done 事件
-- GET `/api/v1/presets/{id}/analyst/report`，只读示例报告
+- GET `/api/v1/presets/{id}/analyst/report`，只读单份示例报告，可选 subject_id
+- GET `/api/v1/presets/{id}/analyst/reports`，只读示例报告集合
 
 所有工作台接口保留现有登录或 API Key 鉴权
 
@@ -85,7 +91,9 @@ python scripts/generate_analyst_presets.py --presets quick-demo --locales zh en 
 代码、迁移、模拟 GLM 回归、浏览器交互和构建已验证，配置方式只涉及服务端
 已接入真实 GLM-5.3，四组现有样例生成中英文教练报告，快速示例另有中英文锐评报告
 真实追问已验证流式输出、重复请求去重、刷新恢复及证据引用，首页已收录 16 份真实页面 WebP
-分析师常驻显示，风格位于配置浮层，档案绑定独立弹窗确认，球员查看位于个人表现区域，可用时提供独立对比入口，本场报告、追加对比、追问上下排布
+分析师常驻显示，球员与语气位于顶部配置浮层，档案绑定独立弹窗确认，可用时提供独立对比入口，本场报告、追加对比、追问在所有宽度上下排布
+训练档案采用与任务列表一致的表格、搜索、类型筛选、分页和居中空状态，名称进入独立详情页
+首页保留原篮球 Hero，在其下方用独立区域展示 AI 功能和真实静态效果图
 页面不显示模型时间戳和重复技术说明
 服务端仍保留模型、时间、来源和有效性数据，用于校验与追溯
 详细记录见 [真实验收记录](ai-analyst-acceptance.md)

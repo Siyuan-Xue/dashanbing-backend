@@ -4,6 +4,7 @@ import { useAnalystCopy } from "../analyst/copy";
 import { BrandMark } from "../components/Brand";
 import { Icon } from "../components/Icon";
 import { CameraEvidence, ExampleVisual, ProductPreview } from "../components/ProductPreview";
+import { HeroAnalystPreview } from "../components/HeroAnalystPreview";
 import { PublicHeader } from "../components/PublicHeader";
 import { CopyKey } from "../copy";
 import { useLocale } from "../providers/LocaleProvider";
@@ -26,11 +27,17 @@ export function HomePage() {
           <div className="hero-copy">
             <span className="eyebrow"><i/>{t("heroEyebrow")}</span>
             <h1>{t("heroTitle")}</h1>
-            <div className="hero-analyst-tagline">{at("hero")}</div>
             <p>{t("heroBody")}</p>
             <div className="hero-actions"><a className="button button-outline" href="#examples">{t("heroSecondary")}<Icon name="play" size={17}/></a><Link className="button button-primary" to="/workspace/new">{t("heroPrimary")}</Link></div>
           </div>
           <div className="hero-preview-wrap"><div className="hero-glow"/><ProductPreview/></div>
+        </section>
+
+        <section className="ai-showcase" aria-labelledby="ai-showcase-title">
+          <div className="section-shell">
+            <div className="section-heading centered"><span className="eyebrow"><Icon name="sparkles" size={16}/>{at("title")}</span><h2 id="ai-showcase-title">{at("hero")}</h2><p>{at("heroDetails")}</p></div>
+            <HeroAnalystPreview/>
+          </div>
         </section>
 
         <section className="capabilities-section">
@@ -38,7 +45,7 @@ export function HomePage() {
             <div className="section-heading centered"><span className="eyebrow"><i/>{t("capabilitiesEyebrow")}</span><h2>{t("capabilitiesTitle")}</h2></div>
             <div className="capability-layout">
               <div className="capability-accordion">{capabilities.map((item, index) => <article data-testid="capability-card" className={`capability-card${capability === index ? " active" : ""}`} key={item.title}>
-                <h3><button id={`capability-${index}-heading`} aria-expanded={capability === index} aria-controls={`capability-${index}-panel`} onClick={() => setCapability(index)}><Icon name={item.icon}/><span>{t(item.title)}</span><span className="accordion-indicator" aria-hidden="true">{capability === index ? "−" : "+"}</span></button></h3>
+                <h3><button id={`capability-${index}-heading`} aria-expanded={capability === index} aria-controls={`capability-${index}-panel`} onClick={() => setCapability(index)}><Icon name={item.icon}/><span>{t(item.title)}</span><span className="accordion-indicator" aria-hidden="true"><Icon name={capability === index ? "minus" : "plus"} size={20}/></span></button></h3>
                 <div id={`capability-${index}-panel`} role="region" aria-labelledby={`capability-${index}-heading`} hidden={capability !== index}><p>{t(item.body)}</p>{index === 2 && <p className="queue-description">{t("queueBody")}</p>}</div>
               </article>)}</div>
               <div className={`capability-visual capability-visual-${capability}`}>{capability === 2 ? <ProductPreview decorative/> : <CameraEvidence processed={capability === 1}/>}<div className="capability-caption"><Icon name={capabilities[capability].icon}/><span>{t(capabilities[capability].title)}</span></div></div>

@@ -1,3 +1,4 @@
+import { Icon } from "../components/Icon";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiChapters, apiHeadings } from "../apiCenter/chapters";
@@ -112,7 +113,7 @@ export function ApiDocsPage() {
         toggleRef.current?.focus();
       }
     }}>
-      {compact ? <button ref={toggleRef} className="api-toc-toggle" type="button" aria-expanded={expanded} aria-controls="api-table-of-contents" onClick={() => setExpanded(!expanded)}>{c.toc}<span className="api-chevron" aria-hidden="true"/></button> : <strong className="api-toc-title">{c.toc}</strong>}
+      {compact ? <button ref={toggleRef} className="api-toc-toggle" type="button" aria-expanded={expanded} aria-controls="api-table-of-contents" onClick={() => setExpanded(!expanded)}>{c.toc}<span className="api-lucide-chevron"><Icon name={expanded ? "chevronDown" : "chevronRight"} size={16}/></span></button> : <strong className="api-toc-title">{c.toc}</strong>}
       <nav ref={tocRef} id="api-table-of-contents" aria-label={c.toc} hidden={compact && !expanded}>
         <ul>{apiChapters.map(chapter => <li key={chapter.id}>
           {tocLink(chapter.id, chapter.title[locale])}
@@ -178,12 +179,18 @@ export function ApiDocsPage() {
         <Code>{'{"comparison_id":"observation-id","locale":"zh","style":"coach"}'}</Code>
         <p>{locale === "zh" ? "GET 接受 locale、style，返回 items 列表，POST 独立排队生成对比报告并返回状态和 comparison_id，重复请求复用结果，不修改绑定或原报告，对比失败可单独重试，档案或历史变化后需重新请求有效对比" : "GET accepts locale and style and returns items, POST queues a separate comparison report and returns its state and comparison_id, repeated requests reuse the result without changing bindings or the original report, comparison failures can be retried independently, request a fresh comparison after profile or history changes"}</p>
         <DocHeading id="analyst-reports"/>
+        <p><code>GET /api/v1/tasks/{`{id}`}/analyst/reports?locale=zh</code></p>
+        <p><code>POST /api/v1/tasks/{`{id}`}/analyst/reports</code></p>
+        <Code>{'{"locale":"zh"}'}</Code>
+        <p>{locale === "zh" ? "任务完成后按 analyst_locale（默认 zh）预生成全场与每位球员的 coach、roast 报告，集合返回 items、facts、subjects，每项包含 subject_id、locale、style、status、report、error，subject_id 为 null 代表全场，POST 只补齐缺少版本，另一语言整套按一次主动操作计数，已完成版本直接切换，失败项单独重试" : "Completion prepares coach and roast reports for the session and every player in analyst_locale (zh by default), collections return items, facts and subjects, each item contains subject_id, locale, style, status, report and error, null subject_id means the session, POST fills missing variants only, a new language set costs one active operation, completed variants switch immediately and failed items retry individually"}</p>
         <p><code>GET /api/v1/tasks/{`{id}`}/analyst/report?locale=zh&amp;style=coach</code></p>
         <p><code>POST /api/v1/tasks/{`{id}`}/analyst/report</code></p>
-        <Code>{'{"locale":"zh","style":"coach","regenerate":false}'}</Code>
+        <Code>{'{"locale":"zh","style":"coach","subject_id":null,"regenerate":false}'}</Code>
+        <p>{locale === "zh" ? "GET 和 POST 可选 subject_id 读取或刷新个人完整报告，省略代表全场，regenerate 仅刷新当前版本并按一次主动操作计数，生成期间保留原正文，主动对比同时准备两种语气且不修改本场报告" : "GET and POST accept optional subject_id for a full personal report, omission means the session, regenerate refreshes only that variant for one active operation while keeping its old body, an explicit comparison prepares both styles without changing session reports"}</p>
         <p>{locale === "zh" ? "locale 为 zh 或 en，style 为 coach 或 roast；响应包含 status、report、error，状态为 disabled、waiting、queued、running、completed 或 failed，POST 接受任务后返回 202 或已有结果 200，仅 queued/running 需要轮询" : "locale is zh or en; style is coach or roast. Responses contain status, report and error, with disabled, waiting, queued, running, completed or failed states. POST returns 202 for accepted work or 200 for an existing result; poll only queued/running states"}</p>
         <p>{locale === "zh" ? "报告包含 summary、highlights、players、comparison、suggestions 与模型、语言、风格、生成时间；evidence_ids 仅引用当前 facts.evidence 中的证据" : "Reports include summary, highlights, players, comparison, suggestions, model, locale, style and creation time; evidence_ids refer to entries in the current facts.evidence"}</p>
         <p><code>GET /api/v1/presets/{`{id}`}/analyst/report?locale=zh&amp;style=coach</code></p>
+        <p><code>GET /api/v1/presets/{`{id}`}/analyst/reports?locale=zh</code></p>
         <p>{locale === "zh" ? "预设报告只读，额外返回 facts 和 subjects，无生成 POST；仅真实已验证 GLM 报告与当前事实匹配时返回 provenance（provider、verified、facts_hash）" : "Preset reports are read only and also return facts and subjects, with no generation POST. provenance (provider, verified, facts_hash) is present only for a verified real GLM report matching current facts"}</p>
         <DocHeading id="analyst-chat"/>
         <p><code>POST /api/v1/analyst/conversations</code></p>

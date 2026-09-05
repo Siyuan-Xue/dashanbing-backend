@@ -503,6 +503,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{task_id}/analyst/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Reports */
+        get: operations["get_reports_api_v1_tasks__task_id__analyst_reports_get"];
+        put?: never;
+        /** Ensure Reports */
+        post: operations["ensure_reports_api_v1_tasks__task_id__analyst_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{task_id}/analyst/comparisons": {
         parameters: {
             query?: never;
@@ -530,6 +548,23 @@ export interface paths {
         };
         /** Preset Report */
         get: operations["preset_report_api_v1_presets__preset_id__analyst_report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/presets/{preset_id}/analyst/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preset Reports */
+        get: operations["get_preset_reports_api_v1_presets__preset_id__analyst_reports_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1142,6 +1177,12 @@ export interface components {
              * @enum {string}
              */
             mode: "quick" | "full";
+            /**
+             * Analyst Locale
+             * @default zh
+             * @enum {string}
+             */
+            analyst_locale: "zh" | "en";
         };
         /** ProductActionCounts */
         ProductActionCounts: {
@@ -1286,6 +1327,8 @@ export interface components {
              * @default false
              */
             regenerate: boolean;
+            /** Subject Id */
+            subject_id?: string | null;
         };
         /** ReportState */
         ReportState: {
@@ -1297,6 +1340,55 @@ export interface components {
             report?: components["schemas"]["ReportPublic"] | null;
             /** Error */
             error?: string | null;
+        };
+        /** ReportVariant */
+        ReportVariant: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "disabled" | "waiting" | "queued" | "running" | "completed" | "failed";
+            report?: components["schemas"]["ReportPublic"] | null;
+            /** Error */
+            error?: string | null;
+            /** Subject Id */
+            subject_id?: string | null;
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "zh" | "en";
+            /**
+             * Style
+             * @enum {string}
+             */
+            style: "coach" | "roast";
+        };
+        /** ReportsCollection */
+        ReportsCollection: {
+            /** Items */
+            items?: components["schemas"]["ReportVariant"][];
+            /** Facts */
+            facts?: {
+                [key: string]: unknown;
+            };
+            /** Subjects */
+            subjects?: {
+                [key: string]: unknown;
+            }[];
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ReportsRequest */
+        ReportsRequest: {
+            /**
+             * Locale
+             * @default zh
+             * @enum {string}
+             */
+            locale: "zh" | "en";
         };
         /** RetentionDescriptions */
         RetentionDescriptions: {
@@ -1326,6 +1418,12 @@ export interface components {
              * @enum {string}
              */
             mode: "quick" | "full";
+            /**
+             * Analyst Locale
+             * @default zh
+             * @enum {string}
+             */
+            analyst_locale: "zh" | "en";
         };
         /** TaskInputPublic */
         TaskInputPublic: {
@@ -1367,6 +1465,12 @@ export interface components {
              * @enum {string}
              */
             mode: "quick" | "full";
+            /**
+             * Analyst Locale
+             * @default zh
+             * @enum {string}
+             */
+            analyst_locale: "zh" | "en";
             /** Source Type */
             source_type: string;
             /** Preset Id */
@@ -1410,6 +1514,8 @@ export interface components {
              * @enum {string}
              */
             mode: "quick" | "full";
+            /** Analyst Locale */
+            analyst_locale?: ("zh" | "en") | null;
         };
         /** Token */
         Token: {
@@ -2491,6 +2597,7 @@ export interface operations {
             query?: {
                 locale?: "zh" | "en";
                 style?: "coach" | "roast";
+                subject_id?: string | null;
             };
             header?: never;
             path: {
@@ -2542,6 +2649,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reports_api_v1_tasks__task_id__analyst_reports_get: {
+        parameters: {
+            query?: {
+                locale?: "zh" | "en";
+            };
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsCollection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ensure_reports_api_v1_tasks__task_id__analyst_reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsCollection"];
                 };
             };
             /** @description Validation Error */
@@ -2629,6 +2804,7 @@ export interface operations {
             query?: {
                 locale?: "zh" | "en";
                 style?: "coach" | "roast";
+                subject_id?: string | null;
             };
             header?: never;
             path: {
@@ -2645,6 +2821,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PresetReportState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preset_reports_api_v1_presets__preset_id__analyst_reports_get: {
+        parameters: {
+            query?: {
+                locale?: "zh" | "en";
+            };
+            header?: never;
+            path: {
+                preset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsCollection"];
                 };
             };
             /** @description Validation Error */

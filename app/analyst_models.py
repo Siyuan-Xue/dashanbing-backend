@@ -71,6 +71,7 @@ class AnalystReport(SQLModel, table=True):
     task_id: str | None = Field(default=None, index=True)
     preset_id: str | None = None
     kind: str = "session"
+    subject_id: str | None = Field(default=None, index=True)
     # Snapshot identity; memory revocation explicitly removes dependent reports.
     comparison_id: str | None = None
     cache_key: str = Field(unique=True, index=True)
@@ -138,3 +139,11 @@ class AnalystJob(SQLModel, table=True):
     available_at: datetime = Field(default_factory=utc_now, index=True)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+
+class AnalystProviderState(SQLModel, table=True):
+    """One durable provider-wide deadline, independent of user/task cleanup."""
+    __tablename__ = "analyst_provider_state"
+
+    provider: str = Field(primary_key=True)
+    available_at: datetime = Field(default_factory=utc_now)

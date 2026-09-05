@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Icon } from "../components/Icon";
 import { WorkspaceSelect } from "../components/WorkspaceSelect";
 import { useLocale } from "../providers/LocaleProvider";
@@ -8,7 +9,8 @@ import { EvidenceLinks } from "./EvidenceLinks";
 import { useComparisons } from "./useComparisons";
 import type { AnalystContext, AnalystSource, AnalystStyle, Evidence, Observation, TrainingProfile } from "./types";
 
-export function ComparisonReports({ source, context, style, disabled, onEvidence }: {
+export function ComparisonReports({ source, context, style, disabled, onEvidence, toolbarTarget }: {
+  toolbarTarget?: HTMLElement | null;
   source: AnalystSource; context: AnalystContext; style: AnalystStyle; disabled: boolean; onEvidence: (evidence: Evidence) => void;
 }) {
   const t = useAnalystCopy(); const { locale } = useLocale();
@@ -21,8 +23,9 @@ export function ComparisonReports({ source, context, style, disabled, onEvidence
   const root = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null);
   const [above, setAbove] = useState(false);
   const [maxHeight, setMaxHeight] = useState(400);
+  const [right, setRight] = useState(0);
   useEffect(() => { setOpen(false); }, [contextKey, style]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const controller = new AbortController();
     analystApi.profiles(controller.signal).then(value => { if (!controller.signal.aborted) setProfiles(value); }).catch(() => {});
@@ -30,6 +33,7 @@ export function ComparisonReports({ source, context, style, disabled, onEvidence
       const box = root.current?.getBoundingClientRect(); if (!box) return;
       const below = innerHeight - box.bottom - 16, over = box.top - 16;
       const placeAbove = below < 260 && over > below;
+      setRight(box.right - Math.min(innerWidth - 16, Math.max(Math.min(280, innerWidth - 48) + 16, box.right)));
       setAbove(placeAbove); setMaxHeight(Math.max(80, placeAbove ? over : below));
     };
     position(); root.current?.querySelector("select")?.focus({ preventScroll: true });
@@ -49,21 +53,21 @@ export function ComparisonReports({ source, context, style, disabled, onEvidence
     if (disabled || !candidates.some(item => item.id === selected)) return;
     if (await append(selected)) { setOpen(false); trigger.current?.focus({ preventScroll: true }); }
   };
-  if (!candidates.length && !items.length) return null;
-  return <section className="analyst-comparisons" aria-label={t("comparisonReports")}>
-    <header className="analyst-comparison-heading">
-      {items.length > 0 && <h3>{t("comparisonReports")}</h3>}
-      {candidates.length > 0 && <div className="analyst-comparison-control task-filter-control" ref={root} onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}>
-        <button type="button" className="button" ref={trigger} disabled={disabled || busy} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setSelected(candidates.find(item => !items.some(report => report.comparison_id === item.id))?.id || candidates[0].id); setOpen(value => !value); }}><Icon name="chart" size={16}/>{t("compareTraining")}</button>
-        {open && <form className="task-filter-popover analyst-comparison-picker" role="dialog" aria-label={t("compareTraining")} style={{ top: above ? "auto" : undefined, bottom: above ? "calc(100% + 10px)" : undefined, maxHeight }} onSubmit={event => { event.preventDefault(); void generate(); }}>
-          <label><span>{t("historicalSession")}</span><WorkspaceSelect value={selected} disabled={busy} onChange={event => setSelected(event.target.value)}>{candidates.map(item => <option value={item.id} key={item.id}>{label(item)}</option>)}</WorkspaceSelect></label>
+  if (!candidates.length && !items.length && !error) return null;
+  const controls = <div className="analyst-comparison-control task-filter-control" ref={root} onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}>
+        <button type="button" className="button" ref={trigger} disabled={disabled || busy} aria-label={t("compareTraining")} title={t("compareTraining")} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setSelected(candidates.find(item => !items.some(report => report.comparison_id === item.id))?.id || candidates[0]?.id || ""); setOpen(value => !value); }}><Icon name="chart" size={16}/><span>{t("compareTraining")}</span></button>
+        {open && <form className="task-filter-popover analyst-comparison-picker" role="dialog" aria-label={t("compareTraining")} style={{ top: above ? "auto" : undefined, bottom: above ? "calc(100% + 10px)" : undefined, maxHeight, right }} onSubmit={event => { event.preventDefault(); void generate(); }}>
+          {candidates.length > 0 && <label><span>{t("historicalSession")}</span><WorkspaceSelect value={selected} disabled={busy} onChange={event => setSelected(event.target.value)}>{candidates.map(item => <option value={item.id} key={item.id}>{label(item)}</option>)}</WorkspaceSelect></label>}
           <p className="analyst-config-help">{t("appendComparisonHelp")}</p>
-          {error && <p className="analyst-error" role="alert">{t("comparisonError")}</p>}
-          <button className="button button-primary" type="submit" disabled={disabled || busy || !selected}>{t("generateComparison")}</button>
+          {error && <p className="analyst-error" role="alert">{t("comparisonError")}<button className="table-action" type="button" aria-label={t("retryComparison")} title={t("retryComparison")} onClick={reload}><Icon name="refresh" size={16}/></button></p>}
+          {candidates.length > 0 && <button className="button button-primary" type="submit" disabled={disabled || busy || !selected}>{t("generateComparison")}</button>}
+    {items.filter(item => item.status === "failed").map(item => <button key={item.comparison_id} type="button" className="table-action" disabled={disabled || busy || !candidates.some(history => history.id === item.comparison_id)} aria-label={`${t("retryComparison")} · ${context.comparisons.find(history => history.id === item.comparison_id) ? label(context.comparisons.find(history => history.id === item.comparison_id)!) : item.comparison_id}`} title={t("retryComparison")} onClick={() => void append(item.comparison_id)}><Icon name="refresh" size={16}/><span>{context.comparisons.find(history => history.id === item.comparison_id) ? label(context.comparisons.find(history => history.id === item.comparison_id)!) : item.comparison_id}</span></button>)}
         </form>}
-      </div>}
-    </header>
-    {error && !open && <p className="analyst-error" role="alert">{t("comparisonError")}<button className="table-action" type="button" aria-label={t("retryComparison")} title={t("retryComparison")} onClick={reload}><Icon name="refresh" size={16}/></button></p>}
+      </div>;
+  return <>
+    {toolbarTarget ? createPortal(controls, toolbarTarget) : toolbarTarget === undefined ? controls : null}
+    {(items.length > 0) && <section className="analyst-comparisons" aria-label={t("comparisonReports")}>
+    <header className="analyst-comparison-heading"><h3>{t("comparisonReports")}</h3></header>
     <div className="analyst-comparison-list">{items.map(item => {
       const history = context.comparisons.find(history => history.id === item.comparison_id);
       const report = item.status === "completed" ? item.report : null;
@@ -75,8 +79,9 @@ export function ComparisonReports({ source, context, style, disabled, onEvidence
           {report.highlights.length > 0 && <ul>{report.highlights.map((point, index) => <li key={index}>{point.text}<EvidenceLinks ids={point.evidence_ids} evidence={context.facts.evidence} onEvidence={onEvidence}/></li>)}</ul>}
           {report.players.map((player, index) => <p key={`${player.subject_id}:${index}`}>{player.text}<EvidenceLinks ids={player.evidence_ids} evidence={context.facts.evidence} onEvidence={onEvidence}/></p>)}
           {report.suggestions.length > 0 && <div className="analyst-comparison-practice"><h5>{t("suggestions")}</h5><ul>{report.suggestions.map((point, index) => <li key={index}>{point}</li>)}</ul></div>}
-        </> : <p className="analyst-muted" role="status">{t(item.status === "completed" ? "unavailable" : item.status)}{item.status === "failed" && <button type="button" className="table-action" disabled={disabled || busy || !history} aria-label={t("retryComparison")} title={t("retryComparison")} onClick={() => void append(item.comparison_id)}><Icon name="refresh" size={16}/></button>}</p>}
+        </> : <p className="analyst-muted" role="status">{t(item.status === "completed" ? "unavailable" : item.status)}</p>}
       </article>;
     })}</div>
-  </section>;
+  </section>}
+  </>;
 }

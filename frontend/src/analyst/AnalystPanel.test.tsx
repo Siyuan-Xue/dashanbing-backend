@@ -4,22 +4,33 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { LocaleProvider } from "../providers/LocaleProvider";
 import { ResultWorkspace } from "../components/ResultWorkspace";
 import { AnalystPanel } from "./AnalystPanel";
+import { notifySessionExpired } from "../session";
 import type { AnalystContext, ReportState } from "./types";
 import type { ProductResult } from "../workspace/types";
 
 export const context: AnalystContext = { task_id: "t1", facts: { schema_version: 1, metrics: { action_counts: { jump_shot: 1 }, shots: { attempts: 1, makes: 1 }, registered_participant_count: 1, event_count: 1 }, subjects: [{ id: "s1", label: "Player 1" }], evidence: [{ id: "ev1", event_index: 0, subject_id: "s1", action_type: "jump_shot", start_ms: 1000, end_ms: 3000, time_ms: 2000, media_kind: "phases", times_ms: { phases: 2000, cam_02: 23500 }, result: "make", confidence: null, angles: {} }], warnings: [], pose_available: false }, subjects: [{ id: "s1", label: "Player 1", profile_id: null }], team_profile_id: null, comparison_id: null, comparisons: [] };
 export const completed: ReportState = { status: "completed", report: { id: "r1", summary: "Your recorded shot went in", highlights: [{ text: "Review the release", evidence_ids: ["ev1", "missing"] }], players: [], comparison: null, suggestions: ["Practice the same release"], model: "gpt-real", locale: "en", style: "coach", created_at: "2026-09-05T01:00:00Z" }, error: null };
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+function collection(report: ReportState = completed) {
+  return { facts: report.facts || context.facts, subjects: report.subjects || context.subjects,
+    items: [null, "s1"].flatMap(subject_id => (["coach", "roast"] as const).map(style => ({ ...report, subject_id, locale: "en", style,
+      report: report.report ? { ...report.report, style, id: `${subject_id || "whole"}-${style}`, summary: subject_id ? `Personal ${style} summary` : style === "roast" ? "A different tone, the same recorded shot" : report.report.summary,
+        highlights: subject_id ? [{ text: "Personal highlight", evidence_ids: ["ev1"] }] : report.report.highlights,
+        comparison: subject_id ? { text: "Personal comparison", evidence_ids: [] } : report.report.comparison,
+        suggestions: subject_id ? ["Personal next practice"] : report.report.suggestions,
+        players: subject_id ? [{ subject_id, text: "Personal player review", evidence_ids: [] }] : report.report.players } : null }))) };
+}
 function install(report: ReportState = completed) {
   vi.stubGlobal("fetch", vi.fn(async (input: string, init?: RequestInit) => {
     if (input.endsWith("/context")) return json(context);
     if (input === "/api/v1/training-profiles") return json([]);
+    if (input.includes("/reports")) return json(collection(report));
     if (input.includes("/report")) return json(report);
     if (input.includes("/comparisons")) return json({ items: [] });
     throw new Error(`Unknown route ${init?.method || "GET"} ${input}`);
   }));
 }
-beforeEach(() => { localStorage.setItem("dashanbing-locale", "en"); sessionStorage.clear(); });
+beforeEach(() => { notifySessionExpired(); localStorage.setItem("dashanbing-locale", "en"); sessionStorage.clear(); });
 
 test("settings are dismissible while the analyst report always stays visible", async () => {
   install();
@@ -31,7 +42,7 @@ test("settings are dismissible while the analyst report always stays visible", a
   expect(screen.queryByRole("button", { name: /Collapse AI/ })).not.toBeInTheDocument();
   await user.click(trigger);
   expect(screen.getByRole("dialog", { name: "Configure" })).toBeVisible();
-  expect(screen.getByLabelText("Analysis style")).toHaveFocus();
+  expect(screen.getByLabelText("View player")).toHaveFocus();
   await user.keyboard("{Escape}");
   expect(trigger).toHaveFocus();
   expect(summary).toBeVisible();
@@ -115,9 +126,9 @@ test("profile bindings are confirmed together without regenerating the original 
   expect(JSON.parse(String(writes[0][1]?.body))).toEqual({ subjects: [{ id: "s1", profile_id: "p1" }], team_profile_id: "team1", comparison_id: null });
   expect(await screen.findByText("Your recorded shot went in")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Configure" }));
-  expect(within(screen.getByRole("dialog", { name: "Configure" })).getAllByRole("combobox")).toHaveLength(1);
+  expect(within(screen.getByRole("dialog", { name: "Configure" })).getAllByRole("combobox")).toHaveLength(2);
   expect(screen.queryByLabelText("History comparison")).not.toBeInTheDocument();
-  expect(document.querySelector("[data-report-id]")).toHaveAttribute("data-report-id", "r1");
+  expect(document.querySelector("[data-report-id]")).toHaveAttribute("data-report-id", "whole-coach");
   expect(fetcher.mock.calls.filter(([url]) => String(url).includes("/report"))).toHaveLength(1);
 });
 
@@ -135,22 +146,35 @@ test("tasks without a completed result cannot chat while a completed result can 
 test("localizes backend-generated subject labels without changing subject ids", async () => {
   install({ ...completed, facts: context.facts, subjects: [{ id: "s1", label: "球员 1" }] });
   render(<LocaleProvider><AnalystPanel source={{ kind: "preset", id: "quick-demo" }} onEvidence={() => {}}/></LocaleProvider>);
-  expect(await screen.findByRole("option", { name: "Player 1" })).toHaveValue("s1");
+  await screen.findByText("Your recorded shot went in");
+  await userEvent.click(screen.getByRole("button", { name: "Configure" }));
+  expect(screen.getByRole("option", { name: "Player 1" })).toHaveValue("s1");
 });
 
-test("a personal scope keeps the full summary but hides another profile's comparison and omits it from chat", async () => {
+test("a personal scope renders its complete report and omits unrelated comparison scope from chat", async () => {
   const teamHistory = { id: "team-history", profile_id: "team1", task_id: null, occurred_at: "2026-09-01", mode: "quick", metrics: {}, media_available: false };
   vi.stubGlobal("fetch", vi.fn(async (input: string, init?: RequestInit) => {
     if (input.endsWith("/context")) return json({ ...context, team_profile_id: "team1", comparison_id: teamHistory.id, comparisons: [teamHistory] });
     if (input === "/api/v1/training-profiles") return json([{ id: "team1", kind: "team", name: "Team A" }]);
-    if (input.includes("/report")) return json({ ...completed, report: { ...completed.report, comparison: { text: "Full team baseline", evidence_ids: [] } } });
+    if (input.includes("/reports")) return json(collection({ ...completed, report: { ...completed.report!, comparison: { text: "Full team baseline", evidence_ids: [] } } }));
     return json({ detail: "Test stops before posting a message" }, 503);
   }));
   const user = userEvent.setup();
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
   expect(await screen.findByText("Full team baseline")).toBeVisible();
-  await user.selectOptions(await screen.findByLabelText("View player"), "s1");
-  expect(screen.getByText("Your recorded shot went in")).toBeVisible();
+  const toolbar = screen.getByRole("toolbar", { name: "AI analyst" });
+  await user.click(within(toolbar).getByRole("button", { name: "Compare training" }));
+  expect(toolbar).toContainElement(screen.getByRole("dialog", { name: "Compare training" }));
+  expect(document.querySelector("#analyst-body select")).toBeNull();
+  await user.keyboard("{Escape}");
+  await user.click(screen.getByRole("button", { name: "Configure" }));
+  await user.selectOptions(screen.getByLabelText("View player"), "s1");
+  expect(screen.getByText("Personal coach summary")).toBeVisible();
+  expect(screen.getByText("Personal highlight")).toBeVisible();
+  expect(screen.getByText("Personal player review")).toBeVisible();
+  expect(screen.getByText("Personal comparison")).toBeVisible();
+  expect(screen.getByText("Personal next practice")).toBeVisible();
+  await user.keyboard("{Escape}");
   expect(screen.queryByText("Full team baseline")).not.toBeInTheDocument();
   expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "PUT")).toHaveLength(0);
   await user.type(screen.getByLabelText("Ask the analyst"), "My next practice?");
@@ -158,20 +182,53 @@ test("a personal scope keeps the full summary but hides another profile's compar
   await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/v1/analyst/conversations", expect.objectContaining({ method: "POST", body: JSON.stringify({ task_id: "t1", subject_id: "s1", locale: "en", style: "coach" }) })));
 });
 
-test("changing configuration is a draft until applied, then loads the chosen report style", async () => {
-  install();
-  const fetcher = vi.mocked(fetch); const base = fetcher.getMockImplementation()!;
-  fetcher.mockImplementation(async (input, init) => String(input).includes("style=roast") ? json({ ...completed, report: { ...completed.report!, id: "roast-report", style: "roast", summary: "A different tone, the same recorded shot" } }) : base(input, init));
+test("top config has exactly two immediate cached selectors and all report controls stay in the toolbar", async () => {
+  install(); const user = userEvent.setup();
+  render(<LocaleProvider><AnalystPanel accountId={7} source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
+  await screen.findByText("Your recorded shot went in");
+  const toolbar = screen.getByRole("toolbar", { name: "AI analyst" });
+  expect(within(toolbar).getByRole("button", { name: "Regenerate report" })).toBeVisible();
+  expect(within(toolbar).getByRole("button", { name: "Bind profiles" })).toBeVisible();
+  await user.click(within(toolbar).getByRole("button", { name: "Configure" }));
+  const config = screen.getByRole("dialog", { name: "Configure" });
+  expect(within(config).getAllByRole("combobox")).toHaveLength(2);
+  expect(within(config).queryByRole("button")).not.toBeInTheDocument();
+  await user.selectOptions(screen.getByLabelText("Analysis style"), "roast");
+  expect(screen.getByText("A different tone, the same recorded shot")).toBeVisible();
+  await user.selectOptions(screen.getByLabelText("View player"), "s1");
+  expect(screen.getByText("Personal roast summary")).toBeVisible();
+  await user.selectOptions(screen.getByLabelText("Analysis style"), "coach");
+  expect(screen.getByText("Personal coach summary")).toBeVisible();
+  expect(document.querySelector("#analyst-body select")).toBeNull();
+  expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/reports"))).toHaveLength(1);
+  expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+});
+
+test("refresh retains the selected personal body through queued generation and does not block cached switching", async () => {
+  install(); const fetcher = vi.mocked(fetch), base = fetcher.getMockImplementation()!;
+  let finish!: (value: Response) => void;
+  fetcher.mockImplementation(async (input, init) => init?.method === "POST" ? new Promise<Response>(resolve => { finish = resolve; }) : base(input, init));
   const user = userEvent.setup();
   render(<LocaleProvider><AnalystPanel source={{ kind: "task", id: "t1" }} onEvidence={() => {}}/></LocaleProvider>);
   await screen.findByText("Your recorded shot went in");
   await user.click(screen.getByRole("button", { name: "Configure" }));
+  await user.selectOptions(screen.getByLabelText("View player"), "s1");
+  await user.keyboard("{Escape}");
+  await user.click(screen.getByRole("button", { name: "Regenerate report" }));
+  expect(screen.getByText("Personal coach summary")).toBeVisible();
+  finish(json({ status: "queued", report: null, error: null }));
+  expect(await screen.findByText("Analysis queued")).toBeVisible();
+  expect(screen.getByText("Personal coach summary")).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Configure" }));
   await user.selectOptions(screen.getByLabelText("Analysis style"), "roast");
-  expect(screen.getByText("Your recorded shot went in")).toBeVisible();
-  expect(fetcher.mock.calls.some(([url]) => String(url).includes("style=roast"))).toBe(false);
-  await user.click(screen.getByRole("button", { name: "Apply and update analysis" }));
-  expect(await screen.findByText("A different tone, the same recorded shot")).toBeVisible();
-  expect(screen.getByRole("button", { name: "Configure" })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByText("Personal roast summary")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Regenerate report" })).toBeEnabled();
+  await user.selectOptions(screen.getByLabelText("Analysis style"), "coach");
+  expect(screen.getByText("Personal coach summary")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Regenerate report" })).toBeDisabled();
+  const posts = fetcher.mock.calls.filter(([, init]) => init?.method === "POST");
+  expect(posts).toHaveLength(1);
+  expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ locale: "en", style: "coach", regenerate: true, subject_id: "s1" });
 });
 
 test("profile context can recover independently while keeping the original report", async () => {

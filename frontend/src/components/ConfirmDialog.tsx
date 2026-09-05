@@ -1,3 +1,4 @@
+import { Icon } from "./Icon";
 import { useEffect, useRef } from "react";
 import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 
@@ -31,7 +32,7 @@ export function ConfirmDialog({ title, message, confirmLabel, danger = false, bu
   }, [busy, onClose]);
   return <div className="dialog-backdrop" onMouseDown={(event) => { if (!busy && event.target === event.currentTarget) onClose(); }}>
     <section ref={dialogRef} className="confirm-dialog" role="dialog" aria-modal="true" aria-busy={busy || undefined} aria-labelledby="confirm-title" aria-describedby="confirm-message" tabIndex={-1}>
-      <span className={`dialog-icon${danger ? " danger" : ""}`} aria-hidden="true">!</span><h2 id="confirm-title">{title}</h2><p id="confirm-message">{message}</p>
+      <span className={`dialog-icon${danger ? " danger" : ""}`} aria-hidden="true"><Icon name="alert" size={24}/></span><h2 id="confirm-title">{title}</h2><p id="confirm-message">{message}</p>
       <div><button ref={cancelRef} className="button button-outline" type="button" disabled={busy} onClick={onClose}>{wt("dismiss")}</button><button className={`button ${danger ? "button-danger" : "button-primary"}`} type="button" disabled={busy} onClick={onConfirm}>{confirmLabel}</button></div>
     </section>
   </div>;

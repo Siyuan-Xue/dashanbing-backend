@@ -43,22 +43,38 @@ class GlmUsage:
 class GlmError(Exception):
     """Safe to surface or log; contains no upstream request or response object."""
 
-    def __init__(self, code: str, *, retryable: bool, status_code: int | None = None):
+    def __init__(self, code: str, *, retryable: bool, status_code: int | None = None, retry_after_seconds: float | None = None):
         super().__init__("GLM request failed.")
         self.code = code
         self.retryable = retryable
         self.status_code = status_code
+        self.retry_after_seconds = retry_after_seconds
 
 
 def _invalid_response() -> GlmError:
     return GlmError("invalid_response", retryable=False)
 
 
-def _http_error(status: int) -> GlmError:
+def _http_error(status: int, retry_after: str | None = None) -> GlmError:
+    delay = None
+    if retry_after:
+        try:
+            number = float(retry_after)
+            if math.isfinite(number):
+                delay = min(3600, max(0, number))
+        except ValueError:
+            from email.utils import parsedate_to_datetime
+            from datetime import datetime, timezone
+            try:
+                date = parsedate_to_datetime(retry_after)
+                delay = min(3600, max(0, (date - datetime.now(timezone.utc)).total_seconds()))
+            except (ValueError, TypeError, OverflowError):
+                pass
     return GlmError(
         "rate_limited" if status == 429 else "upstream_error",
         retryable=status == 429 or 500 <= status < 600,
         status_code=status,
+        retry_after_seconds=delay,
     )
 
 
@@ -278,7 +294,7 @@ class GlmClient:
             ) as response:
                 if not 200 <= response.status_code < 300:
                     # Do not read, log or attach an error body.
-                    raise _http_error(response.status_code)
+                    raise _http_error(response.status_code, response.headers.get("Retry-After"))
                 yield response
         except httpx.TimeoutException:
             raise GlmError("timeout", retryable=True) from None

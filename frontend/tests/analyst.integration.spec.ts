@@ -80,6 +80,7 @@ async function fixture(page: Page, locale: 'en' | 'zh'='en', options: FixtureOpt
       if(index<0)comparisonItems.push(item); else comparisonItems[index]=item;
       return route.fulfill({status:202,json:item});
     }
+    if(path.endsWith('/analyst/reports') && req.method()==='GET')return route.fulfill({json:{facts,subjects,items:[null,...subjects.map(subject=>subject.id)].flatMap(subject_id=>['coach','roast'].map(style=>({subject_id,locale,style,status:'completed',error:null,report:subject_id===null && style==='coach' ? report : {...report,id:`qa-${subject_id || 'session'}-${style}`,style,summary:`${subject_id || 'session'} ${style} full report`,highlights:report.highlights.filter(item=>item.evidence_ids.every(id=>!subject_id || evidence.find(e=>e.id===id)?.subject_id===subject_id)),players:report.players.filter(item=>!subject_id || item.subject_id===subject_id)}})))}});
     if(path.endsWith('/analyst/report'))return route.fulfill({json:{status:'completed',report,error:null}});
     if(path==='/api/v1/analyst/conversations')return route.fulfill({status:201,json:{id:'qa-conversation',messages:[]}});
     if(path.endsWith('/qa-conversation/messages')) {
@@ -98,7 +99,7 @@ async function fixture(page: Page, locale: 'en' | 'zh'='en', options: FixtureOpt
     report,requests,unexpectedRequests,
     get analystCalls(){return analystCalls;},
     get contextWrites(){return requests.filter(item=>item.path===`${analystRoot}/context` && item.method==='PUT');},
-    get reportRequests(){return requests.filter(item=>item.path===`${analystRoot}/report`);},
+    get reportRequests(){return requests.filter(item=>[`${analystRoot}/report`,`${analystRoot}/reports`].includes(item.path));},
     get comparisonPosts(){return requests.filter(item=>item.path===`${analystRoot}/comparisons` && item.method==='POST');},
     get comparisonGets(){return requests.filter(item=>item.path===`${analystRoot}/comparisons` && item.method==='GET');},
     get mutations(){return requests.filter(item=>!['GET','HEAD'].includes(item.method));},
@@ -119,8 +120,9 @@ for(const width of [320,390,768,1440,1920])for(const locale of ['zh','en'] as co
     expect(r!.y+r!.height).toBeLessThanOrEqual(a!.y+2);
     expect(Math.abs(v!.width-a!.width)).toBeLessThan(2);
     const columns=await page.locator('.analyst-report-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').map(Number.parseFloat));
-    expect(columns.length).toBe(width>=1280?2:1);
-    if(columns.length===2)expect(columns[0]/columns[1]).toBeCloseTo(1.2,1);
+    expect(columns.length).toBe(1);
+    const toolbarItems=await page.locator('.analyst-header h2, .analyst-header-actions > .analyst-settings > button, .analyst-bind-button, .analyst-refresh').evaluateAll(elements=>elements.map(element=>{const box=element.getBoundingClientRect();return box.y+box.height/2}));
+    expect(Math.max(...toolbarItems)-Math.min(...toolbarItems)).toBeLessThan(2);
     const reportBox=await page.locator('.analyst-report').boundingBox(),chatBox=await page.locator('.analyst-chat').boundingBox();
     expect(chatBox!.y).toBeGreaterThanOrEqual(reportBox!.y+reportBox!.height);
     await page.locator('.analyst-settings > button').click();
@@ -163,6 +165,57 @@ test('homepage adds analyst capability without querying analyst API',async({page
   await expect(page.getByText('AI 分析师，看懂这一场，练好下一场',{exact:true})).toBeVisible();
   expect(api.analystCalls).toBe(0);
   await expect(page.getByRole('link',{name:'开始一次复盘',exact:true})).toBeVisible();
+});
+
+test('completed player and tone switches use the loaded collection without generation requests',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('dashanbing-locale','en'));
+  const api=await fixture(page);
+  await page.goto(`/workspace/tasks/${task.id}`);
+  await expect(page.locator('[data-report-id="explicit-qa-fixture"]')).toBeVisible();
+  const reads=api.reportRequests.length;
+  await page.getByRole('button',{name:'Configure',exact:true}).click();
+  const selectors=page.getByRole('dialog',{name:'Configure',exact:true}).getByRole('combobox');
+  for(const subject of ['player_1','player_2',''])for(const style of ['coach','roast']){
+    await selectors.nth(0).selectOption(subject);
+    await selectors.nth(1).selectOption(style);
+    const id=!subject && style==='coach' ? 'explicit-qa-fixture' : `qa-${subject || 'session'}-${style}`;
+    await expect(page.locator(`[data-report-id="${id}"]`)).toBeVisible();
+  }
+  expect(api.reportRequests).toHaveLength(reads);
+  expect(api.mutations).toEqual([]);
+  expect(api.unexpectedRequests).toEqual([]);
+});
+
+for(const width of [768,800,900,1024])test(`expanded tablet sidebar preserves the analyst toolbar at ${width}px`,async({page},info)=>{
+  test.skip(info.project.name!=='desktop-chromium','Explicit tablet widths');
+  await page.setViewportSize({width,height:700});
+  await page.addInitScript(()=>localStorage.setItem('dashanbing-locale','en'));
+  await fixture(page,'en',{withProfiles:true,initiallyBound:true});
+  await page.goto(`/workspace/tasks/${task.id}`);
+  await expect(page.getByRole('button',{name:'Compare training',exact:true})).toBeEnabled();
+  await page.locator('.workspace-collapsed-header .workspace-collapse').click();
+  const toolbar=page.getByRole('toolbar',{name:'AI analyst',exact:true});
+  await toolbar.scrollIntoViewIfNeeded();
+  const heading=await toolbar.getByRole('heading').boundingBox();
+  const controls=await toolbar.getByRole('button').evaluateAll(elements=>elements.map(element=>{const box=element.getBoundingClientRect();return {right:box.right,center:box.y+box.height/2}}));
+  expect(heading!.width).toBeGreaterThan(100);
+  expect(heading!.height).toBeLessThan(40);
+  for(const control of controls){expect(control.right).toBeLessThanOrEqual(width);expect(Math.abs(control.center-heading!.y-heading!.height/2)).toBeLessThan(2);}
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+for(const [width,height] of [[320,568],[390,664],[1440,768],[1920,700]])test(`AI showcase fits a short screen ${width}x${height}`,async({page},info)=>{
+  test.skip(info.project.name!=='desktop-chromium','Explicit short viewports');
+  await page.setViewportSize({width,height});
+  await page.addInitScript(()=>localStorage.setItem('dashanbing-locale','en'));
+  const api=await fixture(page);
+  await page.goto('/');
+  const showcase=page.locator('.ai-showcase');
+  await showcase.scrollIntoViewIfNeeded();
+  await showcase.locator('picture img').evaluate((image:HTMLImageElement)=>image.decode());
+  expect((await showcase.boundingBox())!.height).toBeLessThanOrEqual(height);
+  await expect(showcase.getByRole('link',{name:'View AI review'})).toBeVisible();
+  expect(api.analystCalls).toBe(0);
 });
 
 const flowCopy = {
@@ -225,13 +278,13 @@ for(const {width,locale,theme} of profileFlows) {
     expect(api.mutations).toEqual([]);
     const initialReportRequests=api.reportRequests.length;
 
-    // Configure has only analysis style; binding and comparison are separate actions.
+    // Configure only changes player and style; binding and comparison stay separate.
     await page.getByRole('button',{name:t.configure,exact:true}).click();
     const settings=page.getByRole('dialog',{name:t.configure,exact:true});
     await expect(settings).toBeVisible();
-    await expect(settings.getByRole('combobox')).toHaveCount(1);
+    await expect(settings.getByRole('combobox')).toHaveCount(2);
     await expect(settings.getByRole('combobox',{name:t.style,exact:true})).toHaveValue('coach');
-    await expect(settings.getByRole('option')).toHaveCount(2);
+    await expect(settings.getByRole('option')).toHaveCount(5);
     await expect(settings.getByRole('combobox',{name:t.history,exact:true})).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(settings).toBeHidden();

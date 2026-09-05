@@ -1,5 +1,5 @@
 import { jsonInit, request } from "../workspace/api";
-import type { AnalystContext, ComparisonReportState, AnalystLocale, AnalystSource, AnalystStyle, ContextInput, Conversation, Observation, ProfileInput, ReportState, TrainingProfile } from "./types";
+import type { AnalystContext, ComparisonReportState, AnalystLocale, AnalystSource, AnalystStyle, ContextInput, Conversation, Observation, ProfileInput, ReportCollection, ReportState, TrainingProfile } from "./types";
 const encode = encodeURIComponent;
 const root = "/api/v1";
 export const analystPath = (source: AnalystSource) => `${root}/${source.kind === "task" ? "tasks" : "presets"}/${encode(source.id)}/analyst`;
@@ -16,9 +16,14 @@ export const analystApi = {
     if (!value || !["disabled", "waiting", "queued", "running", "completed", "failed"].includes(value.status) || (value.status === "completed" && !value.report)) throw new Error("Invalid analyst response");
     return value;
   },
-  generate: (source: AnalystSource, locale: AnalystLocale, style: AnalystStyle, regenerate: boolean, signal?: AbortSignal) => {
+  reports: (source: AnalystSource, locale: AnalystLocale, signal?: AbortSignal) => request<ReportCollection>(`${analystPath(source)}/reports?${new URLSearchParams({ locale })}`, { signal }).then(validateCollection),
+  ensureReports: (source: AnalystSource, locale: AnalystLocale, signal?: AbortSignal) => {
     if (source.kind === "preset") return Promise.reject(new Error("Preset reports are read only"));
-    return request<ReportState>(`${analystPath(source)}/report`, { ...jsonInit("POST", { locale, style, regenerate }), signal });
+    return request<ReportCollection>(`${analystPath(source)}/reports`, { ...jsonInit("POST", { locale }), signal }).then(validateCollection);
+  },
+  generate: (source: AnalystSource, locale: AnalystLocale, style: AnalystStyle, regenerate: boolean, signal?: AbortSignal, subjectId?: string | null) => {
+    if (source.kind === "preset") return Promise.reject(new Error("Preset reports are read only"));
+    return request<ReportState>(`${analystPath(source)}/report`, { ...jsonInit("POST", { locale, style, regenerate, ...(subjectId !== undefined ? { subject_id: subjectId } : {}) }), signal });
   },
   comparisons: (source: AnalystSource, locale: AnalystLocale, style: AnalystStyle, signal?: AbortSignal) => request<{ items: ComparisonReportState[] }>(`${analystPath(source)}/comparisons?${new URLSearchParams({ locale, style })}`, { signal }).then(value => { if (!value || !Array.isArray(value.items)) throw new Error("Invalid comparison response"); return value.items; }),
   compare: (source: AnalystSource, comparison_id: string, locale: AnalystLocale, style: AnalystStyle, signal?: AbortSignal) => request<ComparisonReportState>(`${analystPath(source)}/comparisons`, { ...jsonInit("POST", { comparison_id, locale, style }), signal }),
@@ -27,3 +32,12 @@ export const analystApi = {
   send: (id: string, content: string, requestId: string, signal?: AbortSignal) => request<{ message_id: string; job_id: string }>(`${root}/analyst/conversations/${encode(id)}/messages`, { ...jsonInit("POST", { content, request_id: requestId }), signal }),
   eventsUrl: (id: string) => `${root}/analyst/conversations/${encode(id)}/events`,
 };
+
+function validateCollection(value: ReportCollection) {
+  if (!value?.facts || !Array.isArray(value.subjects) || !Array.isArray(value.items) || value.items.some(item =>
+    !item || !(item.subject_id === null || typeof item.subject_id === "string") ||
+    !["zh", "en"].includes(item.locale) || !["coach", "roast"].includes(item.style) ||
+    !["disabled", "waiting", "queued", "running", "completed", "failed"].includes(item.status) ||
+    (item.status === "completed" && !item.report))) throw new Error("Invalid analyst collection");
+  return value;
+}

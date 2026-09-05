@@ -137,6 +137,7 @@ class Analysis(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     title: str = Field(min_length=1, max_length=120)
     mode: str = Field(default="full", max_length=16)
+    analyst_locale: str = Field(default="zh", max_length=2)
     source_type: str = Field(default="upload", max_length=16)
     preset_id: str | None = Field(default=None, max_length=64)
     status: str = Field(default="queued", index=True, max_length=32)
@@ -238,16 +239,19 @@ TaskInputSlot = Literal[
 class PresetRerunRequest(SQLModel):
     preset_id: str
     mode: TaskMode = "full"
+    analyst_locale: Literal["zh", "en"] = "zh"
 
 
 class TaskCreate(SQLModel):
     title: str = Field(min_length=1, max_length=120)
     mode: TaskMode = "full"
+    analyst_locale: Literal["zh", "en"] = "zh"
 
 
 class TaskUpdate(SQLModel):
     title: str = Field(min_length=1, max_length=120)
     mode: TaskMode
+    analyst_locale: Literal["zh", "en"] | None = None
 
     @field_validator("title", mode="before")
     @classmethod
@@ -286,6 +290,7 @@ class TaskPublic(SQLModel):
     id: str
     title: str
     mode: TaskMode
+    analyst_locale: Literal["zh", "en"] = "zh"
     source_type: str
     preset_id: str | None
     status: TaskPublicStatus

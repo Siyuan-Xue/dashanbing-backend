@@ -1,3 +1,4 @@
+import { Icon } from "./Icon";
 import { Link } from "react-router-dom";
 import { useLocale } from "../providers/LocaleProvider";
 import { localizePreset } from "../workspace/labels";
@@ -13,7 +14,7 @@ export function PresetCards({ presets }: { presets: Preset[] }) {
     const localized = localizePreset(locale, preset);
     return <article className={`preset-card preset-tone-${index + 1}`} data-testid="preset-card" key={preset.id}>
       <div className="preset-art" aria-hidden="true">{previewImages[preset.id] && <img src={`/assets/previews/${previewImages[preset.id]}.webp`} width="1920" height="1080" loading="lazy" alt=""/>}</div>
-      <div className="preset-card-copy"><small>{preset.expected_minutes.toFixed(1)} {wt("minutes")} · {localized.tag}</small><h3>{localized.title}</h3><p>{localized.description}</p><Link to={`/workspace/examples/${preset.id}`}>{wt("viewPreset")} <span aria-hidden="true">→</span></Link></div>
+      <div className="preset-card-copy"><small>{preset.expected_minutes.toFixed(1)} {wt("minutes")} · {localized.tag}</small><h3>{localized.title}</h3><p>{localized.description}</p><Link to={`/workspace/examples/${preset.id}`}>{wt("viewPreset")} <Icon name="arrow" size={18}/></Link></div>
     </article>
   })}</div>;
 }

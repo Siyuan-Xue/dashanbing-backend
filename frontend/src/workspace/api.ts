@@ -75,13 +75,13 @@ function taskListSearch(query: TaskListQuery) {
 }
 
 export const workspaceApi = {
-  createTask: (title: string, mode: TaskMode) => {
-    const body: CreateTaskRequest = { title, mode };
+  createTask: (title: string, mode: TaskMode, analystLocale: "zh" | "en" = "zh") => {
+    const body: CreateTaskRequest = { title, mode, analyst_locale: analystLocale };
     return request<Task>("/api/v1/tasks", jsonInit("POST", body));
   },
   submitTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/submit`, jsonInit("POST")),
-  updateDraft: (taskId: string, title: string, mode: TaskMode) => {
-    const body: UpdateDraftRequest = { title, mode };
+  updateDraft: (taskId: string, title: string, mode: TaskMode, analystLocale?: "zh" | "en") => {
+    const body: UpdateDraftRequest = { title, mode, ...(analystLocale ? { analyst_locale: analystLocale } : {}) };
     return request<Task>(`/api/v1/tasks/${taskId}`, jsonInit("PATCH", body));
   },
   getTask: (taskId: string, signal?: AbortSignal) => request<Task>(`/api/v1/tasks/${taskId}`, { signal }),
@@ -92,8 +92,8 @@ export const workspaceApi = {
   taskResult: (taskId: string, signal?: AbortSignal) => request<ProductResult>(`/api/v1/tasks/${taskId}/result`, { signal }),
   presets: () => request<Preset[]>("/api/v1/presets"),
   presetResult: (presetId: string) => request<ProductResult>(`/api/v1/presets/${encodeURIComponent(presetId)}/result`),
-  createFromPreset: (presetId: string, mode: TaskMode) => {
-    const body: CreateFromPresetRequest = { preset_id: presetId, mode };
+  createFromPreset: (presetId: string, mode: TaskMode, analystLocale: "zh" | "en" = "zh") => {
+    const body: CreateFromPresetRequest = { preset_id: presetId, mode, analyst_locale: analystLocale };
     return request<Task>("/api/v1/tasks/from-preset", jsonInit("POST", body));
   },
   usage: () => request<AccountUsage>("/api/v1/account/usage"),

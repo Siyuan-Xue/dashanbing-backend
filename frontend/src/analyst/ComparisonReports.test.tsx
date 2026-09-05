@@ -89,3 +89,12 @@ test("queued comparison polls to completion without posting again", async () => 
     expect(writes()).toHaveLength(1);
   } finally { vi.useRealTimers(); }
 });
+
+test("failed comparison retries stay inside the top picker without adding toolbar buttons", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ items: [{ ...complete, status: "failed", report: null }] })));
+  const user = userEvent.setup(); render(ui());
+  await screen.findByText("Analysis failed");
+  expect(screen.queryByRole("button", { name: "Retry comparison" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Compare training" }));
+  expect(within(screen.getByRole("dialog")).getByRole("button", { name: /Retry comparison/ })).toBeVisible();
+});

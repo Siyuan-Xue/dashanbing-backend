@@ -15,6 +15,18 @@ USAGE = {"prompt_tokens": 8, "completion_tokens": 12, "total_tokens": 20}
 SECRET = "private-key-or-upstream-reasoning"
 
 
+@pytest.mark.parametrize("mode", ["json", "stream"])
+def test_rate_limit_exposes_only_safe_retry_delay(mode):
+    async def run():
+        async with glm.GlmClient("key", transport=httpx.MockTransport(
+                lambda request: httpx.Response(429, headers={"Retry-After": "90"}, text=SECRET))) as client:
+            with pytest.raises(glm.GlmError) as caught:
+                await invoke(client, mode)
+        assert caught.value.retry_after_seconds == 90
+        assert SECRET not in repr(caught.value)
+    asyncio.run(run())
+
+
 def completion(content='{"summary":"ok"}', finish_reason="stop", **extra):
     return {
         "id": "provider-id",

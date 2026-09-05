@@ -122,6 +122,7 @@ def create_task(
         owner_id=current_user.id,
         submitted_at=None,
         created_via="tasks_api",
+        analyst_locale=payload.analyst_locale,
     )
     _commit(session, task)
     return task_public(task, session)
@@ -161,6 +162,7 @@ def create_task_from_preset(
         owner_id=current_user.id,
         submitted_at=now,
         created_via="tasks_preset",
+        analyst_locale=payload.analyst_locale,
     )
     session.add(task)
     session.flush()
@@ -230,6 +232,8 @@ def update_task(
         raise HTTPException(status_code=409, detail="Only draft task metadata can be changed")
     task.title = payload.title
     task.mode = payload.mode
+    if payload.analyst_locale is not None:
+        task.analyst_locale = payload.analyst_locale
     _commit(session, task)
     return task_public(task, session)
 

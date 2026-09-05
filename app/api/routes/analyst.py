@@ -18,14 +18,39 @@ from app.services.analyst import (
     require_complete, require_configured, replay_message, submit_message,
 )
 from app.services.analyst_facts import load_task_facts, load_preset_facts
+from app.analyst_reports import ReportsRequest, ReportsCollection
+from app.services.analyst_collections import current_reports, request_reports, preset_reports, saved_preset_report
 
 router = APIRouter(tags=["AI analyst"])
 
 
 @router.get('/tasks/{task_id}/analyst/report', response_model=ReportState)
-def get_report(task_id: str, request: Request, locale: Locale = 'zh', style: Style = 'coach', session: Session = Depends(get_session), user: User = Depends(get_current_user)):
+def get_report(task_id: str, request: Request, locale: Locale = 'zh', style: Style = 'coach', subject_id: str | None = None, session: Session = Depends(get_session), user: User = Depends(get_current_user)):
     task = owned_task(session, task_id, user.id)
-    return current_report(request.app, session, task, locale, style)
+    return current_report(request.app, session, task, locale, style, subject_id)
+
+
+@router.get('/tasks/{task_id}/analyst/reports', response_model=ReportsCollection)
+def get_reports(task_id: str, request: Request, locale: Locale = 'zh', session: Session = Depends(get_session), user: User = Depends(get_current_user)):
+    return current_reports(request.app, session, owned_task(session, task_id, user.id), locale)
+
+
+@router.post('/tasks/{task_id}/analyst/reports', response_model=ReportsCollection, status_code=202)
+def ensure_reports(task_id: str, payload: ReportsRequest, request: Request, session: Session = Depends(get_session), user: User = Depends(get_current_user)):
+    owner_id = user.id
+    task = owned_task(session, task_id, owner_id)
+    require_complete(task)
+    require_configured(request.app)
+    version = task.updated_at
+    facts = load_task_facts(request.app, task)
+    session.rollback()
+    session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+    task = owned_task(session, task_id, owner_id)
+    if task.updated_at != version:
+        raise HTTPException(409, '任务已变化，请重新读取结果')
+    result = request_reports(request.app, session, task, payload.locale, facts=facts)
+    session.commit()
+    return result
 
 
 @router.post('/tasks/{task_id}/analyst/report', response_model=ReportState, status_code=202)
@@ -80,21 +105,19 @@ class PresetReportState(ReportState):
 
 
 @router.get('/presets/{preset_id}/analyst/report', response_model=PresetReportState)
-def preset_report(preset_id: str, request: Request, locale: Locale = 'zh', style: Style = 'coach', session: Session = Depends(get_session), user: User = Depends(get_current_user)):
+def preset_report(preset_id: str, request: Request, locale: Locale = 'zh', style: Style = 'coach', subject_id: str | None = None, session: Session = Depends(get_session), user: User = Depends(get_current_user)):
     try:
         facts, _ = facts_and_memory(request.app, session, preset_id=preset_id)
     except (KeyError, FileNotFoundError):
         raise HTTPException(404, 'Preset not found') from None
-    state = {'status': 'waiting' if configured(request.app) else 'disabled', 'facts': facts.model_dump(), 'subjects': [s.model_dump() | {'profile_id': None} for s in facts.subjects]}
-    path = request.app.state.settings.runtime_root / 'analyst-presets' / preset_id / f'{locale}-{style}.json'
-    if path.is_file():
-        try:
-            saved = json.loads(path.read_text(encoding='utf-8'))
-            if saved['facts_hash'] == digest(facts.model_dump()) and saved.get('verified') and saved['report']['model'] == 'glm-5.3':
-                return PresetReportState(**(state | {'status':'completed','report':saved['report'],'provenance':{'provider':'glm','verified':True,'facts_hash':saved['facts_hash']}}))
-        except (KeyError, ValueError):
-            pass
-    return PresetReportState(**state)
+    state = saved_preset_report(request.app, preset_id, facts, locale, style, subject_id)
+    return PresetReportState(**state.model_dump(), facts=facts.model_dump(), subjects=[s.model_dump() | {'profile_id': None} for s in facts.subjects],
+                            provenance={'provider':'glm','verified':True,'facts_hash':digest(facts.model_dump())} if state.report else None)
+
+
+@router.get('/presets/{preset_id}/analyst/reports', response_model=ReportsCollection)
+def get_preset_reports(preset_id: str, request: Request, locale: Locale = 'zh', user: User = Depends(get_current_user)):
+    return preset_reports(request.app, preset_id, locale)
 
 
 @router.post('/analyst/conversations', response_model=ConversationPublic, status_code=201)

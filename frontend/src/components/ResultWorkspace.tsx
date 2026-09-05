@@ -67,7 +67,7 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
         {mediaKinds.map((kind) => <button key={kind} id={`${id}-${kind}`} type="button" role="tab" aria-selected={mediaKind === kind} aria-controls={`${id}-media-panel`} tabIndex={mediaKind === kind ? 0 : -1} disabled={!result?.media[kind]} onClick={() => setMediaKind(kind)}>{mediaLabels[kind]}</button>)}
       </div>
       <div id={`${id}-media-panel`} className="media-stage" role="tabpanel" aria-labelledby={`${id}-${mediaKind}`} tabIndex={0}>
-        {src ? <ResultVideo key={src} src={src} seek={seek} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><div>{task && ["queued", "running"].includes(task.status) ? <><span className="analysis-orbit" aria-hidden="true"/><b>{taskStageMessageLabel(locale, task.stage_message)}</b><p>{task.progress}%</p></> : <><span className="media-empty-icon" aria-hidden="true">▷</span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
+        {src ? <ResultVideo key={src} src={src} seek={seek} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><div>{task && ["queued", "running"].includes(task.status) ? <><Icon name="refresh" size={28} spin/><b>{taskStageMessageLabel(locale, task.stage_message)}</b><p>{task.progress}%</p></> : <><span className="media-empty-icon" aria-hidden="true"><Icon name="play" size={28}/></span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
       </div>
     </section>
     <section className="result-insights-panel" aria-label={wt("resultViews")}>

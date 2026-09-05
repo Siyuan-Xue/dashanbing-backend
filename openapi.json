@@ -1400,6 +1400,22 @@
               "default": "coach",
               "title": "Style"
             }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
           }
         ],
         "responses": {
@@ -1459,6 +1475,112 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReportState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/analyst/reports": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Get Reports",
+        "operationId": "get_reports_api_v1_tasks__task_id__analyst_reports_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh",
+                "en"
+              ],
+              "type": "string",
+              "default": "zh",
+              "title": "Locale"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Ensure Reports",
+        "operationId": "ensure_reports_api_v1_tasks__task_id__analyst_reports_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportsCollection"
                 }
               }
             }
@@ -1640,6 +1762,22 @@
               "default": "coach",
               "title": "Style"
             }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
           }
         ],
         "responses": {
@@ -1649,6 +1787,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PresetReportState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets/{preset_id}/analyst/reports": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Get Preset Reports",
+        "operationId": "get_preset_reports_api_v1_presets__preset_id__analyst_reports_get",
+        "parameters": [
+          {
+            "name": "preset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preset Id"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh",
+                "en"
+              ],
+              "type": "string",
+              "default": "zh",
+              "title": "Locale"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportsCollection"
                 }
               }
             }
@@ -3443,6 +3637,15 @@
             ],
             "title": "Mode",
             "default": "full"
+          },
+          "analyst_locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Analyst Locale",
+            "default": "zh"
           }
         },
         "type": "object",
@@ -3736,6 +3939,17 @@
             "type": "boolean",
             "title": "Regenerate",
             "default": false
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
           }
         },
         "type": "object",
@@ -3782,6 +3996,130 @@
           "status"
         ],
         "title": "ReportState"
+      },
+      "ReportVariant": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "waiting",
+              "queued",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Locale"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "coach",
+              "roast"
+            ],
+            "title": "Style"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "locale",
+          "style"
+        ],
+        "title": "ReportVariant"
+      },
+      "ReportsCollection": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportVariant"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "facts": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Facts"
+          },
+          "subjects": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
+          }
+        },
+        "type": "object",
+        "title": "ReportsCollection"
+      },
+      "ReportsRequest": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Locale",
+            "default": "zh"
+          }
+        },
+        "type": "object",
+        "title": "ReportsRequest"
       },
       "RetentionDescriptions": {
         "properties": {
@@ -3852,6 +4190,15 @@
             ],
             "title": "Mode",
             "default": "full"
+          },
+          "analyst_locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Analyst Locale",
+            "default": "zh"
           }
         },
         "type": "object",
@@ -3953,6 +4300,15 @@
               "full"
             ],
             "title": "Mode"
+          },
+          "analyst_locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Analyst Locale",
+            "default": "zh"
           },
           "source_type": {
             "type": "string",
@@ -4108,6 +4464,21 @@
               "full"
             ],
             "title": "Mode"
+          },
+          "analyst_locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh",
+                  "en"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analyst Locale"
           }
         },
         "type": "object",

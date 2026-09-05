@@ -151,15 +151,21 @@
 .task-filter-actions .button-quiet { background: var(--surface-subtle); border-color: transparent; }
 .task-filter-actions .button-quiet:hover { background: var(--border); }
 
-.task-table-wrap { max-width: 100%; overflow-x: auto; }
-.task-table { width: 100%; min-width: 770px; border-collapse: collapse; table-layout: fixed; }
-.task-table th { height: 44px; position: relative; padding: 8px 16px 16px; color: var(--muted); text-align: left; font-size: 14px; font-weight: 400; }
+.task-table-wrap { min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.task-table { width: 100%; min-width: 900px; border-collapse: collapse; table-layout: fixed; }
+.task-table th { height: 44px; position: relative; padding: 8px 16px; line-height: 20px; color: var(--muted); text-align: left; font-size: 14px; font-weight: 400; }
 .task-table th + th::before { content: ""; position: absolute; left: 0; top: 8px; height: 20px; border-left: 1px solid var(--border); }
-.task-table th:first-child { width: 24%; }
-.task-table th:nth-child(2) { width: 13%; }
-.task-table th:nth-child(3) { width: 10%; }
-.task-table th:nth-child(4) { width: 12%; }
-.task-table th:nth-child(5) { width: 17%; }
+.task-table th:first-child { width: auto; }
+.task-table th:nth-child(2) { width: 130px; }
+.task-table th:nth-child(3) { width: 90px; }
+.task-table th:nth-child(4) { width: 180px; }
+.task-table th:nth-child(5) { width: 170px; }
+.task-table th:last-child { width: 128px; }
+.task-table td:last-child { padding-inline: 8px; }
+.task-table .table-actions { flex-wrap: nowrap; gap: 2px; }
+.task-progress { display: flex; align-items: center; gap: 10px; width: 100%; }
+.task-progress .mini-progress { flex: 1; min-width: 70px; margin: 0; }
+.task-progress > span { flex: none; min-width: 4ch; text-align: right; font-variant-numeric: tabular-nums; }
 .task-table td { height: 68px; padding: 12px 16px; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); color: var(--text-soft); font-size: 14px; vertical-align: middle; }
 .task-title-link { min-width: 0; display: flex; align-items: center; gap: 12px; }
 .task-title-link > span:last-child { min-width: 0; display: flex; flex-direction: column; }
@@ -326,6 +332,7 @@
 
 /* Shared loading, failure and confirmation states. */
 .workspace-state { min-height: 240px; padding: 24px; display: grid; place-content: center; justify-items: center; text-align: center; }
+.task-list-page > .workspace-state { flex: 1; width: 100%; min-height: 320px; }
 .workspace-state-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; color: var(--brand); background: var(--brand-soft); }
 .workspace-state h2 { margin: 14px 0 6px; font-size: 18px; font-weight: 500; }
 .workspace-state p { max-width: 420px; margin: 0 0 18px; color: var(--muted); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }

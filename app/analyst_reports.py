@@ -13,11 +13,19 @@ class ReportRequest(BaseModel):
     locale: Locale = "zh"
     style: Style = "coach"
     regenerate: bool = False
+    subject_id: str | None = None
 
 
-class ComparisonRequest(ReportRequest):
+class ComparisonRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    locale: Locale = "zh"
+    style: Style = "coach"
+    regenerate: bool = False
     comparison_id: str = Field(min_length=1)
+
+
+class ReportsRequest(BaseModel):
+    locale: Locale = "zh"
 
 
 class EvidenceComment(BaseModel):
@@ -51,6 +59,19 @@ class ReportState(BaseModel):
     status: Literal["disabled", "waiting", "queued", "running", "completed", "failed"]
     report: ReportPublic | None = None
     error: str | None = None
+
+
+class ReportVariant(ReportState):
+    subject_id: str | None = None
+    locale: Locale
+    style: Style
+
+
+class ReportsCollection(BaseModel):
+    items: list[ReportVariant] = Field(default_factory=list)
+    facts: dict = Field(default_factory=dict)
+    subjects: list[dict] = Field(default_factory=list)
+    provenance: dict | None = None
 
 
 class ComparisonReportState(ReportState):

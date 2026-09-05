@@ -58,18 +58,3 @@
   .camera-evidence { gap: 8px; }
   .camera-evidence figcaption { padding: 6px 8px; font-size: 10px; }
 }
-/* Static, verified product captures; the fallback is a shipped basketball frame */
-.hero-analyst-tagline { margin: -12px auto 18px; color: var(--brand); font-size: clamp(17px, 2vw, 23px); font-weight: 500; line-height: 1.6; text-wrap: balance; }
-.hero-analyst-preview { position: relative; margin: 0; min-width: 0; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow-sm); }
-.hero-analyst-preview > img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
-.hero-analyst-preview picture { display: block; }
-.hero-analyst-detail-section { border-top: 1px solid var(--border); padding: 20px 0 0; }
-.hero-analyst-detail-section > p { margin: 0 20px 16px; color: var(--muted); font-size: 12px; }
-.hero-analyst-detail { width: 100%; margin-inline: auto; }
-.hero-analyst-preview picture img { display: block; width: 100%; height: auto; }
-.hero-analyst-state { display: flex; align-items: center; gap: 9px; padding: 20px 24px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
-.hero-analyst-state .icon { color: var(--brand); }
-.hero-analyst-preview figcaption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 0; padding: 14px 24px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); }
-.hero-analyst-preview figcaption a { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; color: var(--brand); }
-.capability-visual .hero-analyst-preview { box-shadow: none; }
-@media (max-width: 767px) { .hero-analyst-state { padding: 16px; } .hero-analyst-preview figcaption { padding: 10px 16px; } }

@@ -34,7 +34,7 @@ export function NewTaskPage() {
   const generationRef = useRef(0);
   const formRef = useRef({ title: "", mode: "quick" as TaskMode });
   const taskRef = useRef<Task | null>(null);
-  const savedMetadataRef = useRef<Pick<Task, "title" | "mode"> | null>(null);
+  const savedMetadataRef = useRef<Pick<Task, "title" | "mode" | "analyst_locale"> | null>(null);
   const creatingRef = useRef<Promise<Task> | null>(null);
   const uploadQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [uploads, setUploads] = useState<Partial<Record<TaskSlot, UploadState>>>({});
@@ -72,7 +72,7 @@ export function NewTaskPage() {
         taskRef.current = restored;
         setTask(restored);
         if (!initialized) {
-          savedMetadataRef.current = { title: restored.title, mode: restored.mode };
+          savedMetadataRef.current = { title: restored.title, mode: restored.mode, analyst_locale: restored.analyst_locale || "zh" };
           formRef.current = { title: restored.title, mode: restored.mode };
           setTitle(restored.title); setMode(restored.mode);
           initialized = true;
@@ -94,10 +94,10 @@ export function NewTaskPage() {
       const enteredTitle = formRef.current.title.trim();
       // Naming and uploading are independent, including while a name is being edited.
       const savedTitle = enteredTitle && Array.from(enteredTitle).length <= 120 ? enteredTitle : wt("defaultTitle");
-      const creation = workspaceApi.createTask(savedTitle, formRef.current.mode).then((created) => {
+      const creation = workspaceApi.createTask(savedTitle, formRef.current.mode, locale).then((created) => {
         if (generation !== generationRef.current) throw new DOMException("Draft closed", "AbortError");
         taskRef.current = created;
-        savedMetadataRef.current = { title: created.title, mode: created.mode };
+        savedMetadataRef.current = { title: created.title, mode: created.mode, analyst_locale: locale };
         if (!formRef.current.title.trim()) {
           formRef.current.title = created.title;
           setTitle(created.title);
@@ -129,13 +129,14 @@ export function NewTaskPage() {
     }
     return enqueue(async () => {
       // Each draft queue retains its own last saved values even after navigation.
-      if (savedMetadata.title === desired.title && savedMetadata.mode === desired.mode) return;
-      const updated = await workspaceApi.updateDraft(existing.id, desired.title, desired.mode);
+      if (savedMetadata.title === desired.title && savedMetadata.mode === desired.mode && savedMetadata.analyst_locale === locale) return;
+      const updated = await workspaceApi.updateDraft(existing.id, desired.title, desired.mode, locale);
       savedMetadata.title = updated.title;
       savedMetadata.mode = updated.mode;
+      savedMetadata.analyst_locale = locale;
       if (generation === generationRef.current && taskRef.current) {
         // Metadata responses may predate a completed upload observed by polling.
-        taskRef.current = { ...taskRef.current, title: updated.title, mode: updated.mode };
+        taskRef.current = { ...taskRef.current, title: updated.title, mode: updated.mode, analyst_locale: locale };
         setTask(taskRef.current);
         setSubmitError("");
       }
@@ -151,7 +152,7 @@ export function NewTaskPage() {
     if (!task?.id || submitting || (task.status !== "draft" && task.status !== "uploading")) return;
     const timer = setTimeout(saveQuietly, 400);
     return () => clearTimeout(timer);
-  }, [title, mode, task?.id, submitting]);
+  }, [title, mode, locale, task?.id, submitting]);
 
   const upload = async (slot: TaskSlot, file: File) => {
     if (loading || submitting || loadError || uploads[slot]?.phase === "uploading" || taskRef.current?.status === "uploading") return;

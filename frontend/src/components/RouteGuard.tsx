@@ -7,7 +7,7 @@ export function RouteGuard() {
   const { authError, checking, refresh, user } = useAuth();
   const { t } = useLocale();
   const location = useLocation();
-  if (checking) return <div className="route-loading" role="status"><span aria-hidden="true"/><span className="sr-only">{t("authChecking")}</span></div>;
+  if (checking) return <div className="route-loading" role="status"><Icon name="refresh" size={24} spin/><span className="sr-only">{t("authChecking")}</span></div>;
   if (authError) {
     return <main className="route-state"><section className="route-error" role="alert"><h1>{t("authCheckFailed")}</h1><p>{t("authCheckFailedBody")}</p><button className="button button-primary button-icon" type="button" aria-label={t("retry")} title={t("retry")} onClick={() => void refresh()}><Icon name="refresh"/></button></section></main>;
   }

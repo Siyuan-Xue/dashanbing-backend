@@ -8,7 +8,7 @@ import { parsePreviewManifest } from "../analyst/previewManifest";
 import type { PreviewManifest } from "../analyst/previewManifest";
 
 export function HeroAnalystPreview({ decorative = false }: { decorative?: boolean }) {
-  const { locale, t: publicCopy } = useLocale(); const { theme } = useTheme(); const t = useAnalystCopy();
+  const { locale } = useLocale(); const { theme } = useTheme(); const t = useAnalystCopy();
   const [manifest, setManifest] = useState<PreviewManifest | null>(null);
   const [assetFailed, setAssetFailed] = useState(false);
   useEffect(() => {
@@ -28,13 +28,13 @@ export function HeroAnalystPreview({ decorative = false }: { decorative?: boolea
     const detail = kind === "analyst";
     return <picture className={detail ? "hero-analyst-detail" : undefined}>
       <source media="(max-width: 767px)" type="image/webp" srcSet={`${mobile.src} ${mobile.width}w`} sizes="calc(100vw - 20px)" width={mobile.width / mobile.pixel_ratio} height={mobile.height / mobile.pixel_ratio}/>
-      <img src={desktop.src} srcSet={`${desktop.src} ${desktop.width}w`} sizes="(max-width: 767px) calc(100vw - 20px), (max-width: 1279px) calc(100vw - 48px), min(80vw, 1360px)" width={desktop.width / desktop.pixel_ratio} height={desktop.height / desktop.pixel_ratio} alt={t(detail ? "screenshotDetail" : "screenshot")} loading={decorative || detail ? "lazy" : "eager"} fetchPriority={decorative || detail ? "low" : "high"} decoding="async" onError={() => setAssetFailed(true)}/>
+      <img src={desktop.src} srcSet={`${desktop.src} ${desktop.width}w`} sizes="(max-width: 767px) calc(100vw - 20px), (max-width: 1279px) calc(100vw - 48px), min(100vw - 48px, 1120px)" width={desktop.width / desktop.pixel_ratio} height={desktop.height / desktop.pixel_ratio} alt={t(detail ? "screenshotDetail" : "screenshot")} loading="lazy" decoding="async" onError={() => setAssetFailed(true)}/>
     </picture>;
   };
-  const main = picture(decorative ? "analyst" : "main");
-  const artwork = main ? <>{main}{!decorative && <div className="hero-analyst-detail-section"><p>{t("screenshotDetail")}</p>{picture("analyst")}</div>}</> : <><img src="/assets/previews/quick-cam-1.webp" width={1920} height={1080} alt={t("frame")} loading={decorative ? "lazy" : "eager"} fetchPriority={decorative ? "low" : "high"} decoding="async"/><div className="hero-analyst-state"><Icon name="sparkles"/><span>{t(assetFailed ? "screenshotUnavailable" : "disabled")}</span></div></>;
-  return <figure className={`hero-analyst-preview${main ? " has-screenshot" : ""}`} aria-label={decorative ? undefined : publicCopy("previewTitle")} aria-hidden={decorative || undefined}>
+  const main = picture("analyst");
+  const artwork = main ? main : <><img src="/assets/previews/quick-cam-1.webp" width={1920} height={1080} alt={t("frame")} loading="lazy" decoding="async"/><div className="hero-analyst-state"><Icon name="sparkles"/><span>{t("screenshotUnavailable")}</span></div></>;
+  return <figure className={`hero-analyst-preview${main ? " has-screenshot" : ""}`} aria-label={decorative ? undefined : t("screenshot")} aria-hidden={decorative || undefined}>
     {artwork}
-    {!decorative && <figcaption><span>{main ? t("screenshot") : t("frame")}</span><Link to="/workspace/examples/quick-demo#analyst">{t("live")}<Icon name="arrow" size={17}/></Link></figcaption>}
+    {!decorative && <figcaption><Link to="/workspace/examples/quick-demo#analyst">{t("live")}<Icon name="arrow" size={17}/></Link></figcaption>}
   </figure>;
 }

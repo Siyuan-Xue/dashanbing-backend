@@ -32,7 +32,7 @@ export function ApiShell() {
         }
       }}>
         <button ref={menuRef} className="api-product-toggle" type="button" aria-label={mobile ? (open ? c.close : c.menu) : "DaShanBing API"} aria-expanded={open} aria-controls="api-navigation" onClick={() => setOpen(!open)}>
-          <Icon name="code" size={18}/><span>DaShanBing API</span><span className="api-chevron" aria-hidden="true"/>
+          <Icon name="code" size={18}/><span>DaShanBing API</span><span className="api-lucide-chevron"><Icon name="chevronDown" size={16}/></span>
         </button>
         <nav id="api-navigation" aria-label={c.nav} hidden={!open}>
           <NavLink to="/api/docs" onClick={closeMenu}>{c.docs}</NavLink>

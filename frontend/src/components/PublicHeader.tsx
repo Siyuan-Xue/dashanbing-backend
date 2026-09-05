@@ -108,7 +108,7 @@ export function PublicHeader() {
               )}
             </div>
           ) : <Link ref={loginLink} className="login-link" to="/login" aria-label={t("login")}><Icon name="user"/><span>{t("login")}</span></Link>}
-          <button ref={menuToggle} className="icon-button public-menu-toggle" type="button" aria-label={t(menuOpen ? "menuClose" : "menuOpen")} aria-controls="public-navigation" aria-expanded={menuOpen} onClick={() => { setAccountOpen(false); setMenuOpen(!menuOpen); }}><span aria-hidden="true">{menuOpen ? "×" : "☰"}</span></button>
+          <button ref={menuToggle} className="icon-button public-menu-toggle" type="button" aria-label={t(menuOpen ? "menuClose" : "menuOpen")} aria-controls="public-navigation" aria-expanded={menuOpen} onClick={() => { setAccountOpen(false); setMenuOpen(!menuOpen); }}><Icon name={menuOpen ? "x" : "menu"}/></button>
         </div>
       </div>
     </header>

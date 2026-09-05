@@ -12,8 +12,9 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlmodel import Session, select
+from sqlalchemy import update
 
-from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport
+from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport, AnalystProviderState
 from app.analyst_reports import ComparisonReportState, ComparisonReports, ReportBody, ReportPublic, ReportState, MessagePublic
 from app.models import Analysis, User, utc_now
 
@@ -79,20 +80,23 @@ def facts_and_memory(app, session: Session, *, task: Analysis | None = None, pre
     return facts, memory
 
 
-def report_key(app, task: Analysis, facts, memory: dict, locale: str, style: str, *, kind="session") -> str:
+def report_key(app, task: Analysis, facts, memory: dict, locale: str, style: str, *, kind="session", subject_id=None) -> str:
     return digest({"owner": task.owner_id, "task": task.id, "kind": kind, "facts": facts.model_dump(),
+                   **({"subject_id": subject_id} if subject_id is not None else {}),
                    "memory": memory if kind == "comparison" else {}, "locale": locale, "style": style,
                    "model": app.state.settings.glm_model,
                    "prompt": COMPARISON_PROMPT_VERSION if kind == "comparison" else SESSION_PROMPT_VERSION})
 
 
-def _session_report(app, session: Session, task: Analysis, facts, locale: str, style: str):
-    key = report_key(app, task, facts, {}, locale, style)
+def _session_report(app, session: Session, task: Analysis, facts, locale: str, style: str, subject_id=None):
+    key = report_key(app, task, facts, {}, locale, style, subject_id=subject_id)
     row = session.exec(select(AnalystReport).where(
         AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
         AnalystReport.kind == "session", AnalystReport.cache_key == key)).first()
     if row:
         return row
+    if subject_id is not None:
+        return None
     # Old cache keys included mutable memory. Reuse a verified original without
     # rewriting its ID, body, timestamps or producing job during GET or migration.
     candidates = session.exec(select(AnalystReport, AnalystJob).join(
@@ -145,58 +149,71 @@ def report_state(row: AnalystReport | None) -> ReportState:
     if not row:
         return ReportState(status="waiting")
     report = None
-    if row.status == "completed":
+    if row.body_json and row.body_json != "{}":
         report = ReportPublic(**json.loads(row.body_json), id=row.id, model=row.model, locale=row.locale, style=row.style, created_at=row.created_at)
     return ReportState(status=row.status, report=report, error=row.error)
 
 
-def current_report(app, session: Session, task: Analysis, locale="zh", style="coach") -> ReportState:
+def preparation_state(session, task, locale):
+    if locale != task.analyst_locale:
+        return None
+    preparing = session.exec(select(AnalystJob).where(AnalystJob.task_id == task.id, AnalystJob.owner_id == task.owner_id,
+        AnalystJob.kind == "prepare").order_by(AnalystJob.created_at.desc())).first()
+    if preparing and preparing.status in {"queued", "running", "failed"}:
+        return ReportState(status=preparing.status, error=preparing.error if preparing.status == "failed" else None)
+    return None
+
+
+def current_report(app, session: Session, task: Analysis, locale="zh", style="coach", subject_id=None) -> ReportState:
     if task.status != "completed":
         return ReportState(status="waiting")
     if not configured(app):
         return ReportState(status="disabled")
-    preparing = session.exec(select(AnalystJob).where(AnalystJob.task_id == task.id, AnalystJob.kind == "prepare").order_by(AnalystJob.created_at.desc())).first()
+    preparing = preparation_state(session, task, locale)
     try:
         from app.services.analyst_facts import load_task_facts
         facts = load_task_facts(app, task)
     except (FileNotFoundError, ValueError):
-        if preparing and preparing.status in {"queued", "running", "failed"}:
-            return ReportState(status=preparing.status, error=preparing.error if preparing.status == "failed" else None)
+        if preparing:
+            return preparing
         return ReportState(status="failed", error="结果数据暂不可用，请稍后重试")
-    row = _session_report(app, session, task, facts, locale, style)
-    if row is None and preparing and preparing.status in {"queued", "running"}:
-        return ReportState(status=preparing.status)
-    if row is None and preparing and preparing.status == "failed":
-        return ReportState(status="failed", error=preparing.error)
+    from app.services.analyst_collections import scoped_facts
+    facts = scoped_facts(facts, subject_id)
+    row = _session_report(app, session, task, facts, locale, style, subject_id)
+    if row is None and preparing:
+        return preparing
     return report_state(row)
 
 
-def request_report(app, session: Session, task: Analysis, *, locale="zh", style="coach", regenerate=False, automatic=False, facts=None) -> ReportState:
+def request_report(app, session: Session, task: Analysis, *, locale="zh", style="coach", regenerate=False, automatic=False, facts=None, subject_id=None) -> ReportState:
     require_complete(task)
     require_configured(app)
     from app.services.analyst_facts import load_task_facts
     facts = load_task_facts(app, task) if facts is None else facts
-    row = _session_report(app, session, task, facts, locale, style)
+    from app.services.analyst_collections import scoped_facts
+    facts = scoped_facts(facts, subject_id)
+    row = _session_report(app, session, task, facts, locale, style, subject_id)
     return _queue_report(app, session, task, facts, {}, row, locale=locale, style=style,
-                         regenerate=regenerate, automatic=automatic)
+                         regenerate=regenerate, automatic=automatic, subject_id=subject_id)
 
 
 def _queue_report(app, session: Session, task: Analysis, facts, memory, row, *, locale, style,
-                  regenerate=False, automatic=False, kind="session", comparison_id=None) -> ReportState:
+                  regenerate=False, automatic=False, kind="session", comparison_id=None, subject_id=None) -> ReportState:
     if row and (row.status in {"queued", "running"} or (row.status == "completed" and not regenerate)):
         return report_state(row)
     if not automatic:
         limit_requests(app, session, task.owner_id)
-    key = report_key(app, task, facts, memory, locale, style, kind=kind)
+    key = report_key(app, task, facts, memory, locale, style, kind=kind, subject_id=subject_id)
     if row is None:
         row = AnalystReport(owner_id=task.owner_id, task_id=task.id, cache_key=key, status="queued", locale=locale, style=style,
-                            kind=kind, comparison_id=comparison_id, model=app.state.settings.glm_model)
+                            kind=kind, comparison_id=comparison_id, subject_id=subject_id, model=app.state.settings.glm_model)
     else:
         row.cache_key = key; row.status = "queued"; row.error = None; row.updated_at = utc_now()
     session.add(row); session.flush()
     job = AnalystJob(owner_id=task.owner_id, kind="report", task_id=task.id, report_id=row.id, request_id=str(uuid4()), payload_json=pack({
         "automatic": automatic, "cache_key": key, "facts": facts.model_dump(), "memory": memory, "locale": locale, "style": style,
         "report_kind": kind, "comparison_id": comparison_id,
+        "subject_id": subject_id,
         "prompt_version": COMPARISON_PROMPT_VERSION if kind == "comparison" else SESSION_PROMPT_VERSION}))
     session.add(job); session.flush()
     return report_state(row)
@@ -208,12 +225,21 @@ def request_comparison(app, session: Session, task: Analysis, *, comparison_id: 
     require_configured(app)
     facts = load_task_facts(app, task) if facts is None else facts
     facts, memory = _comparison_inputs(session, task, facts, comparison_id)
-    key = report_key(app, task, facts, memory, locale, style, kind="comparison")
-    row = session.exec(select(AnalystReport).where(
-        AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
-        AnalystReport.kind == "comparison", AnalystReport.cache_key == key)).first()
-    state = _queue_report(app, session, task, facts, memory, row, locale=locale, style=style,
-                          regenerate=regenerate, kind="comparison", comparison_id=comparison_id)
+    charged = False
+    for tone in (style, "roast" if style == "coach" else "coach"):
+        key = report_key(app, task, facts, memory, locale, tone, kind="comparison")
+        row = session.exec(select(AnalystReport).where(
+            AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
+            AnalystReport.kind == "comparison", AnalystReport.cache_key == key)).first()
+        refresh = regenerate and tone == style
+        needs_work = row is None or tone == style and (row.status == "failed" or refresh and row.status == "completed")
+        tone_state = (_queue_report(app, session, task, facts, memory, row, locale=locale, style=tone,
+                                   regenerate=refresh, automatic=charged, kind="comparison", comparison_id=comparison_id)
+                      if needs_work else report_state(row))
+        if needs_work:
+            charged = True
+        if tone == style:
+            state = tone_state
     return ComparisonReportState(**state.model_dump(), comparison_id=comparison_id)
 
 
@@ -314,6 +340,8 @@ def system_prompt(payload: dict, *, report: bool) -> str:
             prompt += "这是用户另外请求的历史对比报告，不重写本场原始分析。summary和comparison必须聚焦所选历史与本场的变化、共同动作、样本量和不可直接比较的限制，comparison必须填写。只比较memory.comparison_scope对应的球员或球队，不引入其他档案或历史。仅本场事实可引用facts.evidence，历史指标来自所选记录，不为历史编造视频证据。"
         else:
             prompt += "这是独立的本场分析，只使用facts，不使用档案、目标、备注或历史比较，comparison必须为null。"
+            if payload.get("subject_id"):
+                prompt += "这是所选单名球员的完整个人训练报告，summary、highlights、players和suggestions全部围绕facts.subjects中这名球员。个人统计不得写成全队统计。若无记录动作，说明暂无可评价片段，不据此断言没有参与，不虚构片段或技术建议。"
     else:
         prompt += "使用简洁文本回答，证据紧跟相关表述，格式为 [event-1]，只能使用提供的真实证据ID。"
     return prompt
@@ -392,11 +420,11 @@ class AnalystSupervisor:
             return 0
         with Session(self.app.state.engine) as session:
             session.connection().exec_driver_sql("BEGIN IMMEDIATE")
-            has_report = select(AnalystReport.id).where(
-                AnalystReport.task_id == Analysis.id,
-                AnalystReport.owner_id == Analysis.owner_id,
-                AnalystReport.kind == "session",
-                AnalystReport.locale == "zh", AnalystReport.style == "coach",
+            has_report = select(AnalystJob.id).where(
+                AnalystJob.task_id == Analysis.id,
+                AnalystJob.owner_id == Analysis.owner_id,
+                AnalystJob.kind == "prepare", AnalystJob.status == "completed",
+                AnalystJob.payload_json.contains('"collection_version":1'),
             ).exists()
             blocked_prepare = select(AnalystJob.id).where(
                 AnalystJob.task_id == Analysis.id,
@@ -456,6 +484,9 @@ class AnalystSupervisor:
     async def run_once(self) -> bool:
         with Session(self.app.state.engine) as session:
             session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            provider = session.get(AnalystProviderState, "glm")
+            if provider and provider.available_at.replace(tzinfo=timezone.utc) > utc_now():
+                session.commit(); return False
             job = session.exec(select(AnalystJob).where(AnalystJob.status == "queued", AnalystJob.available_at <= utc_now()).order_by(AnalystJob.created_at)).first()
             if job is None:
                 session.commit(); return False
@@ -496,7 +527,10 @@ class AnalystSupervisor:
             task = owned_task(session, job.task_id, job.owner_id)
             if task.updated_at != version:
                 raise ValueError("Task changed during analyst preparation")
-            request_report(self.app, session, task, automatic=True, facts=facts)
+            from app.services.analyst_collections import request_reports, COLLECTION_VERSION
+            request_reports(self.app, session, task, task.analyst_locale, automatic=True, facts=facts)
+            job.payload_json = pack({"automatic": True, "collection_version": COLLECTION_VERSION,
+                                     "locale": task.analyst_locale, "subjects": [s.id for s in facts.subjects]})
             job.status = "completed"; job.updated_at = utc_now(); session.add(job); session.commit()
 
     def _provider(self):
@@ -624,8 +658,17 @@ class AnalystSupervisor:
             retry = retryable and job.attempts < MAX_ATTEMPTS
             job.status = "queued" if retry else "failed"
             job.error = "AI 分析暂时未完成，请稍后重试"; job.updated_at = utc_now()
-            job.available_at = utc_now() + timedelta(seconds=2 ** job.attempts)
+            rate_limited = getattr(error, "code", None) == "rate_limited"
+            delay = max(30 * 2 ** (job.attempts - 1), getattr(error, "retry_after_seconds", None) or 0) if rate_limited else 2 ** job.attempts
+            job.available_at = utc_now() + timedelta(seconds=delay)
             session.add(job)
+            if rate_limited:
+                provider = session.get(AnalystProviderState, "glm") or AnalystProviderState(provider="glm")
+                provider.available_at = max(provider.available_at.replace(tzinfo=timezone.utc), job.available_at)
+                session.add(provider)
+                # Persist the shared pause for pending reports and chat, including restart recovery.
+                session.flush()
+                session.execute(update(AnalystJob).where(AnalystJob.status == "queued", AnalystJob.available_at < job.available_at).values(available_at=job.available_at))
             if job.report_id:
                 row = session.get(AnalystReport, job.report_id)
                 if row:

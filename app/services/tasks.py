@@ -126,6 +126,7 @@ def task_public(task: Analysis, session: Session) -> TaskPublic:
         id=task.id,
         title=task.title,
         mode=task.mode,
+        analyst_locale=task.analyst_locale,
         source_type=task.source_type,
         preset_id=task.preset_id,
         status=public_status(task.status),

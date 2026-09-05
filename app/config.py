@@ -42,7 +42,7 @@ class AppSettings(BaseSettings):
     glm_max_tokens: int = Field(default=65536, ge=1024, le=131072)
     glm_timeout_seconds: float = Field(default=600, ge=1, le=1800)
     analyst_worker_enabled: bool = True
-    analyst_concurrency: int = Field(default=2, ge=1, le=8)
+    analyst_concurrency: int = Field(default=8, ge=1, le=8)
     analyst_daily_limit: int = Field(default=100, ge=1)
 
 

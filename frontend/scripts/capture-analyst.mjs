@@ -62,12 +62,15 @@ try {
       page.on("pageerror", error => errors.push(error.message));
       page.on("request", request => { if (/\/analyst\//.test(request.url()) && request.method() !== "GET") forbidden.push(request.method()); });
       await page.addInitScript(({ locale, theme }) => { localStorage.setItem("dashanbing-locale", locale); localStorage.setItem("dashanbing-theme", theme); sessionStorage.clear(); }, { locale, theme });
-      const uiResponse = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/presets/quick-demo/analyst/report" && new URL(response.url()).searchParams.get("locale") === locale);
+      const uiResponse = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/presets/quick-demo/analyst/reports" && new URL(response.url()).searchParams.get("locale") === locale);
       await page.goto("/workspace/examples/quick-demo#analyst", { waitUntil: "domcontentloaded" });
       const response = await uiResponse;
-      const raw = await response.text(); const uiState = JSON.parse(raw);
+      const raw = await response.text(); const collection = JSON.parse(raw);
+      const variant = collection.items.find(item => item.subject_id === null && item.locale === locale && item.style === "coach");
+      if (!variant) throw new Error("Whole-session coach report is missing from the collection");
+      const uiState = { ...collection, ...variant };
       const uiReport = assertVerifiedReport(uiState, locale, factsDigest(raw));
-      if (uiReport.id !== report.id || uiState.provenance.facts_hash !== factsHash || reportDigest(raw) !== reportHash) throw new Error("Report changed during capture; retry against a stable verified report");
+      if (uiReport.id !== report.id || uiState.provenance.facts_hash !== factsHash || reportDigest(JSON.stringify(uiState)) !== reportHash) throw new Error("Report changed during capture; retry against a stable verified report");
       await page.locator('#analyst [data-report-status="completed"]').waitFor();
       const reportElement = page.locator("#analyst .analyst-report");
       if (await reportElement.getAttribute("data-report-id") !== report.id || await reportElement.getAttribute("data-report-model") !== report.model || await reportElement.locator("[data-report-summary]").textContent() !== report.summary) throw new Error("Refusing capture: rendered UI differs from the verified report");

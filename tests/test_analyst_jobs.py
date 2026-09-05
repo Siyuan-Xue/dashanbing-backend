@@ -201,10 +201,15 @@ def request_chat(client):
 
 
 def make_due(client, job_id):
+    from app.analyst_models import AnalystProviderState
     with Session(client.app.state.engine) as session:
         job = session.get(AnalystJob, job_id)
         job.available_at = datetime.now(timezone.utc) - timedelta(seconds=1)
         session.add(job)
+        provider = session.get(AnalystProviderState, "glm")
+        if provider:
+            provider.available_at = job.available_at
+            session.add(provider)
         session.commit()
 
 
@@ -216,6 +221,42 @@ def assert_video_completed(client):
     task = get_row(client, Analysis, client.task_id)
     assert task.status == "completed"
     assert task.progress == 100
+
+
+def assert_session_variants(client):
+    reports = all_rows(client, AnalystReport)
+    assert len(reports) == 6
+    assert {(row.subject_id, row.style, row.locale, row.kind) for row in reports} == {
+        (subject, style, "zh", "session")
+        for subject in (None, "player_1", "player_2") for style in ("coach", "roast")
+    }
+    jobs = [job for job in all_rows(client, AnalystJob) if job.kind == "report"]
+    assert len(jobs) == 6
+    assert {job.report_id for job in jobs} == {row.id for row in reports}
+    assert len({job.request_id for job in jobs}) == 6
+    return sorted(jobs, key=lambda job: job.created_at)
+
+
+def queued_report_bodies(client, facts, body):
+    """Script valid responses for the real pending jobs, including player 2."""
+    bodies = []
+    jobs = sorted(all_rows(client, AnalystJob), key=lambda job: job.created_at)
+    for job in jobs:
+        if job.kind != "report" or job.status != "queued":
+            continue
+        subject_id = get_row(client, AnalystReport, job.report_id).subject_id
+        if subject_id is None:
+            bodies.append(deepcopy(body))
+            continue
+        evidence = next(item for item in facts.evidence if item.subject_id == subject_id)
+        bodies.append({
+            "summary": "One recorded shot for this player",
+            "highlights": [{"text": "Review this recorded shot", "evidence_ids": [evidence.id]}],
+            "players": [{"subject_id": subject_id, "text": "One shot was recorded",
+                         "evidence_ids": [evidence.id]}],
+            "suggestions": ["Repeat the drill and review the next session"],
+        })
+    return bodies
 
 
 def test_automatic_enqueue_participates_in_completion_transaction_and_deduplicates(job_client):
@@ -265,7 +306,7 @@ def test_automatic_enqueue_ignores_disabled_or_unfinished_tasks(job_client, stat
     assert all_rows(job_client, AnalystJob) == []
 
 
-def test_automatic_prepare_persists_valid_report_usage_and_keeps_video_completed(job_client, report_body):
+def test_automatic_prepare_persists_valid_report_usage_and_keeps_video_completed(job_client, report_body, facts):
     client = job_client
     provider = ScriptedProvider(reports=[report_body])
     client.app.state.glm_client = provider
@@ -274,17 +315,30 @@ def test_automatic_prepare_persists_valid_report_usage_and_keeps_video_completed
         session.commit()
     assert run_once(client) is True
     jobs = all_rows(client, AnalystJob)
-    assert sorted((job.kind, job.status) for job in jobs) == [("prepare", "completed"), ("report", "queued")]
+    assert sorted((job.kind, job.status) for job in jobs) == [("prepare", "completed")] + [("report", "queued")] * 6
+    report_jobs = assert_session_variants(client)
     assert provider.calls == []
-    assert run_once(client) is True
+    provider.reports = queued_report_bodies(client, facts, report_body)
+    for report_job in report_jobs:
+        assert run_once(client) is True
+        report_job = get_row(client, AnalystJob, report_job.id)
+        report = get_row(client, AnalystReport, report_job.report_id)
+        assert report.status == report_job.status == "completed"
+        assert json.loads(report_job.usage_json) == USAGE
+        assert report_job.attempts == 1
+        assert json.loads(report_job.payload_json)["automatic"] is True
     assert run_once(client) is False
-    report = all_rows(client, AnalystReport)[0]
-    report_job = next(job for job in all_rows(client, AnalystJob) if job.kind == "report")
-    assert report.status == report_job.status == "completed"
+    report = next(row for row in all_rows(client, AnalystReport) if row.subject_id is None and row.style == "coach")
     assert json.loads(report.body_json)["players"] == report_body["players"]
-    assert json.loads(report_job.usage_json) == USAGE
-    assert report_job.attempts == 1
-    assert json.loads(report_job.payload_json)["automatic"] is True
+    assert [call[1] for call in provider.calls] == [job.request_id for job in report_jobs]
+    for call, job in zip(provider.calls, report_jobs):
+        payload = json.loads(job.payload_json)
+        assert payload['memory'] == {}
+        if payload['subject_id'] is not None:
+            assert {item['id'] for item in payload['facts']['subjects']} == {payload['subject_id']}
+            assert {item['subject_id'] for item in payload['facts']['evidence']} == {payload['subject_id']}
+            other_player = 'player_2' if payload['subject_id'] == 'player_1' else 'player_1'
+            assert other_player not in json.dumps(call)
     public = client.get(report_url(client)).json()
     assert public["report"]["summary"] == report_body["summary"]
     assert public["report"]["model"] == "glm-5.3"
@@ -574,7 +628,7 @@ def test_cancellation_and_restart_recover_running_job_without_duplicate_rows(job
         assert complete.attempts == 2
         jobs = all_rows(client, AnalystJob)
         assert [row.id for row in jobs if row.kind != "prepare"] == [job.id]
-        # Startup separately backfills the missing default Chinese report.
+        # Startup separately queues preparation of the default Chinese collection.
         assert len([row for row in jobs if row.kind == "prepare"]) == 1
         assert client.app.state.glm_client.calls[0][1] == job.request_id
         if kind == "message":
@@ -903,8 +957,9 @@ def test_facts_hashing_runs_without_sqlite_write_transaction(job_client, sqlite_
         assert response.status_code == 202, response.text
     else:
         assert sorted((job.kind, job.status) for job in all_rows(client, AnalystJob)) == [
-            ("prepare", "completed"), ("report", "queued"),
-        ]
+            ("prepare", "completed"),
+        ] + [("report", "queued")] * 6
+        assert_session_variants(client)
     assert client.app.state.glm_client.calls == []
 
 
@@ -1064,7 +1119,7 @@ def test_conversation_creation_rechecks_task_after_facts_load_without_orphans(jo
     assert client.app.state.glm_client.calls == []
 
 
-def test_reconcile_backfills_tasks_completed_before_ai_enablement_once(job_client, report_body):
+def test_reconcile_backfills_tasks_completed_before_ai_enablement_once(job_client, report_body, facts):
     client = job_client
     supervisor = analyst.AnalystSupervisor(client.app)
     client.app.state.settings = client.app.state.settings.model_copy(update={"glm_api_key": SecretStr("")})
@@ -1075,53 +1130,86 @@ def test_reconcile_backfills_tasks_completed_before_ai_enablement_once(job_clien
     assert supervisor.reconcile_completed() == 0
     client.app.state.glm_client = ScriptedProvider(reports=[report_body])
     assert run_once(client)
-    assert run_once(client)
+    jobs = assert_session_variants(client)
+    client.app.state.glm_client.reports = queued_report_bodies(client, facts, report_body)
+    for job in jobs:
+        assert run_once(client)
+        assert get_row(client, AnalystJob, job.id).status == 'completed'
+    assert run_once(client) is False
     report = client.get(report_url(client)).json()
     assert report['status'] == 'completed'
     assert report['report']['locale'] == 'zh'
     assert supervisor.reconcile_completed() == 0
-    assert len(client.app.state.glm_client.calls) == 1
+    assert len(client.app.state.glm_client.calls) == 6
     assert_video_completed(client)
 
 
-def test_reconcile_preserves_existing_manual_report_and_terminal_failures(job_client, report_body):
+@pytest.mark.parametrize('failed', [False, True])
+def test_reconcile_preserves_existing_manual_report_and_terminal_failures(job_client, report_body, facts, failed):
     client = job_client
     with Session(client.app.state.engine) as session:
         task = session.get(Analysis, client.task_id)
         analyst.request_report(client.app, session, task)
         session.commit()
-    client.app.state.glm_client = ScriptedProvider(reports=[report_body])
+    client.app.state.glm_client = ScriptedProvider(reports=[
+        GlmError('Unavailable', retryable=False) if failed else report_body,
+    ])
     assert run_once(client)
     original = all_rows(client, AnalystReport)[0]
+    original_job = all_rows(client, AnalystJob)[0]
+    assert original.status == original_job.status == ('failed' if failed else 'completed')
     supervisor = analyst.AnalystSupervisor(client.app)
+    assert supervisor.reconcile_completed() == 1
     assert supervisor.reconcile_completed() == 0
-    assert get_row(client, AnalystReport, original.id).body_json == original.body_json
-    with Session(client.app.state.engine) as session:
-        row = session.get(AnalystReport, original.id)
-        row.status = 'failed'
-        session.add(row); session.commit()
+    assert run_once(client)  # Prepare only the five absent variants.
+    jobs = assert_session_variants(client)
+    assert sum(job.status == 'queued' for job in jobs) == 5
+    assert get_row(client, AnalystReport, original.id).model_dump() == original.model_dump()
+    assert get_row(client, AnalystJob, original_job.id).model_dump() == original_job.model_dump()
+    client.app.state.glm_client = ScriptedProvider(reports=queued_report_bodies(client, facts, report_body))
+    for _ in range(5):
+        assert run_once(client)
+    assert run_once(client) is False
     assert supervisor.reconcile_completed() == 0
-    assert len(all_rows(client, AnalystJob)) == 1
+    assert get_row(client, AnalystReport, original.id).model_dump() == original.model_dump()
+    assert get_row(client, AnalystJob, original_job.id).model_dump() == original_job.model_dump()
+    assert all(get_row(client, AnalystJob, job.id).status == 'completed' for job in jobs if job.id != original_job.id)
+    assert len(all_rows(client, AnalystJob)) == 7
+    assert len(client.app.state.glm_client.calls) == 5
 
 
-def test_reconcile_preserves_original_report_after_confirmed_memory_change(job_client, report_body):
+def test_reconcile_preserves_original_report_after_confirmed_memory_change(job_client, report_body, facts):
     client = job_client
     supervisor = analyst.AnalystSupervisor(client.app)
-    client.app.state.glm_client = ScriptedProvider(reports=[report_body, report_body])
+    client.app.state.glm_client = ScriptedProvider(reports=[report_body])
     assert supervisor.reconcile_completed() == 1
     assert run_once(client) and run_once(client)
     original_id = all_rows(client, AnalystReport)[0].id
     original = get_row(client, AnalystReport, original_id).model_dump(mode='json')
     original_jobs = [row.model_dump(mode='json') for row in all_rows(client, AnalystJob)]
+    original_reports = [row.model_dump(mode='json') for row in all_rows(client, AnalystReport)]
+    jobs = assert_session_variants(client)
+    original_job = next(job for job in jobs if job.report_id == original_id)
+    assert sum(job.status == 'queued' for job in jobs) == 5
     from app.services.analyst_invalidation import revoke_snapshots
     with Session(client.app.state.engine) as session:
         revoke_snapshots(session, client.owner_id, task_ids={client.task_id})
         session.commit()
     assert supervisor.reconcile_completed() == 0
-    assert run_once(client) is False
     assert client.get(report_url(client)).json()['status'] == 'completed'
     assert get_row(client, AnalystReport, original_id).model_dump(mode='json') == original
     assert [row.model_dump(mode='json') for row in all_rows(client, AnalystJob)] == original_jobs
+    assert [row.model_dump(mode='json') for row in all_rows(client, AnalystReport)] == original_reports
+    client.app.state.glm_client.reports = queued_report_bodies(client, facts, report_body)
+    for _ in range(5):
+        assert run_once(client)
+    assert run_once(client) is False
+    assert all(job.status == 'completed' for job in all_rows(client, AnalystJob))
+    assert get_row(client, AnalystReport, original_id).model_dump(mode='json') == original
+    assert get_row(client, AnalystJob, original_job.id).model_dump() == original_job.model_dump()
+    assert len(client.app.state.glm_client.calls) == 6
+    assert supervisor.reconcile_completed() == 0
+    assert len(all_rows(client, AnalystJob)) == 7
     assert len([j for j in all_rows(client, AnalystJob) if j.kind == 'prepare']) == 1
 
 

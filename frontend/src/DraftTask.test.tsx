@@ -7,7 +7,7 @@ import type { Task, TaskSlot } from "./workspace/types";
 
 const slots: TaskSlot[] = ["enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04"];
 const input = (slot: TaskSlot, name = `${slot}.mp4`) => ({ slot, original_filename: name, byte_size: 100, validation_state: "valid", created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z" });
-const draft = (): Task => ({ id: "draft-1", title: "已有训练", mode: "quick", source_type: "upload", preset_id: null, status: "draft", progress: 0, stage_message: "Draft", error_code: null, error_message: null, submitted_at: null, created_via: "tasks_api", retry_count: 0, created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z", started_at: null, completed_at: null, inputs: [] });
+const draft = (): Task => ({ id: "draft-1", title: "已有训练", mode: "quick", analyst_locale: "zh", source_type: "upload", preset_id: null, status: "draft", progress: 0, stage_message: "Draft", error_code: null, error_message: null, submitted_at: null, created_via: "tasks_api", retry_count: 0, created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z", started_at: null, completed_at: null, inputs: [] });
 
 function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}{location.search}</output>; }
 function open(path: string) { return render(<MemoryRouter initialEntries={[path]}><App/><Location/></MemoryRouter>); }
@@ -74,7 +74,7 @@ test("uploads before naming, keeps fields editable and restores saved draft afte
   await user.upload(await screen.findByLabelText("注册视频"), new File(["video"], "players.mp4", { type: "video/mp4" }));
   expect(await screen.findByText("players.mp4")).toBeVisible();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(screen.getByTestId("location")).toHaveTextContent("/workspace/new?draft=draft-1");
+  await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/workspace/new?draft=draft-1"));
   const title = screen.getByLabelText("任务标题");
   expect(title).toBeEnabled();
   await user.clear(title);
