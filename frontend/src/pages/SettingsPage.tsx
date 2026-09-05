@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useAuth } from "../providers/AuthProvider";
 import { Icon } from "../components/Icon";
 import { WorkspaceState } from "../components/WorkspaceState";
 import { formatRetentionDuration } from "../localization";
@@ -9,14 +11,30 @@ import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 
 export function SettingsPage() {
   const wt = useWorkspaceCopy();
-  const { locale, toggleLocale } = useLocale();
+  const { locale, toggleLocale, t } = useLocale();
+  const { logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutFailed, setLogoutFailed] = useState(false);
+  const signOut = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    setLogoutFailed(false);
+    try {
+      await logout();
+    } catch {
+      setLogoutFailed(true);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
   const { theme, toggleTheme } = useTheme();
   const { value: usage, error, reload } = useLoadable(workspaceApi.usage);
   const quotaCards = usage ? [
     [wt("submittedToday"), usage.submitted_today], [wt("unfinished"), usage.unfinished_tasks], [wt("drafts"), usage.drafts], [wt("apiKeys"), usage.active_api_keys],
   ] as const : [];
   return <div className="workspace-page settings-page">
-    <header className="workspace-page-header"><div><h1>{wt("settings")}</h1></div></header>
+    <header className="workspace-page-header"><div><h1>{wt("settings")}</h1></div><button className="button button-outline settings-logout" type="button" aria-disabled={loggingOut} onClick={() => void signOut()}><Icon name="logout" size={18}/>{t(loggingOut ? "loggingOut" : "logout")}</button></header>
+      {logoutFailed && <p className="settings-logout-error" role="alert">{t("logoutFailed")}</p>}
       <div className="settings-content">
         <section id="usage" className="settings-section" aria-labelledby="usage-heading">
           <h2 id="usage-heading">{wt("usage")}</h2>

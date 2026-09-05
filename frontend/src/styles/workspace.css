@@ -19,9 +19,10 @@
 .workspace-collapse, .workspace-drawer-close, .workspace-menu-button { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; flex: none; border: 0; border-radius: 8px; color: var(--muted); background: transparent; }
 .workspace-collapse:hover, .workspace-drawer-close:hover, .workspace-menu-button:hover { color: var(--text); background: var(--surface); }
 .workspace-nav { flex-shrink: 0; display: grid; gap: 6px; }
-.workspace-nav a { min-height: 40px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; border-radius: 12px; color: var(--text-soft); font-size: 14px; font-weight: 500; }
-.workspace-nav a:hover, .workspace-nav a.active { color: var(--text); background: var(--surface); }
-.workspace-nav .workspace-create { border: 1px solid color-mix(in srgb, var(--brand) 27%, var(--border)); color: var(--brand); background: var(--brand-soft); }
+.workspace-nav a { min-height: 40px; padding: 7px 11px; border: 2px solid transparent; display: flex; align-items: center; gap: 10px; border-radius: 12px; color: var(--text-soft); font-size: 14px; font-weight: 500; }
+.workspace-nav a:hover { color: var(--text); background: var(--surface); }
+.workspace-nav .workspace-create { color: var(--brand); background: var(--brand-soft); }
+.workspace-nav a.active { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
 .workspace-recent { min-height: 0; flex: 1; padding-top: 16px; overflow-y: auto; border-top: 1px solid var(--border); }
 .workspace-recent h2 { margin: 0 10px 8px; color: var(--muted); font-size: 12px; font-weight: 400; }
 .workspace-recent a { min-height: 34px; padding: 6px 10px; display: grid; grid-template-columns: 6px minmax(0, 1fr); align-items: center; gap: 9px; border-radius: 8px; color: var(--text-soft); font-size: 14px; }
@@ -268,6 +269,9 @@
 .settings-section { padding: 0 0 28px; margin-bottom: 28px; border-bottom: 1px solid var(--border); scroll-margin-top: 24px; }
 .settings-section:last-child { margin-bottom: 0; border-bottom: 0; }
 .settings-section h2 { margin: 0 0 18px; font-size: 18px; font-weight: 500; }
+.settings-logout { color: var(--accent); flex: none; }
+.settings-logout[aria-disabled="true"] { opacity: .55; cursor: wait; }
+.settings-logout-error { color: var(--danger); margin: 0 0 20px; }
 .settings-note { color: var(--muted); }
 .quota-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .quota-grid article { min-width: 0; padding: 16px; border: 1px solid var(--border); border-radius: 10px; }

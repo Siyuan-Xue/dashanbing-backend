@@ -405,3 +405,62 @@ test("detail toolbars align on desktop and fit long titles on mobile", async ({ 
   await expect(page.getByRole("button",{name:"创建任务",exact:true})).toBeVisible();
   await aligned(".detail-header > div");
 });
+
+
+test("settings logout retains focus on failure and returns home on retry", async ({ page }) => {
+  let attempts = 0;
+  let releaseLogout!: () => void;
+  const pendingLogout = new Promise<void>(resolve => { releaseLogout = resolve; });
+  await page.route("**/api/v1/logout", async route => {
+    expect(route.request().method()).toBe("POST");
+    attempts += 1;
+    if (attempts === 1) {
+      await pendingLogout;
+      return route.fulfill({ status: 503, json: { detail: "Unavailable" } });
+    }
+    await page.route("**/api/v1/users/me", r => r.fulfill({ status: 401, json: { detail: "Not authenticated" } }));
+    return route.fulfill({ status: 204 });
+  });
+  // Signing out must still work when account quota data cannot load.
+  await page.route("**/api/v1/account/usage", route => route.fulfill({ status: 503, json: { detail: "Unavailable" } }));
+  await page.goto("/workspace/settings");
+  const signOut = page.getByRole("button", { name: "退出登录", exact: true });
+  await expect(signOut).toBeInViewport();
+  await signOut.click();
+  const pendingButton = page.getByRole("button", { name: "正在退出", exact: true });
+  await expect(pendingButton).toHaveAttribute("aria-disabled", "true");
+  await page.keyboard.press("Enter");
+  expect(attempts).toBe(1);
+  releaseLogout();
+  await expect(page.getByRole("alert").filter({ hasText: "退出失败" })).toBeVisible();
+  await expect(signOut).toBeFocused();
+  await expect(page).toHaveURL(/\/workspace\/settings$/);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/$/);
+  const menu = page.locator(".public-menu-toggle");
+  if (await menu.isVisible()) {
+    await expect(menu).toBeFocused();
+    await menu.click();
+  } else await expect(page.getByRole("link", { name: "登录", exact: true })).toBeFocused();
+  await page.getByRole("link", { name: "在线使用", exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?next=/);
+  expect(attempts).toBe(2);
+});
+
+
+for (const theme of ["light", "dark"]) test(`workspace navigation marks only the current destination with an accent border ${theme}`, async ({ page }) => {
+    await page.addInitScript(value => localStorage.setItem("dashanbing-theme", value), theme);
+    for (const path of ["new", "tasks"]) {
+      await page.goto(`/workspace/${path}`);
+      const toggle = page.getByRole("button", { name: "打开工作台菜单" });
+      if (await toggle.isVisible()) await toggle.click();
+      const nav = page.locator(".workspace-nav");
+      const selected = nav.locator('[aria-current="page"]');
+      await expect(selected).toHaveCount(1);
+      await expect(selected).toHaveAttribute("href", `/workspace/${path}`);
+      await expect(selected).toHaveCSS("border-top-width", "2px");
+      await expect(selected).toHaveCSS("border-top-color", theme === "light" ? "rgb(155, 68, 54)" : "rgb(230, 165, 152)");
+      await expect(selected).toHaveCSS("font-weight", "600");
+      await expect(nav.locator('a:not([aria-current="page"])')).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+    }
+});

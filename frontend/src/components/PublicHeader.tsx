@@ -53,7 +53,6 @@ export function PublicHeader() {
       await logout();
       setAccountOpen(false);
       setMenuOpen(false);
-      navigate("/", { replace: true, state: { focusLogin: true } });
     } catch {
       setLogoutFailed(true);
     } finally {

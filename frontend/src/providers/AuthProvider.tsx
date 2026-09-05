@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { startTransition, createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { ApiError, authApi } from "../api";
 import type { AuthUser, Registration } from "../api";
 import { subscribeToSessionExpiry } from "../session";
@@ -11,6 +12,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checking, setChecking] = useState(true);
   const [authError, setAuthError] = useState(false);
@@ -78,11 +80,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: async () => {
       requestGeneration.current += 1;
       await authApi.logout();
-      setUser(null);
-      setChecking(false);
-      setAuthError(false);
+      // Keep routing and auth updates together so protected routes cannot
+      // redirect to login before the intentional logout destination commits.
+      startTransition(() => {
+        navigate("/", { replace: true, state: { focusLogin: true } });
+        setUser(null);
+        setChecking(false);
+        setAuthError(false);
+      });
     },
-  }), [authError, checking, establishSession, refresh, user]);
+  }), [authError, checking, establishSession, navigate, refresh, user]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
