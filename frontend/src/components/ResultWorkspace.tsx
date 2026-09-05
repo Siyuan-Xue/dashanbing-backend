@@ -1,5 +1,5 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent, SyntheticEvent } from "react";
 
 import { Icon } from "./Icon";
 
@@ -28,8 +28,24 @@ function ResultVideo({ src, title }: { src: string; title: string }) {
   const wt = useWorkspaceCopy();
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [attempt, setAttempt] = useState(0);
+  const playRequested = useRef(false);
+  const prepareVideo = useCallback((video: HTMLVideoElement | null) => {
+    if (!video) return;
+    playRequested.current = false;
+    // Set both the muted attribute and live property on every new media element
+    video.defaultMuted = true;
+    video.muted = true;
+  }, []);
+  const playWhenReady = (event: SyntheticEvent<HTMLVideoElement>) => {
+    setState("ready");
+    if (playRequested.current) return;
+    playRequested.current = true;
+    // Browser policy or a rapid camera switch can reject play; native controls remain usable
+    void event.currentTarget.play().catch(() => {});
+  };
+
   return <>
-    {state !== "error" && <video key={attempt} controls autoPlay muted playsInline preload="auto" src={src} title={title} onLoadedMetadata={() => setState("ready")} onLoadedData={() => setState("ready")} onCanPlay={() => setState("ready")} onError={() => setState("error")}/>}
+    {state !== "error" && <video key={attempt} ref={prepareVideo} controls autoPlay muted playsInline preload="auto" src={src} title={title} onLoadedMetadata={() => setState("ready")} onLoadedData={() => setState("ready")} onCanPlay={playWhenReady} onPlay={() => { playRequested.current = true; }} onError={() => setState("error")}/>}
     {state === "loading" && <span className="media-loading" role="status">{wt("mediaLoading")}</span>}
     {state === "error" && <div className="media-placeholder" role="alert"><div><b>{wt("mediaError")}</b><button type="button" className="media-retry" aria-label={wt("reloadMedia")} title={wt("reloadMedia")} onClick={() => { setAttempt((value) => value + 1); setState("loading"); }}><Icon name="refresh"/></button></div></div>}
   </>;

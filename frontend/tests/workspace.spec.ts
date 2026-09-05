@@ -372,23 +372,36 @@ test("filter reset clears options on confirm while preserving search and page si
 });
 
 
-test("result videos autoplay muted inline and retain manual pause across result tabs", async ({ page }) => {
-  await page.route("**/api/v1/**/media/**", route => route.fulfill({contentType:"video/webm",path:fileURLToPath(new URL("./fixtures/autoplay.webm",import.meta.url))}));
-  await page.route("**/api/v1/presets/quick-demo/result", route => route.fulfill({json:{...result,media:{phases:"/api/v1/presets/quick-demo/media/phases",cam_01:"/api/v1/presets/quick-demo/media/cam_01"}}}));
-  await page.goto("/workspace/tasks/task-1");
-  const video=page.locator(".media-stage video");
-  await expect.poll(()=>video.evaluate((v: HTMLVideoElement)=>!v.paused && v.currentTime>0.05)).toBe(true);
-  await expect(video).toHaveJSProperty("muted",true);
-  await expect(video).toHaveJSProperty("playsInline",true);
-  await page.getByRole("tab",{name:"机位 1",exact:true}).click();
-  await expect(video).toHaveAttribute("src",/cam_01$/);
-  await expect.poll(()=>video.evaluate((v: HTMLVideoElement)=>!v.paused && v.currentTime>0.05)).toBe(true);
-  await video.evaluate((v: HTMLVideoElement)=>v.pause());
-  await page.getByRole("tab",{name:"JSON",exact:true}).click();
-  await expect(video).toHaveJSProperty("paused",true);
-  await page.goto("/workspace/examples/quick-demo");
-  await expect.poll(()=>video.evaluate((v: HTMLVideoElement)=>!v.paused && v.currentTime>0.05)).toBe(true);
-  await expect(video).toHaveJSProperty("muted",true);
+test("all five result videos autoplay and preserve manual pause on task and example pages", async ({ page }) => {
+  await page.route("**/api/v1/**/media/**", async route => {
+    await new Promise(resolve => setTimeout(resolve, 120));
+    await route.fulfill({contentType:"video/webm",path:fileURLToPath(new URL("./fixtures/autoplay.webm",import.meta.url))});
+  });
+  const kinds = ["phases", "cam_01", "cam_02", "cam_03", "cam_04"];
+  await page.route("**/api/v1/presets/quick-demo/result", route => route.fulfill({json:{...result,media:Object.fromEntries(kinds.map(kind => [kind, `/api/v1/presets/quick-demo/media/${kind}`]))}}));
+  const video = page.locator(".media-stage video");
+  for (const path of ["/workspace/tasks/task-1", "/workspace/examples/quick-demo"]) {
+    await page.goto(path);
+    for (const [i, label] of ["阶段合成", "机位 1", "机位 2", "机位 3", "机位 4"].entries()) {
+      await page.getByRole("tab", { name: label, exact: true }).click();
+      await expect(video).toHaveAttribute("src", new RegExp(`${kinds[i]}$`));
+      await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.currentTime > .05)).toBe(true);
+      await expect(video).toHaveJSProperty("defaultMuted", true);
+      await expect(video).toHaveJSProperty("muted", true);
+      await expect(video).toHaveJSProperty("playsInline", true);
+      await video.evaluate((v: HTMLVideoElement) => v.pause());
+      await page.getByRole("tab", { name: "JSON", exact: true }).click();
+      await video.dispatchEvent("canplay");
+      await expect(video).toHaveJSProperty("paused", true);
+    }
+    await page.getByRole("tab", { name: "机位 1", exact: true }).click();
+    await page.getByRole("tab", { name: "机位 4", exact: true }).click();
+    await expect(video).toHaveAttribute("src", /cam_04$/);
+    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.currentTime > .05)).toBe(true);
+    await video.dispatchEvent("error");
+    await page.getByRole("button", { name: "重新加载视频", exact: true }).click();
+    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.currentTime > .05)).toBe(true);
+  }
 });
 
 test("detail toolbars align on desktop and fit long titles on mobile", async ({ page }, info) => {
