@@ -111,6 +111,56 @@ afterEach(() => {
 });
 
 describe("workspace shell and staged creation", () => {
+  test("collapses the sidebar without losing accessible navigation and keeps its state across routes", async () => {
+    installBaseFetch();
+    const user = userEvent.setup();
+    renderAt("/workspace/new");
+    const collapse = await screen.findByRole("button", { name: "收起侧边栏" });
+    expect(collapse).toHaveAttribute("aria-expanded", "true");
+    await user.click(collapse);
+    const expand = screen.getByRole("button", { name: "展开侧边栏" });
+    expect(expand).toHaveAttribute("aria-expanded", "false");
+    await waitFor(() => expect(expand).toHaveFocus());
+    expect(screen.queryByRole("navigation", { name: "工作台导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "GitHub" })).not.toBeInTheDocument();
+    await user.keyboard("{ArrowDown}");
+    await waitFor(() => expect(screen.getByRole("link", { name: "创建任务" })).toHaveFocus());
+    await user.click(screen.getByRole("link", { name: "账户：coach" }));
+    expect(await screen.findByRole("heading", { name: "设置" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "展开侧边栏" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "账户：coach" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "展开侧边栏" }));
+    expect(screen.getByRole("button", { name: "收起侧边栏" })).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("mobile drawer traps focus, restores its trigger and closes after internal navigation", async () => {
+    vi.mocked(window.matchMedia).mockImplementation((query) => ({ matches: query === "(max-width: 767px)", media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() } as unknown as MediaQueryList));
+    installBaseFetch();
+    const user = userEvent.setup();
+    renderAt("/workspace/new");
+    const trigger = await screen.findByRole("button", { name: "打开工作台菜单" });
+    expect(screen.queryByRole("navigation", { name: "工作台导航" })).not.toBeInTheDocument();
+    await user.click(trigger);
+    const drawer = screen.getByRole("dialog", { name: "工作台导航" });
+    expect(within(drawer).getByRole("link", { name: "创建任务" })).toHaveFocus();
+    const first = within(drawer).getByRole("link", { name: "大山冰首页" });
+    const last = within(drawer).getByRole("link", { name: "设置" });
+    first.focus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(last).toHaveFocus();
+    await user.keyboard("{Tab}");
+    expect(first).toHaveFocus();
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(trigger);
+    await user.click(screen.getByRole("link", { name: "设置" }));
+    expect(await screen.findByRole("heading", { name: "设置" })).toBeVisible();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(document.querySelector(".workspace-mobile-actions")).not.toBeInTheDocument();
+  });
+
   test("locks the title and mode while the first draft request is pending", async () => {
     let resolveCreate!: (response: Response) => void;
     const createResponse = new Promise<Response>((resolve) => { resolveCreate = resolve; });
@@ -131,7 +181,7 @@ describe("workspace shell and staged creation", () => {
 
     expect(title).toBeDisabled();
     expect(screen.getByRole("radio", { name: /快速/ })).toBeDisabled();
-    resolveCreate(json(task({ title: "训练 A" }), { status: 201 }));
+    await act(async () => { resolveCreate(json(task({ title: "训练 A" }), { status: 201 })); });
   });
 
   test("enforces the 120-code-point title boundary and localizes a first-upload 422", async () => {
@@ -208,7 +258,7 @@ describe("workspace shell and staged creation", () => {
 
   test("keeps every phone drawer action in the focus loop and closes from utility navigation", async () => {
     vi.stubGlobal("matchMedia", vi.fn().mockImplementation((query: string) => ({
-      matches: query === "(max-width: 760px)", media: query, onchange: null,
+      matches: query === "(max-width: 767px)", media: query, onchange: null,
       addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(),
     })));
     installBaseFetch();
@@ -301,11 +351,11 @@ describe("workspace shell and staged creation", () => {
 
     expect(pending).toHaveLength(1);
     expect(maxActiveWrites).toBe(1);
-    pending[0].xhr.finish();
+    await act(async () => { pending[0].xhr.finish(); });
     await flushPromises();
     expect(pending).toHaveLength(1);
     expect(maxActiveWrites).toBe(1);
-    pending[0].xhr.finish();
+    await act(async () => { pending[0].xhr.finish(); });
     await waitFor(() => expect(screen.getByText("cam1.mp4")).toBeVisible());
   });
 
@@ -462,9 +512,11 @@ describe("task list workflows", () => {
       "/workspace/tasks?q=second&status=queued&mode=quick&page=2&page_size=10",
     ], 1);
     expect(await screen.findByRole("searchbox", { name: "搜索任务" })).toHaveValue("second");
+    await user.click(screen.getByRole("button", { name: "筛选" }));
     expect(screen.getByLabelText("状态")).toHaveValue("queued");
     await user.click(screen.getByRole("button", { name: "History back" }));
     await waitFor(() => expect(screen.getByRole("searchbox", { name: "搜索任务" })).toHaveValue("first"));
+    await user.click(screen.getByRole("button", { name: "筛选" }));
     expect(screen.getByLabelText("状态")).toHaveValue("failed");
     expect(screen.getByLabelText("分析模式")).toHaveValue("full");
   });
@@ -505,9 +557,10 @@ describe("task list workflows", () => {
 
     await screen.findByRole("heading", { name: "任务列表" });
     await user.type(screen.getByRole("searchbox", { name: "搜索任务" }), "周三");
+    await user.click(screen.getByRole("button", { name: "筛选" }));
     await user.selectOptions(screen.getByLabelText("状态"), "failed");
     await user.selectOptions(screen.getByLabelText("分析模式"), "quick");
-    await user.click(screen.getByRole("button", { name: "筛选" }));
+    await user.click(screen.getByRole("button", { name: "应用筛选" }));
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("q=%E5%91%A8%E4%B8%89&status=failed&mode=quick&page=1&page_size=10"));
     await user.click(screen.getByRole("button", { name: "下一页" }));
     await waitFor(() => expect(screen.getByTestId("workspace-location")).toHaveTextContent("page=2"));
@@ -544,6 +597,34 @@ describe("task list workflows", () => {
 });
 
 describe("task and example result workspaces", () => {
+  test("selects the first available camera, announces loading and exposes a playable player", async () => {
+    render(<LocaleProvider><ResultWorkspace result={{ ...productResult, media: { cam_02: productResult.media.cam_02 } }}/></LocaleProvider>);
+    await waitFor(() => expect(screen.getByRole("tab", { name: "机位 2" })).toHaveAttribute("aria-selected", "true"));
+    expect(screen.getByRole("tab", { name: "阶段合成" })).toBeDisabled();
+    const video = screen.getByTitle("机位 2 播放器");
+    expect(video).toHaveAttribute("controls");
+    expect(screen.getByText("正在加载视频")).toBeVisible();
+    fireEvent.loadedMetadata(video);
+    expect(screen.queryByText("正在加载视频")).not.toBeInTheDocument();
+  });
+
+  test("media errors offer retry, reset for another view, and result tabs support arrow keys", async () => {
+    const user = userEvent.setup();
+    render(<LocaleProvider><ResultWorkspace result={productResult}/></LocaleProvider>);
+    fireEvent.error(screen.getByTitle("阶段合成 播放器"));
+    expect(screen.getByRole("alert")).toHaveTextContent("视频加载失败");
+    await user.click(screen.getByRole("button", { name: "重新加载视频" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.error(screen.getByTitle("阶段合成 播放器"));
+    await user.click(screen.getByRole("tab", { name: "机位 1" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByTitle("机位 1 播放器")).toHaveAttribute("src", productResult.media.cam_01);
+    await user.click(screen.getByRole("tab", { name: "概览" }));
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("tab", { name: "时间线" })).toHaveFocus();
+    expect(screen.getByRole("tabpanel", { name: "时间线" })).toHaveTextContent("跳投");
+  });
+
   test("clears task A result immediately when same-route navigation starts task B and aborts both requests", async () => {
     let resolveB!: (response: Response) => void;
     const deferredB = new Promise<Response>((resolve) => { resolveB = resolve; });
@@ -696,7 +777,7 @@ describe("task and example result workspaces", () => {
     expect(screen.getByText("Quick")).toBeVisible();
     expect(screen.getByText("Upload")).toBeVisible();
     await user.click(screen.getByRole("tab", { name: "Timeline" }));
-    expect(screen.getByText("Jump shot")).toBeVisible();
+    expect(within(screen.getByRole("tabpanel", { name: "Timeline" })).getByRole("list")).toHaveTextContent("Jump shot");
     expect(screen.getByText(/Made/)).toBeVisible();
     detail.unmount();
 
@@ -704,21 +785,22 @@ describe("task and example result workspaces", () => {
     const cards = await screen.findAllByTestId("preset-card");
     expect(within(cards[0]).getByRole("heading", { name: "Quick demo" })).toBeVisible();
     expect(within(cards[0]).getByText("4 jump shots")).toBeVisible();
-    expect(within(cards[0]).getByText(/9.4 MIN · Quick/)).toBeVisible();
+    expect(within(cards[0]).getByText(/9.4 min · Quick/)).toBeVisible();
     expect(within(cards[1]).getByRole("heading", { name: "Mixed actions" })).toBeVisible();
     expect(within(cards[1]).getByText("Triple threat and jump shots")).toBeVisible();
-    expect(within(cards[1]).getByText(/26.7 MIN · Full/)).toBeVisible();
+    expect(within(cards[1]).getByText(/26.7 min · Full/)).toBeVisible();
     expect(within(cards[2]).getByRole("heading", { name: "Verified outcomes" })).toBeVisible();
     expect(within(cards[2]).getByText("Free throws with verified shot outcomes")).toBeVisible();
-    expect(within(cards[2]).getByText(/30.9 MIN · Verified/)).toBeVisible();
+    expect(within(cards[2]).getByText(/30.9 min · Verified/)).toBeVisible();
     expect(within(cards[3]).getByRole("heading", { name: "Layup demo" })).toBeVisible();
     expect(within(cards[3]).getByText("6 layups")).toBeVisible();
-    expect(within(cards[3]).getByText(/14.3 MIN · Layup/)).toBeVisible();
+    expect(within(cards[3]).getByText(/14.3 min · Layup/)).toBeVisible();
     expect(screen.queryByText("快速演示")).not.toBeInTheDocument();
     newTask.unmount();
 
     renderAt("/workspace/tasks");
     expect(await screen.findByRole("heading", { name: "Tasks" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Filter" }));
     expect(screen.getByRole("option", { name: "Failed" })).toHaveValue("failed");
     expect(screen.getByRole("option", { name: "Quick" })).toHaveValue("quick");
   });

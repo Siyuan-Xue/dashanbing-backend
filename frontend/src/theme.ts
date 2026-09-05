@@ -3,8 +3,8 @@ export type Theme = "light" | "dark";
 const THEME_STORAGE_KEY = "dashanbing-theme";
 
 const actionTokens: Record<Theme, Record<"--brand" | "--brand-strong" | "--on-brand", string>> = {
-  light: { "--brand": "#5361ff", "--brand-strong": "#3f4bd8", "--on-brand": "#ffffff" },
-  dark: { "--brand": "#7d85ff", "--brand-strong": "#979dff", "--on-brand": "#101326" },
+  light: { "--brand": "#1678a6", "--brand-strong": "#126b96", "--on-brand": "#ffffff" },
+  dark: { "--brand": "#73c9ed", "--brand-strong": "#9edaf1", "--on-brand": "#10232e" },
 };
 
 export function resolveInitialTheme(): Theme {

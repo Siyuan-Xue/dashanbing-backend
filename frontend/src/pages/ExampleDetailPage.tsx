@@ -33,6 +33,6 @@ export function ExampleDetailPage() {
   return <div className="workspace-page example-detail-page">
     <header className="detail-header example-header"><div><Link to="/workspace/new" className="back-link">← {wt("presetHeading")}</Link><h1>{localizedPreset?.title || presetId}</h1><p>{localizedPreset?.description}</p></div><div className="preset-run"><label>{wt("mode")}<select aria-label={wt("mode")} value={mode} onChange={(event) => setMode(event.target.value as TaskMode)}><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select></label><button className="button button-primary" disabled={creating} onClick={() => void create()}>{creating ? wt("creatingPreset") : wt("usePreset")}</button></div></header>
     {createError && <p className="task-error-banner" role="alert">{createError}</p>}
-    <ResultWorkspace result={result} resultLoading={loading} resultError={resultError} onRetryResult={reloadResult}/>
+    <ResultWorkspace key={presetId} result={result} resultLoading={loading} resultError={resultError} onRetryResult={reloadResult}/>
   </div>;
 }

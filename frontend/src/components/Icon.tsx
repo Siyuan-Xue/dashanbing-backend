@@ -1,6 +1,13 @@
-type IconName = "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
+type IconName = "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
 
 const paths: Record<IconName, React.ReactNode> = {
+  collapse: <path d="m11 6-6 6 6 6m7-12-6 6 6 6"/>,
+  expand: <path d="m6 6 6 6-6 6m7-12 6 6-6 6"/>,
+  copy: <><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></>,
+  download: <><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></>,
+  chevronLeft: <path d="m15 5-7 7 7 7"/>,
+  chevronRight: <path d="m9 5 7 7-7 7"/>,
+  filter: <><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="2" fill="var(--surface)"/><circle cx="16" cy="17" r="2" fill="var(--surface)"/></>,
   arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
   basketball: <><circle cx="12" cy="12" r="9"/><path d="M3.6 9.2c5.2.2 9.7 4.4 10 9.7M8.5 4.7c4.8 3.6 7.2 8.2 7 14.1M4.2 15.7c4.5-3.5 9.6-5.1 15.5-4.7"/></>,
   chart: <><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h21"/></>,
@@ -8,7 +15,8 @@ const paths: Record<IconName, React.ReactNode> = {
   clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></>,
   code: <><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14"/></>,
   file: <><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v5h5"/></>,
-  github: <path d="M12 2.8a9.3 9.3 0 0 0-2.9 18.1c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.6 1 1.6 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1a9.6 9.6 0 0 1 5.1 0c2-1.3 2.8-1 2.8-1 .6 1.4.2 2.4.1 2.7.7.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .4.2.6.7.5A9.3 9.3 0 0 0 12 2.8Z"/>,
+  // A smaller cat cutout leaves a wider, solid circle around the mark.
+  github: <path fillRule="evenodd" d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Z M7.8 8.1c-.4-1-.1-2.3.1-2.6 1.3 0 2.3.9 2.6 1.1a8 8 0 0 1 3 0c.3-.2 1.3-1.1 2.6-1.1.2.3.5 1.6.1 2.6 1.1 1 1.6 2 1.6 3.1 0 2.8-1.6 3.7-3.5 3.9.4.4.6 1 .6 1.8V20H9.1v-2.4c-1.9.4-2.6-.7-3-1.5-.3-.6-.7-.9-1.1-1.1-.4-.3-.2-.5.2-.5.7 0 1.2.6 1.5 1 .7 1 1.6.9 2.4.7.1-.5.3-.9.6-1.1-1.9-.2-3.5-1.1-3.5-3.9 0-1.1.5-2.1 1.6-3.1Z"/>,
   language: <><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21C9.5 18.5 8.2 15.5 8.2 12S9.5 5.5 12 3Z"/></>,
   layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
   menu: <path d="M4 7h16M4 12h16M4 17h16"/>,
@@ -26,5 +34,5 @@ const paths: Record<IconName, React.ReactNode> = {
 };
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
-  return <svg aria-hidden="true" className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+  return <svg aria-hidden="true" className={name === "github" ? "icon icon-github" : "icon"} width={size} height={size} viewBox="0 0 24 24" fill={name === "github" ? "currentColor" : "none"} stroke={name === "github" ? "none" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }

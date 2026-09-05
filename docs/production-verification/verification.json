@@ -1,0 +1,364 @@
+{
+  "checkedAt": "2026-09-05T01:43:11.685Z",
+  "assets": [
+    {
+      "path": "assets/brand/dashanbing-mark.svg",
+      "contentType": "image/svg+xml",
+      "sha256": "621d47436ee307aed434c552ba6b4043695052e52e4fc1a5d09a9557325c8a24"
+    },
+    {
+      "path": "assets/index-BdpKShKR.js",
+      "contentType": "text/javascript; charset=utf-8",
+      "sha256": "8d33f4f971a925857f5d62a24ad1b852e17facb86ec15ce3372377a1cfc8e82c"
+    },
+    {
+      "path": "assets/index-ByynxQfa.css",
+      "contentType": "text/css; charset=utf-8",
+      "sha256": "052124124aa6fa7488e6023762ef0b8f3076c52e2e808da5fd8cf4c33362a1a9"
+    },
+    {
+      "path": "assets/previews/layup-phases.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "73c0d5c7c38dcee2c38df5fe538f49cce977a703a3676e76cd2f8162ce331776"
+    },
+    {
+      "path": "assets/previews/mixed-phases.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "4efa562b9c9673b60edc6e9ffca4ac5de9497e519d41a609c3a6eb029c013d0b"
+    },
+    {
+      "path": "assets/previews/quick-cam-1.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "ccac64a4f5e8a761d689ef789ee3b45432913700e487ee9eac07510fd85bb901"
+    },
+    {
+      "path": "assets/previews/quick-cam-2.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "8135ee55e4ee8a492a2cec9c32e88dfe5dcd7b1ac70bda5799b4666b22d3cf50"
+    },
+    {
+      "path": "assets/previews/quick-cam-3.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "8f70035bea30423231cc07854c406391b97e5e67948afdbfe867c3889c0539dc"
+    },
+    {
+      "path": "assets/previews/quick-cam-4.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "cabdaf03ae2060b56a964c08c44251ba8595af23a9f08ce3a1830da8bbd73b7d"
+    },
+    {
+      "path": "assets/previews/quick-phases.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "d0ba1ddfe620ee65297009bde01d9ab680d964459a3020ef99cbdf5b8f014929"
+    },
+    {
+      "path": "assets/previews/quick-pose.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "c6ed1f98c1074148219bf7e2629debe2c7a174ae22827134c27acb6aebc425fd"
+    },
+    {
+      "path": "assets/previews/sources.json",
+      "contentType": "application/json",
+      "sha256": "65e03caa97b75b54f1c444e49cbbc31e695867b642769b0b61b8b0602106ba4c"
+    },
+    {
+      "path": "assets/previews/verified-phases.webp",
+      "contentType": "application/octet-stream",
+      "sha256": "3e6fb00b632c310861e444501fdf7f0c88a5cd4a41f331e214bf9cbe28132389"
+    },
+    {
+      "path": "index.html",
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "07b701c117fa4e9b9e98a1488e7ffa380236b40f83b693a73e1d6b696b480cd6"
+    },
+    {
+      "path": "theme-bootstrap.js",
+      "contentType": "application/javascript",
+      "sha256": "40a228b5dcfd2b2235ea20920e13111720f502e0aba628cb32206664875c558f"
+    }
+  ],
+  "pages": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "logo": {
+        "width": 121,
+        "height": 150,
+        "source": "/assets/brand/dashanbing-mark.svg"
+      },
+      "palette": {
+        "brand": "#1678a6",
+        "accent": "#9b4436",
+        "title": "rgb(22, 120, 166)"
+      },
+      "github": {
+        "width": 24,
+        "height": 24,
+        "fill": "rgb(18, 19, 22)",
+        "stroke": "none",
+        "color": "rgb(18, 19, 22)"
+      },
+      "decodedPreviews": [
+        {
+          "name": "quick-cam-1",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-2",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-3",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-4",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-pose",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "mixed-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "verified-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "layup-phases",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "logo": {
+        "width": 121,
+        "height": 150,
+        "source": "/assets/brand/dashanbing-mark.svg"
+      },
+      "palette": {
+        "brand": "#73c9ed",
+        "accent": "#e6a598",
+        "title": "rgb(115, 201, 237)"
+      },
+      "github": {
+        "width": 24,
+        "height": 24,
+        "fill": "rgb(238, 245, 248)",
+        "stroke": "none",
+        "color": "rgb(238, 245, 248)"
+      },
+      "decodedPreviews": [
+        {
+          "name": "quick-cam-1",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-2",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-3",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-4",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-pose",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "mixed-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "verified-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "layup-phases",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "logo": {
+        "width": 121,
+        "height": 150,
+        "source": "/assets/brand/dashanbing-mark.svg"
+      },
+      "palette": {
+        "brand": "#1678a6",
+        "accent": "#9b4436",
+        "title": "rgb(22, 120, 166)"
+      },
+      "github": {
+        "width": 24,
+        "height": 24,
+        "fill": "rgb(18, 19, 22)",
+        "stroke": "none",
+        "color": "rgb(18, 19, 22)"
+      },
+      "decodedPreviews": [
+        {
+          "name": "quick-cam-1",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-2",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-3",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-4",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-pose",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "mixed-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "verified-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "layup-phases",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "logo": {
+        "width": 121,
+        "height": 150,
+        "source": "/assets/brand/dashanbing-mark.svg"
+      },
+      "palette": {
+        "brand": "#73c9ed",
+        "accent": "#e6a598",
+        "title": "rgb(115, 201, 237)"
+      },
+      "github": {
+        "width": 24,
+        "height": 24,
+        "fill": "rgb(238, 245, 248)",
+        "stroke": "none",
+        "color": "rgb(238, 245, 248)"
+      },
+      "decodedPreviews": [
+        {
+          "name": "quick-cam-1",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-2",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-3",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-cam-4",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "quick-pose",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "mixed-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "verified-phases",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "name": "layup-phases",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "pageErrors": []
+    }
+  ],
+  "health": {
+    "status": "ok",
+    "ready": true,
+    "mode": "gpu",
+    "checks": 15
+  }
+}

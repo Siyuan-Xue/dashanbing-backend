@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { Icon } from "../components/Icon";
 import { ResultWorkspace } from "../components/ResultWorkspace";
 import { StatusChip } from "../components/StatusChip";
 import { WorkspaceState } from "../components/WorkspaceState";
@@ -70,6 +69,6 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
     <header className="detail-header"><div><Link to="/workspace/tasks" className="back-link">← {wt("tasks")}</Link><h1>{task.title}</h1><div className="detail-meta"><StatusChip status={task.status}/><span>{taskModeLabel(locale, task.mode)}</span><span>{taskSourceLabel(locale, task.source_type)}</span><span>{task.id.slice(0, 8)}</span></div></div><div className="detail-progress"><span><b>{task.progress}%</b><small>{taskStageMessageLabel(locale, task.stage_message)}</small></span><div><i style={{ width: `${task.progress}%` }}/></div></div></header>
     {task.error_message && <p className="task-error-banner" role="alert">{task.error_message}</p>}
     <ResultWorkspace key={taskId} task={task} result={result} resultLoading={resultLoading} resultError={resultError} onRetryResult={() => setRevision((value) => value + 1)} downloadUrl={task.status === "completed" && result ? `/api/v1/tasks/${task.id}/result` : undefined}/>
-    <section className="task-history"><h2>{wt("timeline")}</h2><ol><li className="done"><span/><div><b>{wt("created")}</b><time>{new Date(task.created_at).toLocaleString()}</time></div></li>{task.submitted_at && <li className="done"><span/><div><b>{wt("submit")}</b><time>{new Date(task.submitted_at).toLocaleString()}</time></div></li>}{task.started_at && <li className="done"><span/><div><b>{wt("progress")}</b><time>{new Date(task.started_at).toLocaleString()}</time></div></li>}{task.completed_at && <li className="done"><span/><div><b>{taskStatusLabel(locale, task.status)}</b><time>{new Date(task.completed_at).toLocaleString()}</time></div></li>}</ol></section>
+    <section className="task-history"><h2>{wt("timeline")}</h2><ol><li className="done"><span/><div><b>{wt("created")}</b><time>{new Date(task.created_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>{task.submitted_at && <li className="done"><span/><div><b>{wt("submit")}</b><time>{new Date(task.submitted_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}{task.started_at && <li className="done"><span/><div><b>{wt("progress")}</b><time>{new Date(task.started_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}{task.completed_at && <li className="done"><span/><div><b>{taskStatusLabel(locale, task.status)}</b><time>{new Date(task.completed_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}</ol></section>
   </div>;
 }

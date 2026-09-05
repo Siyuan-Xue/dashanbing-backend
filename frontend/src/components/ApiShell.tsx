@@ -1,48 +1,42 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { PublicHeader } from "./PublicHeader";
 import { Icon } from "./Icon";
 import { useLocale } from "../providers/LocaleProvider";
 import { apiCopy } from "../apiCenter/copy";
+import { useMediaQuery } from "../apiCenter/useMediaQuery";
 
 export function ApiShell() {
   const { locale } = useLocale();
   const c = apiCopy[locale];
-  const [open, setOpen] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const drawerRef = useRef<HTMLElement>(null);
+  const mobile = useMediaQuery("(max-width: 767px)");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(true);
   const menuRef = useRef<HTMLButtonElement>(null);
+  const open = mobile ? mobileOpen : groupOpen;
+  const setOpen = mobile ? setMobileOpen : setGroupOpen;
   const closeMenu = () => {
-    setOpen(false);
-    requestAnimationFrame(() => menuRef.current?.focus());
+    if (!mobile) return;
+    setMobileOpen(false);
+    menuRef.current?.focus();
   };
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { event.preventDefault(); closeMenu(); return; }
-      if (event.key !== "Tab" || !drawerRef.current) return;
-      const focusable = [...drawerRef.current.querySelectorAll<HTMLElement>("button:not(:disabled), a[href]")];
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable.at(-1)!;
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+
   return <div className="public-site api-site">
     <PublicHeader/>
-    <button ref={menuRef} className="api-mobile-menu" type="button" aria-label={c.menu} aria-expanded={open} onClick={() => setOpen(true)}><Icon name="menu"/>{c.docs}</button>
-    {open && <button className="api-scrim" type="button" aria-label={c.close} onClick={closeMenu}/>}
     <div className="api-layout">
-      <aside ref={drawerRef} className={`api-sidebar${open ? " open" : ""}`} aria-label={c.nav}>
-        <button ref={closeRef} className="api-sidebar-close" type="button" aria-label={c.close} onClick={closeMenu}><Icon name="x"/></button>
-        <p><Icon name="code"/>DaShanBing API</p>
-        <nav aria-label={c.nav}>
-          <NavLink to="/api/docs" onClick={closeMenu}><Icon name="file"/>{c.docs}</NavLink>
-          <NavLink to="/api/keys" onClick={closeMenu}><Icon name="settings"/>{c.keys}</NavLink>
+      <aside className="api-sidebar" aria-label={c.nav} onKeyDown={event => {
+        if (event.key === "Escape" && open) {
+          event.preventDefault();
+          setOpen(false);
+          menuRef.current?.focus();
+        }
+      }}>
+        <button ref={menuRef} className="api-product-toggle" type="button" aria-label={mobile ? (open ? c.close : c.menu) : "DaShanBing API"} aria-expanded={open} aria-controls="api-navigation" onClick={() => setOpen(!open)}>
+          <Icon name="code" size={18}/><span>DaShanBing API</span><span className="api-chevron" aria-hidden="true"/>
+        </button>
+        <nav id="api-navigation" aria-label={c.nav} hidden={!open}>
+          <NavLink to="/api/docs" onClick={closeMenu}>{c.docs}</NavLink>
+          <NavLink to="/api/keys" onClick={closeMenu}>{c.keys}</NavLink>
         </nav>
       </aside>
       <Outlet/>

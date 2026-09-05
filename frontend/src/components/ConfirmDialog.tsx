@@ -9,8 +9,10 @@ export function ConfirmDialog({ title, message, confirmLabel, danger = false, bu
   const dialogRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const returnTarget = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     cancelRef.current?.focus();
-    return () => { if (returnTarget?.isConnected) returnTarget.focus(); };
+    return () => { document.body.style.overflow = previousOverflow; if (returnTarget?.isConnected) returnTarget.focus(); };
   }, []);
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -28,7 +30,7 @@ export function ConfirmDialog({ title, message, confirmLabel, danger = false, bu
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [busy, onClose]);
   return <div className="dialog-backdrop" onMouseDown={(event) => { if (!busy && event.target === event.currentTarget) onClose(); }}>
-    <section ref={dialogRef} className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message" tabIndex={-1}>
+    <section ref={dialogRef} className="confirm-dialog" role="dialog" aria-modal="true" aria-busy={busy || undefined} aria-labelledby="confirm-title" aria-describedby="confirm-message" tabIndex={-1}>
       <span className={`dialog-icon${danger ? " danger" : ""}`} aria-hidden="true">!</span><h2 id="confirm-title">{title}</h2><p id="confirm-message">{message}</p>
       <div><button ref={cancelRef} className="button button-outline" type="button" disabled={busy} onClick={onClose}>{wt("dismiss")}</button><button className={`button ${danger ? "button-danger" : "button-primary"}`} type="button" disabled={busy} onClick={onConfirm}>{confirmLabel}</button></div>
     </section>

@@ -62,8 +62,8 @@ describe("public foundation", () => {
   test("renders the scoped public header and full public landing story", async () => {
     renderAt();
 
-    expect(await screen.findByRole("heading", { name: "让多路训练视频，变成可复盘的篮球洞察" })).toBeVisible();
-    expect(screen.getByText(/离开页面|稍后回来/)).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "让我看看你打球什么b样" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "上传，验验货" })).toHaveAttribute("href", "/workspace/new");
 
     const navigation = screen.getByRole("navigation", { name: "主导航" });
     expect(within(navigation).getAllByRole("link")).toHaveLength(2);
@@ -84,6 +84,30 @@ describe("public foundation", () => {
     expect(screen.getByRole("heading", { name: "混合动作" })).toBeVisible();
 
     expect(screen.queryByText(/客户端|合集|生态|资讯|促销/)).not.toBeInTheDocument();
+  });
+
+  test("capability accordion reveals the selected explanation and closes the previous one", async () => {
+    const user = userEvent.setup();
+    renderAt();
+    const first = await screen.findByRole("button", { name: "这个角度帅，换一个呢？" });
+    const queue = screen.getByRole("button", { name: "你继续打，录像我来翻。" });
+    expect(first).toHaveAttribute("aria-expanded", "true");
+    expect(queue).toHaveAttribute("aria-expanded", "false");
+    await user.click(queue);
+    expect(queue).toHaveAttribute("aria-expanded", "true");
+    expect(first).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("上传并提交后，关掉页面也能继续处理。回来就能查看进度和结果。")).toBeVisible();
+  });
+
+  test("public menu closes on Escape and restores focus to its toggle", async () => {
+    const user = userEvent.setup();
+    renderAt();
+    const menu = await screen.findByRole("button", { name: "打开导航菜单", hidden: true });
+    await user.click(menu);
+    expect(menu).toHaveAttribute("aria-expanded", "true");
+    await user.keyboard("{Escape}");
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+    expect(menu).toHaveFocus();
   });
 
   test("honors system dark mode once and persists a user theme choice", async () => {
@@ -132,7 +156,7 @@ describe("public foundation", () => {
   test("keeps primary action text AA-readable in both themes", async () => {
     const user = userEvent.setup();
     renderAt();
-    await screen.findByRole("heading", { name: "让多路训练视频，变成可复盘的篮球洞察" });
+    await screen.findByRole("heading", { name: "让我看看你打球什么b样" });
 
     for (const theme of ["light", "dark"] as const) {
       if (document.documentElement.dataset.theme !== theme) {
@@ -142,6 +166,7 @@ describe("public foundation", () => {
       const onBrand = styles.getPropertyValue("--on-brand");
       const brand = styles.getPropertyValue("--brand");
       const brandStrong = styles.getPropertyValue("--brand-strong");
+      expect(brand.trim()).toBe(theme === "light" ? "#1678a6" : "#73c9ed");
       expect({ onBrand, brand, brandStrong }).toEqual({
         onBrand: expect.stringMatching(/^\s*#[0-9a-f]{6}\s*$/i),
         brand: expect.stringMatching(/^\s*#[0-9a-f]{6}\s*$/i),
@@ -157,15 +182,15 @@ describe("public foundation", () => {
     const first = renderAt();
 
     await user.click(await screen.findByRole("button", { name: "English" }));
-    expect(screen.getByRole("heading", { name: "Turn multi-angle training video into basketball insight you can review" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Talk is cheap. Show me your game." })).toBeVisible();
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
     expect(screen.getByRole("link", { name: "DaShanBing home" })).toBeVisible();
     expect(screen.getByLabelText("DaShanBing logo")).toBeVisible();
-    expect(screen.getByLabelText("Wednesday shooting session")).toBeVisible();
+    expect(screen.getByLabelText("Quick demo · Jump shots")).toBeVisible();
     expect(document.title).toBe("DaShanBing · Multi-camera basketball review");
     expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
       "content",
-      "DaShanBing turns multi-camera basketball training video into reviewable action and shooting insight.",
+      "Great shot or lucky bounce? Review your basketball footage from every angle, with actions, shots and results side by side.",
     );
     expect(document.documentElement.lang).toBe("en");
     expect(localStorage.getItem("dashanbing-locale")).toBe("en");
@@ -179,7 +204,7 @@ describe("public foundation", () => {
 
   test("keeps the workspace preview decorative instead of exposing a dead action", async () => {
     renderAt();
-    await screen.findByLabelText("周三投篮训练");
+    await screen.findByLabelText("快速演示 · 跳投复盘");
     expect(screen.queryByRole("button", { name: "播放复盘预览" })).not.toBeInTheDocument();
   });
 });
@@ -249,7 +274,7 @@ describe("authentication and protected routes", () => {
     await user.click(screen.getByRole("button", { name: "登录" }));
 
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks"));
-    expect(await screen.findByText("coach")).toBeVisible();
+    expect(await screen.findByRole("link", { name: /coach/ })).toBeVisible();
   });
 
   test("a stale bootstrap response cannot overwrite a completed login", async () => {
@@ -274,7 +299,7 @@ describe("authentication and protected routes", () => {
     await user.type(screen.getByLabelText("密码"), "practice123");
     await user.click(screen.getByRole("button", { name: "登录" }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks"));
-    expect(await screen.findByText("coach")).toBeVisible();
+    expect(await screen.findByRole("link", { name: /coach/ })).toBeVisible();
 
     await act(async () => {
       bootstrap.resolve(anonymousResponse());
@@ -285,7 +310,7 @@ describe("authentication and protected routes", () => {
     expect(fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/api/v1/login/access-token"))).toHaveLength(1);
     expect(fetchMock.mock.calls.filter(([input]) => String(input).startsWith("/api/v1/tasks?"))).toHaveLength(2);
     expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks");
-    expect(screen.getByText("coach")).toBeVisible();
+    expect(screen.getByRole("link", { name: /coach/ })).toBeVisible();
   });
 
   test("validates registration locally and surfaces a backend conflict", async () => {

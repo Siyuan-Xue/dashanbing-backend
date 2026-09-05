@@ -43,7 +43,7 @@ test("workspace shell has the fixed desktop rail and a usable phone drawer", asy
   await expect(page.getByTestId("preset-card")).toHaveCount(4);
 
   if (testInfo.project.name === "mobile-chromium") {
-    await expect(page.locator(".workspace-mobile-actions")).toBeVisible();
+    await expect(page.locator(".workspace-mobile-actions")).toHaveCount(0);
     await expect(page.getByRole("navigation", { name: "工作台导航", exact: true })).toHaveCount(0);
     const before = await page.locator(".workspace-sidebar").boundingBox();
     expect(before).not.toBeNull();
@@ -102,7 +102,37 @@ test("workspace shell has the fixed desktop rail and a usable phone drawer", asy
   } else {
     await expect(page.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/Siyuan-Xue/dashanbing-backend");
     const sidebar = await page.locator(".workspace-sidebar").boundingBox();
-    expect(sidebar?.width).toBe(256);
+    expect(sidebar?.width).toBe(260);
+    const footer = await page.locator(".workspace-sidebar-bottom").boundingBox();
+    expect(footer?.height).toBe(48);
+    const account = await page.getByRole("link", { name: "账户：coach" }).boundingBox();
+    const github = await page.getByRole("link", { name: "GitHub" }).boundingBox();
+    expect(account?.y).toBe(github?.y);
+    await page.getByRole("button", { name: "收起侧边栏" }).click();
+    await expect(page.locator(".workspace-sidebar")).toBeHidden();
+    await expect(page.locator(".workspace-main")).toHaveCSS("margin-left", "0px");
+    await expect(page.locator(".workspace-collapsed-header .brand")).toBeVisible();
+    const fullWidth = (await page.locator(".workspace-main").boundingBox())!.width;
+    const expand = page.getByRole("button", { name: "展开侧边栏" });
+    await expand.hover();
+    await expect(page.locator(".workspace-sidebar.is-floating")).toBeVisible();
+    expect((await page.locator(".workspace-main").boundingBox())!.width).toBe(fullWidth);
+    await page.getByRole("navigation", { name: "工作台导航" }).hover();
+    await expect(page.locator(".workspace-sidebar.is-floating")).toBeVisible();
+    await page.locator(".workspace-main").hover({ position: { x: 500, y: 20 } });
+    await expect(page.locator(".workspace-sidebar")).toBeHidden();
+    await expand.focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(page.getByRole("link", { name: "创建任务" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(expand).toBeFocused();
+    await expect(page.locator(".workspace-sidebar")).toBeHidden();
+    await page.keyboard.press("ArrowDown");
+    await page.getByRole("link", { name: "账户：coach" }).click();
+    await expect(page).toHaveURL(/\/workspace\/settings$/);
+    await expect(page.getByRole("button", { name: "展开侧边栏" })).toHaveAttribute("aria-expanded", "false");
+    await page.getByRole("button", { name: "展开侧边栏" }).click();
+    expect((await page.locator(".workspace-sidebar").boundingBox())?.width).toBe(260);
     await expect(page.getByRole("navigation", { name: "工作台导航", exact: true })).toBeVisible();
   }
 
@@ -120,15 +150,19 @@ test("task list filters through the real query contract and detail switches medi
   });
   await page.goto("/workspace/tasks");
   await page.getByRole("searchbox", { name: "搜索任务" }).fill("周三");
+  await page.getByRole("button", { name: "筛选", exact: true }).click();
   await page.getByLabel("状态").selectOption("completed");
   await page.getByLabel("分析模式").selectOption("quick");
-  await page.getByRole("button", { name: "筛选" }).click();
+  await page.getByRole("button", { name: "应用筛选" }).click();
   await expect(page).toHaveURL(/q=%E5%91%A8%E4%B8%89&status=completed&mode=quick&page=1&page_size=10/);
   await expect.poll(() => observed).toContain("q=%E5%91%A8%E4%B8%89");
   await page.getByRole("link", { name: "周三投篮训练" }).first().click();
   await expect(page.getByRole("tab", { name: "阶段合成" })).toHaveAttribute("aria-selected", "true");
+  const cameraRequest = page.waitForRequest("**/tasks/task-1/media/cam_01");
   await page.getByRole("tab", { name: "机位 1" }).click();
-  await expect(page.getByTitle("机位 1 播放器")).toHaveAttribute("src", "/api/v1/tasks/task-1/media/cam_01");
+  await cameraRequest;
+  await expect(page.getByRole("tab", { name: "机位 1" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("button", { name: "重新加载视频" })).toBeVisible();
   await expect(page.getByRole("link", { name: "下载 JSON 结果" })).toBeVisible();
 });
 
@@ -180,4 +214,130 @@ test("settings preferences remain functional inside the mobile-safe shell", asyn
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   const dimensions = await page.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth }));
   expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport);
+});
+
+for (const width of [320, 390, 767, 768, 1024, 1279, 1280, 1440, 1920]) {
+  test(`workspace panels and footer remain usable at ${width}px`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-chromium", "explicit viewport coverage");
+    await page.setViewportSize({ width, height: 900 });
+    const english = width === 320 || width === 1024;
+    await page.addInitScript(({ english }) => {
+      localStorage.setItem("dashanbing-locale", english ? "en" : "zh");
+      localStorage.setItem("dashanbing-theme", english ? "dark" : "light");
+    }, { english });
+    await page.route("**/api/v1/presets/quick-demo/result", (route) => route.fulfill({ json: result }));
+    for (const path of ["new", "tasks", "tasks/task-1", "examples/quick-demo", "settings"]) {
+      await page.goto(`/workspace/${path}`);
+      await expect(page.locator(".workspace-page h1")).toBeVisible();
+      const main = page.locator(".workspace-main");
+      await expect(main).toHaveCSS("overflow-x", "visible");
+      await expect(page.locator(".workspace-page")).toHaveCSS("border-radius", "0px");
+      await expect(page.locator(".workspace-page")).toHaveCSS("border-top-width", "0px");
+      await expect(main).toHaveCSS("padding", "0px");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      if (path === "new") {
+        await expect(page.locator('input[type="file"]')).toHaveCount(5);
+        if (width >= 768) {
+          const sidebar = page.locator(".workspace-sidebar");
+          const expand = page.getByRole("button", { name: english ? "Expand sidebar" : "展开侧边栏" });
+          if (await expand.count()) await expand.click();
+          expect((await sidebar.boundingBox())?.width).toBe(260);
+          expect((await page.locator(".workspace-sidebar-bottom").boundingBox())?.height).toBe(48);
+          const account = await page.getByRole("link", { name: /coach/ }).boundingBox();
+          const github = await page.getByRole("link", { name: "GitHub" }).boundingBox();
+          expect(account?.y).toBe(github?.y);
+          expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        }
+      }
+      if (path === "tasks") {
+        await expect(page.getByRole("table")).toBeVisible();
+        const table = page.locator(".task-table-wrap");
+        const scrolled = await table.evaluate((element) => { element.scrollLeft = 10000; return element.scrollLeft; });
+        if (width < 768) expect(scrolled).toBeGreaterThan(0);
+      }
+      if (path.includes("task-1") || path.includes("quick-demo")) {
+        await expect(page.locator(".result-summary")).toBeVisible();
+        const summaryHeight = (await page.locator(".result-workspace").boundingBox())!.height;
+        const overviewHeight = (await page.locator(".insight-content").boundingBox())!.height;
+        for (const tab of [english ? "Timeline" : "时间线", "JSON"]) {
+          await page.getByRole("tab", { name: tab, exact: true }).click();
+          expect((await page.locator(".result-workspace").boundingBox())!.height).toBeCloseTo(summaryHeight, 0);
+          expect((await page.locator(".insight-content").boundingBox())!.height).toBeCloseTo(overviewHeight, 0);
+        }
+        await page.getByRole("tab", { name: "JSON", exact: true }).click();
+        await expect(page.locator(".result-json")).toContainText("registered_participant_count");
+        const media = (await page.locator(".result-media-panel").boundingBox())!;
+        const insights = (await page.locator(".result-insights-panel").boundingBox())!;
+        const stage = (await page.locator(".media-stage").boundingBox())!;
+        expect(stage.x + stage.width).toBeLessThanOrEqual(media.x + media.width);
+        expect(insights.y).toBeGreaterThanOrEqual(media.y + media.height);
+        expect(Math.abs(insights.width - media.width)).toBeLessThan(1);
+        expect(stage.width).toBeGreaterThan(media.width * .95);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        await page.getByRole("tab", { name: english ? "Summary" : "概览" }).click();
+      }
+      if ([390, 768, 1024, 1440, 1920].includes(width)) {
+        await page.screenshot({ path: testInfo.outputPath(`${path.replaceAll("/", "-")}-${width}.png`), fullPage: true, animations: "disabled" });
+      }
+    }
+  });
+}
+
+test("long result tabs retain overview height and scroll locally", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "explicit desktop and phone coverage");
+  await page.route("**/api/v1/tasks/task-1/result", route => route.fulfill({ json: {
+    ...result,
+    events: Array.from({ length: 100 }, (_, index) => ({ ...result.events[0], event_index: index + 1 })),
+    warnings: Array.from({ length: 8 }, () => "2 个事件属于当前版本未支持的动作类型。"),
+  } }));
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/workspace/tasks/task-1");
+    await expect(page.locator(".result-summary")).toBeVisible();
+    const overview = await page.locator(".insight-content").boundingBox();
+    const workspace = await page.locator(".result-workspace").boundingBox();
+    for (const tab of ["时间线", "JSON"]) {
+      await page.getByRole("tab", { name: tab, exact: true }).click();
+      expect((await page.locator(".insight-content").boundingBox())!.height).toBeCloseTo(overview!.height, 0);
+      expect((await page.locator(".result-workspace").boundingBox())!.height).toBeCloseTo(workspace!.height, 0);
+      await expect(page.locator(".result-summary")).toHaveAttribute("aria-hidden", "true");
+      const alternate = page.locator(".insight-alternate");
+      expect(await alternate.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+      await alternate.focus();
+      await page.keyboard.press("End");
+      await expect.poll(() => alternate.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    }
+    await page.getByRole("tab", { name: "概览", exact: true }).click();
+    await expect(page.locator(".result-summary")).toBeVisible();
+    expect((await page.locator(".insight-content").boundingBox())!.height).toBeCloseTo(overview!.height, 0);
+  }
+});
+
+test("resizing across the drawer breakpoint restores usable navigation and document scrolling", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "explicit breakpoint coverage");
+  await page.setViewportSize({ width: 768, height: 500 });
+  await page.goto("/workspace/new");
+  await expect(page.getByRole("button", { name: "展开侧边栏" })).toBeVisible();
+  await page.setViewportSize({ width: 767, height: 500 });
+  await page.getByRole("button", { name: "打开工作台菜单" }).click();
+  await expect(page.getByRole("dialog", { name: "工作台导航" })).toBeVisible();
+  await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
+  await page.setViewportSize({ width: 768, height: 500 });
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "展开侧边栏" })).toBeFocused();
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+  await page.setViewportSize({ width: 390, height: 320 });
+  await page.getByRole("button", { name: "打开工作台菜单" }).click();
+  await page.getByRole("link", { name: "设置", exact: true }).click();
+  await expect(page).toHaveURL(/\/workspace\/settings$/);
+  await expect(page.getByRole("button", { name: "打开工作台菜单" })).toBeFocused();
+});
+
+test("settings internal navigation reaches the real preference controls", async ({ page }) => {
+  await page.goto("/workspace/settings");
+  await page.getByRole("navigation", { name: "设置导航" }).getByRole("link", { name: "界面偏好" }).click();
+  await expect(page).toHaveURL(/#preferences$/);
+  await expect(page.getByRole("button", { name: "English" })).toBeInViewport();
+  await page.getByRole("button", { name: "English" }).click();
+  await expect(page.getByRole("heading", { name: "Interface preferences" })).toBeVisible();
 });

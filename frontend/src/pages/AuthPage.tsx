@@ -95,11 +95,6 @@ export function AuthPage({ mode }: { mode: Mode }) {
     <div className="auth-site">
       <PublicHeader/>
       <main className="auth-main section-shell">
-        <section className="auth-story">
-          <span className="eyebrow"><i/>{t("heroEyebrow")}</span>
-          <h2>{t("queueTitle")}</h2><p>{t("queueBody")}</p>
-          <div className="auth-flow" aria-hidden="true"><span><Icon name="layers"/></span><i/><span><Icon name="clock"/></span><i/><span><Icon name="chart"/></span></div>
-        </section>
         <section className="auth-card">
           <BrandMark size={46}/>
           <h1>{t(loginMode ? "authLoginTitle" : "authRegisterTitle")}</h1>

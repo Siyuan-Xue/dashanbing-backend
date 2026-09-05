@@ -108,11 +108,11 @@ export function NewTaskPage() {
   };
 
   return <div className="workspace-page new-task-page">
-    <header className="workspace-page-header"><div><span className="page-eyebrow">NEW ANALYSIS</span><h1>{wt("newTitle")}</h1><p>{wt("newBody")}</p></div></header>
+    <header className="workspace-page-header"><div><h1>{wt("newTitle")}</h1><p>{wt("newBody")}</p></div></header>
     <section className="create-panel">
       <div className="create-fields">
         <label><span>{wt("taskTitle")}</span><input value={title} required aria-invalid={Boolean(titleError)} disabled={creating || Boolean(task)} onChange={(event) => { setTitle(event.target.value); setTitleError(""); }} placeholder={wt("defaultTitle")}/></label>
-        <fieldset disabled={creating || Boolean(task)}><legend>{wt("mode")}</legend><label><input type="radio" name="mode" checked={mode === "quick"} onChange={() => setMode("quick")}/><span><b>{wt("quick")}</b><small>5–15 min</small></span></label><label><input type="radio" name="mode" checked={mode === "full"} onChange={() => setMode("full")}/><span><b>{wt("full")}</b><small>20–45 min</small></span></label></fieldset>
+        <fieldset disabled={creating || Boolean(task)}><legend>{wt("mode")}</legend><label><input type="radio" name="mode" checked={mode === "quick"} onChange={() => setMode("quick")}/><span><b>{wt("quick")}</b><small>5–15 {wt("minutes")}</small></span></label><label><input type="radio" name="mode" checked={mode === "full"} onChange={() => setMode("full")}/><span><b>{wt("full")}</b><small>20–45 {wt("minutes")}</small></span></label></fieldset>
       </div>
       <div className="upload-grid">
         {TASK_SLOTS.map((slot) => {
@@ -120,21 +120,20 @@ export function NewTaskPage() {
           const serverInput = task?.inputs.find((item) => item.slot === slot);
           const currentName = state?.phase === "success" ? state.file.name : serverInput?.original_filename;
           return <article className={`upload-card${state?.phase ? ` is-${state.phase}` : ""}`} key={slot}>
-            <div className="upload-card-head"><span><Icon name={slot === "enrollment_video" ? "user" : "play"}/></span><div><h2>{slotLabels[locale][slot]}</h2><small>{slot}</small></div></div>
-            <label className="upload-drop" onDragOver={(event) => event.preventDefault()} onDrop={drop(slot)}>
-              <input type="file" accept="video/*,.mkv" aria-label={slotLabels[locale][slot]} onChange={choose(slot)}/>
-              <Icon name={currentName ? "file" : "upload"}/><b>{currentName || wt("uploadHint")}</b>
-              {currentName && <small>{wt("replace")}</small>}
+            <div className="upload-card-head"><span><Icon name={slot === "enrollment_video" ? "user" : "play"}/></span><div><h2>{slotLabels[locale][slot]}</h2></div></div>
+            <label className="upload-drop" title={currentName ? wt("replace") : wt("uploadHint")} onDragOver={(event) => event.preventDefault()} onDrop={drop(slot)}>
+              <input type="file" aria-required="true" accept="video/*,.mkv" aria-label={slotLabels[locale][slot]} onChange={choose(slot)}/>
+              <Icon name={currentName ? "file" : "upload"}/>{currentName && <b>{currentName}</b>}<span className="sr-only">{currentName ? wt("replace") : wt("uploadHint")}</span>
             </label>
-            {state?.phase === "uploading" && <div className="upload-progress" role="progressbar" aria-valuenow={state.progress} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${state.progress}%` }}/><span>{state.progress}%</span></div>}
-            {state?.phase === "error" && <div className="upload-error" role="alert"><span>{state.error}</span><button type="button" aria-label={`${wt("retry")}${slotLabels[locale][slot]}`} onClick={() => void upload(slot, state.file)}><Icon name="refresh"/> {wt("retry")}</button></div>}
+            {state?.phase === "uploading" && <div className="upload-progress" role="progressbar" aria-label={slotLabels[locale][slot]} aria-valuenow={state.progress} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${state.progress}%` }}/><span>{state.progress}%</span></div>}
+            {state?.phase === "error" && <div className="upload-error" role="alert"><span>{state.error}</span><button type="button" aria-label={`${wt("retry")}${slotLabels[locale][slot]}`} title={`${wt("retry")}${slotLabels[locale][slot]}`} onClick={() => void upload(slot, state.file)}><Icon name="refresh"/></button></div>}
             {currentName && state?.phase !== "error" && <div className="upload-success"><Icon name="check"/> {wt("uploaded")}</div>}
           </article>;
         })}
       </div>
       {(titleError || submitError) && <p className="inline-error" role="alert">{titleError || submitError}</p>}
-      <div className="create-submit"><span>{verified.size} / 5</span><button className="button button-primary" type="button" disabled={!canSubmit || submitting} onClick={() => void submit()}>{submitting ? wt("submitting") : wt("submit")} <Icon name="arrow"/></button></div>
+      <div className="create-submit"><span>{wt("uploadCount")} {verified.size} / 5</span><button className="button button-primary" type="button" disabled={!canSubmit || submitting} onClick={() => void submit()}>{submitting ? wt("submitting") : wt("submit")} <Icon name="arrow"/></button></div>
     </section>
-    <section className="workspace-section"><div className="section-heading compact"><span className="page-eyebrow">PRESETS</span><h2>{wt("presetHeading")}</h2><p>{wt("presetBody")}</p></div>{presetError ? <WorkspaceState title={wt("loadFailed")} body={presetError.message} onRetry={reloadPresets}/> : presets ? <PresetCards presets={presets}/> : <div className="loading-block" role="status"/>}</section>
+    <section className="workspace-section"><div className="workspace-section-heading"><h2>{wt("presetHeading")}</h2></div>{presetError ? <WorkspaceState title={wt("loadFailed")} body={presetError.message} onRetry={reloadPresets}/> : presets ? <PresetCards presets={presets}/> : <div className="loading-block" role="status" aria-label={wt("resultLoading")}/>}</section>
   </div>;
 }

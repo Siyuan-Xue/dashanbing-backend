@@ -1,0 +1,60 @@
+/* Website illustration: the same sidebar, flat canvas and stacked result layout. */
+.product-preview { min-width: 0; display: grid; grid-template-columns: 170px minmax(0, 1fr); position: relative; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); overflow: hidden; text-align: left; }
+.product-preview-sidebar { min-width: 0; padding: 12px 10px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid var(--border); background: var(--surface-subtle); font-size: 12px; }
+.product-preview-brand { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+.product-preview-brand b { font-size: 13px; font-weight: 500; }
+.product-preview-brand > .icon { margin-left: auto; color: var(--muted); }
+.product-preview-nav { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 8px; color: var(--text-soft); border-radius: 8px; }
+.product-preview-nav:first-of-type { color: var(--brand); border: 1px solid color-mix(in srgb, var(--brand) 27%, var(--border)); background: var(--brand-soft); }
+.product-preview-nav.active { color: var(--brand); background: var(--brand-soft); }
+.product-preview-sidebar > small { padding: 16px 8px 0; margin-top: 8px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10px; }
+.product-preview-recent { display: flex; align-items: center; gap: 8px; padding: 4px 8px; color: var(--text-soft); }
+.product-preview-recent i { width: 5px; height: 5px; background: var(--success); border-radius: 50%; }
+.product-preview-account { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding: 8px; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.product-preview-account span { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #16171a; color: white; }
+.product-preview-content { min-width: 0; padding: 18px; }
+.product-preview-content > header { min-height: 34px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.product-preview-content > header b { font-size: 14px; font-weight: 500; }
+.product-preview-content > header > span { display: inline-flex; align-items: center; flex: none; gap: 4px; color: var(--success); font-size: 11px; }
+.product-preview-tabs { display: flex; gap: 4px; padding: 10px 0; color: var(--muted); font-size: 11px; }
+.product-preview-tabs > span { padding: 6px 8px; white-space: nowrap; }
+.product-preview-tabs .active { color: var(--brand); border-radius: 6px; background: var(--brand-soft); }
+.product-preview-video { margin: 0; background: #14161b; border-radius: 6px; overflow: hidden; }
+.product-preview-video img, .camera-evidence img, .model-evidence img, .example-visual img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; }
+.product-preview-video figcaption { padding: 5px 10px; color: #f4f5f9; font-size: 10px; letter-spacing: .04em; }
+.product-preview-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.product-preview-metrics > div { padding: 10px 12px; background: var(--surface-subtle); border-radius: 6px; }
+.product-preview-metrics small { display: block; color: var(--muted); font-size: 11px; }
+.product-preview-metrics b { display: block; margin-top: 5px; font-size: 22px; font-weight: 500; }
+.camera-evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.camera-evidence figure, .model-evidence { min-width: 0; margin: 0; border-radius: 8px; overflow: hidden; background: var(--surface); }
+.camera-evidence figcaption, .model-evidence figcaption { padding: 8px 12px; font-size: 12px; color: var(--text-soft); }
+.capability-visual .product-preview { grid-template-columns: 110px minmax(0, 1fr); }
+.capability-visual .product-preview-content { padding: 10px; }
+.capability-visual .product-preview-sidebar { padding: 8px 6px; font-size: 10px; gap: 5px; }
+.capability-visual .product-preview-brand b, .capability-visual .product-preview-brand > .icon { display: none; }
+.capability-visual .product-preview-content > header b { font-size: 11px; }
+.capability-visual .product-preview-tabs { font-size: 9px; gap: 0; }
+.capability-visual .product-preview-tabs > span { padding-inline: 5px; }
+.capability-visual .product-preview-metrics > div { padding: 7px; }
+.capability-visual .product-preview-metrics small { font-size: 9px; }
+.capability-visual .product-preview-metrics b { font-size: 16px; }
+.example-visual { margin: 0; height: auto; border-radius: 12px; background: #14161b; }
+@media (max-width: 1279px) {
+  .capability-visual .product-preview { grid-template-columns: minmax(0, 1fr); }
+  .capability-visual .product-preview-sidebar { display: none; }
+}
+@media (max-width: 767px) {
+  .product-preview { grid-template-columns: minmax(0, 1fr); border-radius: 10px; }
+  .product-preview-sidebar { display: none; }
+  .product-preview-content { padding: 10px; }
+  .product-preview-content > header b { font-size: 12px; }
+  .product-preview-tabs { font-size: 10px; gap: 0; }
+  .product-preview-tabs > span { padding-inline: 6px; }
+  .product-preview-metrics { gap: 6px; }
+  .product-preview-metrics > div { padding: 8px; }
+  .product-preview-metrics small { font-size: 10px; }
+  .product-preview-metrics b { font-size: 18px; }
+  .camera-evidence { gap: 8px; }
+  .camera-evidence figcaption { padding: 6px 8px; font-size: 10px; }
+}
