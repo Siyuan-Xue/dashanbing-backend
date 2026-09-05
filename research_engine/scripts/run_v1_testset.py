@@ -313,6 +313,7 @@ def _compose_phases_quad(
     clips: list | None = None,
     stride: int = 2,
     cell_size: tuple[int, int] = (960, 540),
+    camera_offsets_ms: dict[str, float] | None = None,
 ) -> Path:
     """
     2x2 mosaic of four camera annotated videos, driven by anchor (cam_03) clock.
@@ -322,6 +323,7 @@ def _compose_phases_quad(
     """
     order = ["cam_01", "cam_02", "cam_03", "cam_04"]
     clips = clips or []
+    offsets = camera_offsets_ms or {}
     cell_w, cell_h = cell_size
     out_w, out_h = cell_w * 2, cell_h * 2
 
@@ -358,6 +360,8 @@ def _compose_phases_quad(
         cap = caps[cam]
         src_fps = meta[cam]["src_fps"]
         n = meta[cam]["n"]
+        if target_ms < 0 or target_ms >= n / meta[cam]["fps"] * 1000:
+            return np.zeros((cell_h, cell_w, 3), dtype=np.uint8)
         while cursors[cam] + 1 < n:
             next_i = cursors[cam] + 1
             next_ms = frame_to_timestamp_ms(next_i * stride, src_fps)
@@ -388,7 +392,9 @@ def _compose_phases_quad(
         t_ms = frame_to_timestamp_ms(ai * stride, anchor_src_fps)
         canvas = np.zeros((out_h, out_w, 3), dtype=np.uint8)
         for cam in order:
-            tile = _read_until(cam, t_ms)
+            common_ms = t_ms - float(offsets.get(anchor, 0.0))
+            local_ms = common_ms + float(offsets.get(cam, 0.0))
+            tile = _read_until(cam, local_ms)
             x0, y0 = positions[cam]
             canvas[y0:y0 + cell_h, x0:x0 + cell_w] = tile
             # Corner cam label (overwrite small badge)
@@ -662,12 +668,15 @@ def render_group_visualizations(
     if all(c in outputs for c in ("cam_01", "cam_02", "cam_03", "cam_04")):
         phases_path = out_viz / "phases.mp4"
         print(f"  compose phases quad → {phases_path}")
+        from src.cameras.event_sync import get_camera_offsets_ms
+
         _compose_phases_quad(
             phases_path,
             {c: Path(outputs[c]) for c in ("cam_01", "cam_02", "cam_03", "cam_04")},
             anchor=anchor,
             clips=clips,
             stride=stride,
+            camera_offsets_ms=get_camera_offsets_ms(session_id),
         )
         outputs["phases"] = str(phases_path)
 
@@ -799,11 +808,17 @@ def process_group(
     print(f"  [{group_name}] skeleton3d triangulate")
     try:
         from src.pose.action_skeleton3d import process_group_action_skeletons
+        from src.pose.analyst_pose import find_task_calibration
         from scripts.extract_action_skeletons_3d import write_viewer
         scene = process_group_action_skeletons(
             group_dir,
             group_id=group_id,
             stride=max(2, stride),
+            session_id=session_id, videos=prepared, source_videos=videos,
+            pose_paths={cam: data_path("sessions", session_id, "perception", cam, "pose2d.json")
+                        for cam in prepared if camera_runs_pose2d(cam)},
+            sync_path=data_path("sessions", session_id, "raw", "sync_meta.json"),
+            calib_dir=find_task_calibration(videos),
         )
         skel_path = group_dir / "skeleton3d_triangulated.json"
         skel_path.write_text(json.dumps(scene, ensure_ascii=False, indent=2), encoding="utf-8")

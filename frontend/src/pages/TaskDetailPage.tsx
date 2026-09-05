@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
+import { AnalystAnchor } from "../analyst/AnalystPanel";
+import { useAuth } from "../providers/AuthProvider";
 import { Icon } from "../components/Icon";
 import { ResultWorkspace } from "../components/ResultWorkspace";
 import { StatusChip } from "../components/StatusChip";
@@ -21,6 +23,7 @@ export function TaskDetailRoute() {
 
 export function TaskDetailPage({ taskId }: { taskId: string }) {
   const wt = useWorkspaceCopy();
+  const { user } = useAuth();
   const { locale } = useLocale();
   const [task, setTask] = useState<Task | null>(null);
   const [taskError, setTaskError] = useState<Error | null>(null);
@@ -70,10 +73,10 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
   return <div className="workspace-page detail-page">
     <header className="detail-header">
       <div className="detail-heading"><Link to="/workspace/tasks" className="back-link" aria-label={wt("tasks")} title={wt("tasks")}><Icon name="chevronLeft"/></Link><h1 title={task.title}>{task.title}</h1></div>
-      <div className="detail-actions"><span className="detail-mode">{taskModeLabel(locale, task.mode)}</span><StatusChip status={task.status} stageMessage={task.stage_message}/>{ACTIVE.has(task.status) && <div className="detail-progress" role="progressbar" aria-label={wt("progress")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={task.progress} aria-valuetext={`${task.progress}% · ${taskStageMessageLabel(locale, task.stage_message)}`} title={taskStageMessageLabel(locale, task.stage_message)}><div><i style={{ width: `${task.progress}%` }}/></div><span>{task.progress}%</span></div>}</div>
+      <div className="detail-actions"><AnalystAnchor/><span className="detail-mode">{taskModeLabel(locale, task.mode)}</span><StatusChip status={task.status} stageMessage={task.stage_message}/>{ACTIVE.has(task.status) && <div className="detail-progress" role="progressbar" aria-label={wt("progress")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={task.progress} aria-valuetext={`${task.progress}% · ${taskStageMessageLabel(locale, task.stage_message)}`} title={taskStageMessageLabel(locale, task.stage_message)}><div><i style={{ width: `${task.progress}%` }}/></div><span>{task.progress}%</span></div>}</div>
     </header>
     {task.error_message && <p className="task-error-banner" role="alert">{task.error_message}</p>}
-    <ResultWorkspace key={taskId} task={task} result={result} resultLoading={resultLoading} resultError={resultError} onRetryResult={() => setRevision((value) => value + 1)} downloadUrl={task.status === "completed" && result ? `/api/v1/tasks/${task.id}/result` : undefined}/>
+    <ResultWorkspace analystSource={{ kind: "task", id: taskId }} accountId={user?.id} key={taskId} task={task} result={result} resultLoading={resultLoading} resultError={resultError} onRetryResult={() => setRevision((value) => value + 1)} downloadUrl={task.status === "completed" && result ? `/api/v1/tasks/${task.id}/result` : undefined}/>
     <section className="task-history"><h2>{wt("timeline")}</h2><ol><li className="done"><span/><div><b>{wt("created")}</b><time>{new Date(task.created_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>{task.submitted_at && <li className="done"><span/><div><b>{wt("submit")}</b><time>{new Date(task.submitted_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}{task.started_at && <li className="done"><span/><div><b>{wt("progress")}</b><time>{new Date(task.started_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}{task.completed_at && <li className="done"><span/><div><b>{taskStatusLabel(locale, task.status)}</b><time>{new Date(task.completed_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}</ol></section>
   </div>;
 }

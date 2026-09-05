@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
+import { useAnalystCopy } from "../analyst/copy";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 import { StatusChip } from "./StatusChip";
@@ -15,6 +16,7 @@ const MOBILE_QUERY = "(max-width: 767px)";
 export function WorkspaceShell() {
   const { user } = useAuth();
   const wt = useWorkspaceCopy();
+  const at = useAnalystCopy();
   const location = useLocation();
   const [peek, setPeek] = useState(false);
   const hoverClose = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -133,6 +135,7 @@ export function WorkspaceShell() {
         <nav className="workspace-nav" aria-label={wt("workspaceNav")}>
           <NavLink ref={firstDrawerLinkRef} className="workspace-create" to="/workspace/new" aria-label={wt("createTask")} title={rail ? wt("createTask") : undefined}><Icon name="plus"/><span>{wt("createTask")}</span></NavLink>
           <NavLink to="/workspace/tasks" aria-label={wt("tasks")} title={rail ? wt("tasks") : undefined}><Icon name="layers"/><span>{wt("tasks")}</span></NavLink>
+          <NavLink to="/workspace/profiles" aria-label={at("profiles")} title={rail ? at("profiles") : undefined}><Icon name="team"/><span>{at("profiles")}</span></NavLink>
         </nav>
         <section className="workspace-recent" aria-labelledby="recent-heading">
           <h2 id="recent-heading">{wt("recent")}</h2>

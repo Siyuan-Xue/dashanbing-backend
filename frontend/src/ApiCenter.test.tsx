@@ -351,3 +351,17 @@ describe("API center", () => {
     expect(await screen.findByRole("heading", { name: "登录大山冰" })).toBeVisible();
   });
 });
+
+test("documents analyst/profile endpoints with stable public subanchors and streaming recovery", async () => {
+  localStorage.setItem("dashanbing-locale", "en");
+  vi.stubGlobal("fetch", installFetch(false));
+  renderAt("/api/docs#analyst-chat");
+  const toc = await screen.findByRole("navigation", { name: "On this page" });
+  for (const [id, name] of [["analyst", "AI analyst and profiles"], ["analyst-context", "Context and evidence"], ["analyst-reports", "Reports"], ["analyst-chat", "Conversations and events"], ["training-profiles", "Training profiles and history"]]) {
+    expect(within(toc).getByRole("link", { name })).toHaveAttribute("href", `/api/docs#${id}`);
+    expect(screen.getByRole("heading", { name })).toHaveAttribute("id", id);
+  }
+  expect(screen.getByText("GET /api/v1/analyst/conversations/{id}/events")).toBeVisible();
+  expect(screen.getByText(/request_id/)).toBeVisible();
+  expect(screen.getByText(/times_ms/)).toBeVisible();
+});

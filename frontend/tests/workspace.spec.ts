@@ -478,6 +478,8 @@ for (const theme of ["light", "dark"]) test(`workspace navigation marks only the
       await expect(selected).toHaveCSS("border-top-width", "2px");
       await expect(selected).toHaveCSS("border-top-color", theme === "light" ? "rgb(155, 68, 54)" : "rgb(230, 165, 152)");
       await expect(selected).toHaveCSS("font-weight", "600");
-      await expect(nav.locator('a:not([aria-current="page"])')).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+      for (const inactive of await nav.locator('a:not([aria-current="page"])').all()) {
+        await expect(inactive).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+      }
     }
 });

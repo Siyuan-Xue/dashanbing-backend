@@ -1,0 +1,45 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { assertVerifiedReport, captureClips, assertCaptureMatrix } from "./capture-analyst-guard.mjs";
+const valid = () => ({ status: "completed", facts: { evidence: [{ id: "event-1" }] }, subjects: [], provenance: { provider: "glm", verified: true, facts_hash: "a".repeat(64) }, report: { id: "test-report", summary: "Fixture only", model: "glm-5.3", locale: "zh", style: "coach", highlights: [{ text: "Fixture", evidence_ids: ["event-1"] }], players: [], suggestions: ["Fixture"], comparison: null } });
+test("accepts a live-verified report only when current facts match", () => { assert.equal(assertVerifiedReport(valid(), "zh", "a".repeat(64)).id, "test-report"); });
+test("refuses disabled, missing provenance, mocked models, stale facts, and invalid citations", () => {
+  for (const patch of [{ status: "disabled" }, { provenance: null }, { provenance: { provider: "glm", verified: false, facts_hash: "a".repeat(64) } }, { report: { ...valid().report, model: "mock" } }, { report: { ...valid().report, highlights: [{ text: "Fixture", evidence_ids: ["unknown"] }] } }]) assert.throws(() => assertVerifiedReport({ ...valid(), ...patch }, "zh", "a".repeat(64)));
+  assert.throws(() => assertVerifiedReport(valid(), "zh", "b".repeat(64)));
+  assert.throws(() => assertVerifiedReport(valid(), "en", "a".repeat(64)));
+});
+
+test("rejects named or linked subjects and unrelated report players", () => {
+  for (const subjects of [[{ id: "s1", label: "Alex" }], [{ id: "s1", label: "球员 1", profile_id: "private-profile" }]]) {
+    assert.throws(() => assertVerifiedReport({ ...valid(), subjects }, "zh", "a".repeat(64)));
+  }
+  const state = valid(); state.report.players = [{ subject_id: "unknown", text: "Fixture", evidence_ids: [] }];
+  assert.throws(() => assertVerifiedReport(state, "zh", "a".repeat(64)));
+});
+
+test("all 16 crops include native video/conclusion or report detail, exclude raw tabs and remain bounded", () => {
+  for (const locale of ["zh", "en"]) for (const theme of ["light", "dark"]) for (const viewport of ["desktop", "mobile"]) {
+    const mobile = viewport === "mobile";
+    const y = mobile ? 520 : 1000;
+    const layout = { video: { x: 16, y: 200, width: mobile ? 358 : 1120, height: mobile ? 202 : 630 }, report: { x: 16, y, width: mobile ? 358 : 725, height: 1800 }, summaryLines: [y + 68, y + 96, y + 124, y + 152, y + 180], textLines: Array.from({ length: 60 }, (_, i) => y + 68 + i * 28), rawTop: y + 2000 };
+    const clips = captureClips(layout, viewport);
+    assert.deepEqual(Object.keys(clips), ["main", "analyst"]);
+    assert.equal(clips.main.y, layout.video.y);
+    assert.ok(clips.main.y + clips.main.height >= layout.summaryLines[1]);
+    assert.ok(clips.main.height <= (mobile ? 640 : 1040));
+    assert.equal(clips.analyst.width, layout.report.width);
+    assert.equal(clips.analyst.y, layout.report.y);
+    assert.ok(clips.analyst.height <= (mobile ? 420 : 480));
+    for (const clip of Object.values(clips)) assert.ok(clip.y + clip.height < layout.rawTop, `${locale}/${theme}/${viewport}`);
+  }
+  assert.throws(() => captureClips({ video: { x: 0, y: 0, width: 400, height: 300 }, report: { x: 0, y: 2000, width: 400, height: 500 }, summaryLines: [2050], textLines: [2050], rawTop: 3000 }, "mobile"));
+});
+
+test("publishes only a complete 16-image matrix from the same facts and stable localized report", () => {
+  const images = ["zh", "en"].flatMap(locale => ["light", "dark"].flatMap(theme => ["desktop", "mobile"].flatMap(viewport => ["main", "analyst"].map(kind => ({ locale, theme, viewport, kind, pixel_ratio: 2, width: 708, height: 800, facts_hash: "a".repeat(64), report_id: locale, report_hash: (locale === "zh" ? "b" : "c").repeat(64) })))));
+  assert.doesNotThrow(() => assertCaptureMatrix(images));
+  for (const patch of [{ facts_hash: "d".repeat(64) }, { report_id: "other" }, { report_hash: "d".repeat(64) }, { pixel_ratio: 1 }, { kind: "other" }]) {
+    assert.throws(() => assertCaptureMatrix(images.map((image, i) => i ? image : { ...image, ...patch })));
+  }
+  assert.throws(() => assertCaptureMatrix(images.slice(0, 8)));
+});

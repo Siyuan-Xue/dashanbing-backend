@@ -17,7 +17,7 @@ const anonymousResponse = () =>
 
 function LocationProbe() {
   const location = useLocation();
-  return <output data-testid="location">{location.pathname}{location.search}</output>;
+  return <output data-testid="location">{location.pathname}{location.search}{location.hash}</output>;
 }
 
 function renderAt(path = "/") {
@@ -524,4 +524,25 @@ describe("authentication and protected routes", () => {
     expect(screen.getByText("Enter a valid email address")).toBeVisible();
     expect(screen.getByText("Password cannot exceed 128 characters")).toBeVisible();
   });
+});
+
+
+test.each(["/workspace/examples/quick-demo?mode=quick#analyst", "/workspace/tasks?status=completed#analyst"])("preserves query and analyst anchor across authentication: %s", async target => {
+  localStorage.setItem("dashanbing-locale", "en");
+  let signedIn = false;
+  vi.stubGlobal("fetch", vi.fn(async (input: string) => {
+    if (input === "/api/v1/login/access-token") { signedIn = true; return Response.json({ access_token: "test", token_type: "bearer" }); }
+    if (input === "/api/v1/users/me") return signedIn ? Response.json({ id: 7, username: "coach", email: null, is_active: true }) : anonymousResponse();
+    if (input.startsWith("/api/v1/tasks?")) return Response.json({ items: [], total: 0, page: 1, page_size: 10 });
+    if (input === "/api/v1/presets") return Response.json([{ id: "quick-demo", title: "快速演示", description: "4 次跳投", expected_minutes: 9.4 }]);
+    return Response.json({ detail: "Unavailable" }, { status: 404 });
+  }));
+  const user = userEvent.setup();
+  renderAt(target);
+  await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(`/login?next=${encodeURIComponent(target)}`));
+  expect(screen.getByRole("link", { name: "Create one" })).toHaveAttribute("href", `/register?next=${encodeURIComponent(target)}`);
+  await user.type(screen.getByLabelText("Username or email"), "coach");
+  await user.type(screen.getByLabelText("Password", { exact: true }), "password123");
+  await user.click(screen.getByRole("button", { name: "Log in" }));
+  await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(target));
 });

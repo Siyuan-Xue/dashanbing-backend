@@ -11,7 +11,7 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     networks:
-      - local_only
+      - app_network
     volumes:
       - ./local-assets/runtime-models:/models:ro
       - ./local-assets/sample-bundle/data:/samples:ro
@@ -20,5 +20,5 @@ services:
     restart: unless-stopped
 
 networks:
-  local_only:
-    internal: true
+  app_network:
+    driver: bridge

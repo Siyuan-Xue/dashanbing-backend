@@ -45,7 +45,7 @@ async function responseError(response: Response) {
   catch { return errorFromPayload(undefined); }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "include", ...init });
   if (!response.ok) {
     if (response.status === 401) notifySessionExpired();
@@ -56,7 +56,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-function jsonInit(method: string, body?: unknown): RequestInit {
+export function jsonInit(method: string, body?: unknown): RequestInit {
   return {
     method,
     headers: body === undefined ? undefined : { "Content-Type": "application/json" },

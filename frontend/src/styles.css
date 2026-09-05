@@ -1,6 +1,7 @@
 @import "./styles/api.css";
 @import "./styles/workspace.css";
 @import "./styles/product-preview.css";
+@import "./styles/analyst.css";
 
 /* Public / API typography follows the reference system stack. Workspace sets its own stack. */
 :root {

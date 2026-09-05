@@ -85,7 +85,15 @@ def create_app(
             from app.services.supervisor import AnalysisSupervisor
 
             AnalysisSupervisor(application)._mark_interrupted()
+        from app.services.analyst import AnalystSupervisor, configured
+        analyst_supervisor = None
+        if configured(application) and application.state.settings.analyst_worker_enabled:
+            analyst_supervisor = AnalystSupervisor(application)
+            application.state.analyst_supervisor = analyst_supervisor
+            await analyst_supervisor.start()
         yield
+        if analyst_supervisor is not None:
+            await analyst_supervisor.stop()
         supervisor = getattr(application.state, "supervisor", None)
         if supervisor is not None:
             await supervisor.stop()

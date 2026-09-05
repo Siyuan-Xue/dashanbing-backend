@@ -242,6 +242,7 @@ def run_temporal_alignment(
     *,
     student_ids: list[str] | None = None,
     use_events: bool | None = None,
+    task_offsets_ms: dict[str, float] | None = None,
 ) -> Path:
     """
     Persist sync/alignment.json for Pose2Sim / multi-view fusion.
@@ -257,6 +258,10 @@ def run_temporal_alignment(
     method = str(sync_cfg.get("align_method") or "event_anchor")
     if use_events is None:
         use_events = method in ("event_anchor", "event", "release_event")
+    if task_offsets_ms is not None:
+        # A product task supplies its own clock. Do not fill missing cameras
+        # from research YAML, another group, or event estimates.
+        use_events = False
 
     timelines = build_per_camera_timelines(session_id, camera_ids)
 
@@ -278,7 +283,9 @@ def run_temporal_alignment(
             event_doc = {"error": str(exc)}
             event_offsets = {}
 
-    offsets = _merge_offsets(session_id, event_offsets)
+    offsets = ({str(cam): float(value) for cam, value in task_offsets_ms.items()
+                if cam in camera_ids and np.isfinite(float(value))}
+               if task_offsets_ms is not None else _merge_offsets(session_id, event_offsets))
 
     out_dir = data_path("sessions", session_id, "sync")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -287,7 +294,7 @@ def run_temporal_alignment(
         "session_id": session_id,
         "layout_id": load_yaml("cameras.yaml").get("layout_id"),
         "mode": sync_cfg.get("mode", "independent"),
-        "align_method": "event_anchor" if use_events else method,
+        "align_method": "task_sync" if task_offsets_ms is not None else ("event_anchor" if use_events else method),
         "anchor_camera": (event_doc or {}).get("anchor_camera")
             or sync_cfg.get("event_anchor_camera", "cam_03"),
         "camera_time_offsets_ms": offsets,

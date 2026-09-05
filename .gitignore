@@ -49,3 +49,8 @@ app/frontend/
 
 # Local feature worktrees
 .worktrees/
+
+# Dependency symlinks used by isolated feature worktrees
+.venv
+local-assets
+frontend/node_modules

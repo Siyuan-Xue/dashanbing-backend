@@ -35,6 +35,12 @@ def test_product_output_keeps_only_original_cameras_and_processed_mosaic(
 
     _copy_product_outputs(group, output)
 
+    pose = json.loads((output / "analyst_pose.json").read_text())
+    assert pose["schema_version"] == 1
+    assert pose["available"] is False
+    assert pose["events"] == []
+    assert pose["reason"] == "pose_export_missing"
+
     assert {path.name for path in (output / "viz").iterdir()} == {
         "cam_01_original.mp4",
         "cam_02_original.mp4",

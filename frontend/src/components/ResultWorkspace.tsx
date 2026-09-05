@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, SyntheticEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 
+import { AnalystPanel } from "../analyst/AnalystPanel";
+import type { AnalystSource, Evidence } from "../analyst/types";
+import { ResultVideo } from "./ResultVideo";
 import { Icon } from "./Icon";
 
 import { localizeResultMessage } from "../localization";
@@ -24,35 +27,9 @@ function navigateTabs(event: KeyboardEvent<HTMLDivElement>) {
   tabs[next].click();
 }
 
-function ResultVideo({ src, title }: { src: string; title: string }) {
-  const wt = useWorkspaceCopy();
-  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [attempt, setAttempt] = useState(0);
-  const playRequested = useRef(false);
-  const prepareVideo = useCallback((video: HTMLVideoElement | null) => {
-    if (!video) return;
-    playRequested.current = false;
-    // Set both the muted attribute and live property on every new media element
-    video.defaultMuted = true;
-    video.muted = true;
-  }, []);
-  const playWhenReady = (event: SyntheticEvent<HTMLVideoElement>) => {
-    setState("ready");
-    if (playRequested.current) return;
-    playRequested.current = true;
-    // Browser policy or a rapid camera switch can reject play; native controls remain usable
-    void event.currentTarget.play().catch(() => {});
-  };
 
-  return <>
-    {state !== "error" && <video key={attempt} ref={prepareVideo} controls autoPlay muted playsInline preload="auto" src={src} title={title} onLoadedMetadata={() => setState("ready")} onLoadedData={() => setState("ready")} onCanPlay={playWhenReady} onPlay={() => { playRequested.current = true; }} onError={() => setState("error")}/>}
-    {state === "loading" && <span className="media-loading" role="status">{wt("mediaLoading")}</span>}
-    {state === "error" && <div className="media-placeholder" role="alert"><div><b>{wt("mediaError")}</b><button type="button" className="media-retry" aria-label={wt("reloadMedia")} title={wt("reloadMedia")} onClick={() => { setAttempt((value) => value + 1); setState("loading"); }}><Icon name="refresh"/></button></div></div>}
-  </>;
-}
-
-export function ResultWorkspace({ task, result, resultLoading = false, resultError, onRetryResult, downloadUrl }: {
-  task?: Task; result: ProductResult | null; resultLoading?: boolean; resultError?: Error | null; onRetryResult?: () => void; downloadUrl?: string;
+export function ResultWorkspace({ task, result, resultLoading = false, resultError, onRetryResult, downloadUrl, analystSource, accountId }: {
+  analystSource?: AnalystSource; accountId?: number; task?: Task; result: ProductResult | null; resultLoading?: boolean; resultError?: Error | null; onRetryResult?: () => void; downloadUrl?: string;
 }) {
   const wt = useWorkspaceCopy();
   const { locale } = useLocale();
@@ -63,6 +40,18 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
   useEffect(() => {
     if (result && !result.media[mediaKind] && availableKinds[0]) setMediaKind(availableKinds[0]);
   }, [availableKinds, mediaKind, result]);
+  const mediaRef = useRef<HTMLElement>(null);
+  const [evidenceSeek, setEvidenceSeek] = useState<{ evidence: Evidence; id: number } | null>(null);
+  const seekEvidence = (evidence: Evidence) => {
+    const hasTime = (kind: (typeof mediaKinds)[number]) => typeof evidence.times_ms[kind] === "number" && Number.isFinite(evidence.times_ms[kind]) && evidence.times_ms[kind]! >= 0;
+    const target = availableKinds.includes(mediaKind) && hasTime(mediaKind) ? mediaKind : availableKinds.find(hasTime);
+    if (!target) return;
+    setMediaKind(target);
+    setEvidenceSeek(value => ({ evidence, id: (value?.id || 0) + 1 }));
+    mediaRef.current?.scrollIntoView?.({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  };
+  const seekTime = evidenceSeek?.evidence.times_ms[mediaKind];
+  const seek = evidenceSeek && typeof seekTime === "number" ? { id: evidenceSeek.id, seconds: seekTime / 1000 } : null;
   const insightRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (insightRef.current) insightRef.current.scrollTop = 0; }, [rightTab]);
   const mediaLabels = { phases: wt("phases"), cam_01: wt("cam1"), cam_02: wt("cam2"), cam_03: wt("cam3"), cam_04: wt("cam4") };
@@ -73,14 +62,15 @@ export function ResultWorkspace({ task, result, resultLoading = false, resultErr
   const src = result?.media[mediaKind];
 
   return <div className="result-workspace">
-    <section className="result-media-panel" aria-label={wt("mediaViews")}>
+    <section ref={mediaRef} className="result-media-panel" aria-label={wt("mediaViews")}>
       <div className="media-tabs" role="tablist" aria-label={wt("mediaViews")} onKeyDown={navigateTabs}>
         {mediaKinds.map((kind) => <button key={kind} id={`${id}-${kind}`} type="button" role="tab" aria-selected={mediaKind === kind} aria-controls={`${id}-media-panel`} tabIndex={mediaKind === kind ? 0 : -1} disabled={!result?.media[kind]} onClick={() => setMediaKind(kind)}>{mediaLabels[kind]}</button>)}
       </div>
       <div id={`${id}-media-panel`} className="media-stage" role="tabpanel" aria-labelledby={`${id}-${mediaKind}`} tabIndex={0}>
-        {src ? <ResultVideo key={src} src={src} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><div>{task && ["queued", "running"].includes(task.status) ? <><span className="analysis-orbit" aria-hidden="true"/><b>{taskStageMessageLabel(locale, task.stage_message)}</b><p>{task.progress}%</p></> : <><span className="media-empty-icon" aria-hidden="true">▷</span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
+        {src ? <ResultVideo key={src} src={src} seek={seek} title={`${mediaLabels[mediaKind]}${locale === "en" ? " player" : " 播放器"}`}/> : <div className="media-placeholder"><div>{task && ["queued", "running"].includes(task.status) ? <><span className="analysis-orbit" aria-hidden="true"/><b>{taskStageMessageLabel(locale, task.stage_message)}</b><p>{task.progress}%</p></> : <><span className="media-empty-icon" aria-hidden="true">▷</span><b>{resultLoading ? wt("resultLoading") : wt("mediaUnavailable")}</b></>}</div></div>}
       </div>
     </section>
+    {analystSource && <AnalystPanel ready={Boolean(result) && (!task || task.status === "completed")} source={analystSource} accountId={accountId} onEvidence={seekEvidence}/>}
     <section className="result-insights-panel" aria-label={wt("resultViews")}>
       <div className="insight-tabs" role="tablist" aria-label={wt("resultViews")} onKeyDown={navigateTabs}>
         {insightKinds.map((tab) => <button key={tab} type="button" id={`${id}-${tab}`} role="tab" aria-selected={rightTab === tab} aria-controls={`${id}-insight-panel`} tabIndex={rightTab === tab ? 0 : -1} onClick={() => setRightTab(tab)}>{wt(tab)}</button>)}

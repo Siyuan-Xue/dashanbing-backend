@@ -396,6 +396,8 @@ def delete_analysis(
     if not task_can_be_deleted(analysis.status):
         raise HTTPException(status_code=409, detail="Running analysis must be canceled first")
     enqueue_storage_deletion(session, analysis.id, ANALYSIS_ROOT)
+    from app.services.training_profiles import cleanup_analyst_task
+    cleanup_analyst_task(session, analysis.id, expired=False)
     delete_task_inputs(session, analysis.id)
     session.delete(analysis)
     session.commit()

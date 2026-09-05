@@ -1,6 +1,9 @@
-export type IconName = "pencil" | "activity" | "stop" | "statusCheck" | "alert" | "ban" | "calendarX" | "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
+export type IconName = "sparkles" | "chat" | "team" | "pencil" | "activity" | "stop" | "statusCheck" | "alert" | "ban" | "calendarX" | "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
 
 const paths: Record<IconName, React.ReactNode> = {
+  sparkles: <><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4m-2-2h4"/></>,
+  chat: <path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a4 4 0 0 1 4-4h6a8 8 0 0 1 8 8ZM7 9h10M7 13h6"/>,
+  team: <><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v3"/></>,
   pencil: <><path d="m4 15 11-11 5 5L9 20H4v-5Zm9-9 5 5"/></>,
   activity: <path d="M3 12h4l3-8 4 16 3-8h4"/>,
   stop: <rect x="6" y="6" width="12" height="12" rx="1"/>,

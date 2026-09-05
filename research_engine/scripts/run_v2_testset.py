@@ -178,6 +178,7 @@ def process_action_group(
     gallery_session_id: str | None = None,
     student_ids: list[str] | None = None,
     progress_callback: Callable[[str], None] | None = None,
+    calib_dir: Path | None = None,
 ) -> dict:
     """group1+: perception + action + shot with shared multi-student gallery."""
     t0 = time.perf_counter()
@@ -281,6 +282,7 @@ def process_action_group(
     print(f"  [{group_name}] temporal align (event_anchor)")
     run_temporal_alignment(
         session_id, list(prepared.keys()), student_ids=student_ids, use_events=True,
+        task_offsets_ms=(gdoc.get("camera_time_offsets_ms") or {}) if gdoc is not None else None,
     )
     timings["align"] = time.perf_counter() - t_align
 
@@ -317,9 +319,15 @@ def process_action_group(
     print(f"  [{group_name}] skeleton3d triangulate")
     try:
         from src.pose.action_skeleton3d import process_group_action_skeletons
+        from src.pose.analyst_pose import find_task_calibration
         from scripts.extract_action_skeletons_3d import write_viewer
         scene = process_group_action_skeletons(
             group_dir, group_id=group_id, stride=max(2, stride),
+            session_id=session_id, videos=prepared, source_videos=videos,
+            pose_paths={cam: data_path("sessions", session_id, "perception", cam, "pose2d.json")
+                        for cam in prepared if camera_runs_pose2d(cam)},
+            sync_path=sync_data_dir / "sync" / f"group_{group_id:02d}.json",
+            calib_dir=calib_dir if calib_dir is not None else find_task_calibration(videos),
         )
         skel_path = group_dir / "skeleton3d_triangulated.json"
         skel_path.write_text(json.dumps(scene, ensure_ascii=False, indent=2), encoding="utf-8")

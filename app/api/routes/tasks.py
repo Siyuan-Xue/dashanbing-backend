@@ -538,6 +538,8 @@ def delete_task(
     if not task_can_be_deleted(task.status):
         raise HTTPException(status_code=409, detail="Task must be canceled before deletion")
     enqueue_storage_deletion(session, task.id, ANALYSIS_ROOT)
+    from app.services.training_profiles import cleanup_analyst_task
+    cleanup_analyst_task(session, task.id, expired=False)
     delete_task_inputs(session, task.id)
     session.delete(task)
     session.commit()

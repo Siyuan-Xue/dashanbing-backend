@@ -163,6 +163,42 @@ export function ApiDocsPage() {
         <p>{locale === "zh" ? "媒体种类严格为" : "Media kinds are exactly"}: <code>phases</code>, <code>cam_01</code>, <code>cam_02</code>, <code>cam_03</code>, <code>cam_04</code>.</p>
         <p><code>GET /api/v1/tasks/{`{task_id}`}/media/{`{kind}`}</code></p>
       </section>
+      <section aria-labelledby="analyst">
+        <DocHeading id="analyst"/>
+        <p>{locale === "zh" ? "使用当前账户的 Cookie 会话或 Bearer 认证，分析师不可用时仍可读取已有任务结果与视频" : "Use the current account's cookie session or Bearer authentication; existing task results and videos remain available when the analyst is unavailable"}</p>
+        <DocHeading id="analyst-context"/>
+        <p><code>GET /api/v1/tasks/{`{id}`}/analyst/context</code></p>
+        <p>{locale === "zh" ? "返回 facts、subjects、team_profile_id、comparison_id 和 comparisons；facts 包含指标、匿名球员、warnings、pose_available 与 evidence，每条证据的 times_ms 按 phases 和各机位给出毫秒时间，不应跨机位复用时间" : "Returns facts, subjects, team_profile_id, comparison_id and comparisons; facts include metrics, anonymous subjects, warnings, pose_available and evidence. Each evidence item's times_ms supplies milliseconds for phases and individual cameras; use the selected camera's own time"}</p>
+        <p><code>PUT /api/v1/tasks/{`{id}`}/analyst/context</code></p>
+        <Code>{'{"subjects":[{"id":"subject-id","profile_id":"profile-id"}],"team_profile_id":null,"comparison_id":null}'}</Code>
+        <p>{locale === "zh" ? "显式关联球员或球队档案，null 解除关联；关联变更后重新读取报告状态，示例不关联个人档案" : "Explicitly associate player or team profiles; null removes a link. Refresh report state after changing associations. Presets do not link personal profiles"}</p>
+        <p>{locale === "zh" ? "首次关联会默认选最近的合格历史记录，context 返回实际 comparison_id；历史需属于关联档案、同模式且包含相同动作，视频过期但指标保留的记录仍可对比，之后显式传 comparison_id: null 可关闭对比；个人对话只能传当前球员关联档案的记录 ID，省略时由后端按该球员和任务的比较偏好选择" : "First linking defaults to the latest eligible history and context returns its actual comparison_id. History must belong to a linked profile, use the same mode and share an action; retained metrics remain comparable after video expiry. Subsequently, explicit comparison_id: null turns comparison off. A personal conversation may only pass a history ID for its linked player profile; when omitted, the backend applies that player's scope and the task's comparison preference"}</p>
+        <DocHeading id="analyst-reports"/>
+        <p><code>GET /api/v1/tasks/{`{id}`}/analyst/report?locale=zh&amp;style=coach</code></p>
+        <p><code>POST /api/v1/tasks/{`{id}`}/analyst/report</code></p>
+        <Code>{'{"locale":"zh","style":"coach","regenerate":false}'}</Code>
+        <p>{locale === "zh" ? "locale 为 zh 或 en，style 为 coach 或 roast；响应包含 status、report、error，状态为 disabled、waiting、queued、running、completed 或 failed，POST 接受任务后返回 202 或已有结果 200，仅 queued/running 需要轮询" : "locale is zh or en; style is coach or roast. Responses contain status, report and error, with disabled, waiting, queued, running, completed or failed states. POST returns 202 for accepted work or 200 for an existing result; poll only queued/running states"}</p>
+        <p>{locale === "zh" ? "报告包含 summary、highlights、players、comparison、suggestions 与模型、语言、风格、生成时间；evidence_ids 仅引用当前 facts.evidence 中的证据" : "Reports include summary, highlights, players, comparison, suggestions, model, locale, style and creation time; evidence_ids refer to entries in the current facts.evidence"}</p>
+        <p><code>GET /api/v1/presets/{`{id}`}/analyst/report?locale=zh&amp;style=coach</code></p>
+        <p>{locale === "zh" ? "预设报告只读，额外返回 facts 和 subjects，无生成 POST；仅真实已验证 GLM 报告与当前事实匹配时返回 provenance（provider、verified、facts_hash）" : "Preset reports are read only and also return facts and subjects, with no generation POST. provenance (provider, verified, facts_hash) is present only for a verified real GLM report matching current facts"}</p>
+        <DocHeading id="analyst-chat"/>
+        <p><code>POST /api/v1/analyst/conversations</code></p>
+        <Code>{'{"task_id":"task-id","subject_id":"subject-id","locale":"zh","style":"coach"}'}</Code>
+        <p>{locale === "zh" ? "task_id 与 preset_id 二选一，可选 subject_id 与 comparison_id 限定对话范围；返回 id 和 messages" : "Supply either task_id or preset_id; optional subject_id and comparison_id scope the conversation. Returns id and messages"}</p>
+        <p><code>GET /api/v1/analyst/conversations/{`{id}`}</code></p>
+        <p><code>POST /api/v1/analyst/conversations/{`{id}`}/messages</code></p>
+        <p>{locale === "zh" ? '请求体为 {content, request_id}，content 最多 4000 字符，同一发送重试复用 request_id；返回 message_id 与 job_id' : 'Send {content, request_id} with at most 4000 content characters; reuse request_id when retrying the same send. Returns message_id and job_id'}</p>
+        <p><code>GET /api/v1/analyst/conversations/{`{id}`}/events</code></p>
+        <p>{locale === "zh" ? "SSE 的 message 事件 data 是完整消息（id、role、content、citations、status），按 id 替换而非追加文本；done 表示空闲，断线或刷新后用 GET 对话恢复，消息状态为 queued、running、completed、failed" : "SSE message data is the full message (id, role, content, citations, status); replace by id rather than appending text. done indicates idle. Recover after disconnect or refresh with GET conversation. Message states are queued, running, completed and failed"}</p>
+        <DocHeading id="training-profiles"/>
+        <p><code>GET /api/v1/training-profiles</code> · <code>POST /api/v1/training-profiles</code></p>
+        <Code>{'{"kind":"player","name":"Alex","goals":"Footwork","notes":"Confirmed by the player"}'}</Code>
+        <p>{locale === "zh" ? "kind 为 player 或 team；name 必填，goals 和 notes 可选，notes 由用户确认，返回 id、kind、name、goals、notes、created_at、updated_at" : "kind is player or team; name is required, goals and user-confirmed notes are optional. Returns id, kind, name, goals, notes, created_at and updated_at"}</p>
+        <p><code>PATCH /api/v1/training-profiles/{`{id}`}</code> · <code>DELETE /api/v1/training-profiles/{`{id}`}</code></p>
+        <p>{locale === "zh" ? "PATCH 支持 name、goals、notes；DELETE 删除档案" : "PATCH accepts name, goals and notes; DELETE removes the profile"}</p>
+        <p><code>GET /api/v1/training-profiles/{`{id}`}/history</code></p>
+        <p>{locale === "zh" ? "返回观察记录数组：id、profile_id、task_id、occurred_at、mode、metrics、media_available；媒体过期后指标仍可保留，task_id 可为空，仅媒体可用时提供回看入口，错误统一使用 detail" : "Returns observations with id, profile_id, task_id, occurred_at, mode, metrics and media_available. Metrics may remain after media expires; task_id can be null. Offer replay only when media is available. Errors use detail"}</p>
+      </section>
       <section aria-labelledby="lifecycle">
         <DocHeading id="lifecycle"/>
         <p className="lifecycle-line" tabIndex={0}>draft → uploading → queued → running → completed</p>

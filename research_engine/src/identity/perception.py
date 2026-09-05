@@ -287,11 +287,14 @@ def _write_empty_pose2d(
 ) -> Path:
     cap = cv2.VideoCapture(str(video_path))
     fps = cap.get(cv2.CAP_PROP_FPS) or float(get_camera(camera_id).get("fps", 30))
+    image_size = [int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))]
     cap.release()
     pose_path = out_dir / "pose2d.json"
     pose_path.write_text(json.dumps({
         "camera_id": camera_id,
         "session_id": session_id,
+        "source_video": str(video_path.resolve()),
+        "image_size": image_size,
         "fps": fps,
         "stride": stride,
         "processing": "skipped",
@@ -363,6 +366,7 @@ def run_perception_on_video(
 
     cap = cv2.VideoCapture(str(video_path))
     fps = cap.get(cv2.CAP_PROP_FPS) or float(get_camera(camera_id).get("fps", 30))
+    image_size = [int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))]
     pose_frames: list[dict] = []
     frame_idx = 0
 
@@ -486,6 +490,8 @@ def run_perception_on_video(
         "fps": fps,
         "stride": stride,
         "processing": "per_camera_isolated",
+        "source_video": str(video_path.resolve()),
+        "image_size": image_size,
         "frames": pose_frames,
     }, ensure_ascii=False, indent=2))
     return out_dir

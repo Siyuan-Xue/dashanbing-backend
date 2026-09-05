@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +34,16 @@ class AppSettings(BaseSettings):
     enrollment_retention_days: int = 7
     raw_retention_days: int = 30
     result_retention_days: int = 180
+    glm_api_key: SecretStr = Field(default=SecretStr(""), validation_alias="GLM_API_KEY", repr=False)
+    glm_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
+    glm_model: str = "glm-5.3"
+    glm_reasoning_effort: str = "max"
+    glm_temperature: float = Field(default=1.0, ge=0, le=1, multiple_of=0.01)
+    glm_max_tokens: int = Field(default=65536, ge=1024, le=131072)
+    glm_timeout_seconds: float = Field(default=600, ge=1, le=1800)
+    analyst_worker_enabled: bool = True
+    analyst_concurrency: int = Field(default=2, ge=1, le=8)
+    analyst_daily_limit: int = Field(default=100, ge=1)
 
 
 def get_settings() -> AppSettings:

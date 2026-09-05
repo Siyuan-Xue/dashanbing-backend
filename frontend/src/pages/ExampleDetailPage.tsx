@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import { AnalystAnchor } from "../analyst/AnalystPanel";
+import { useAuth } from "../providers/AuthProvider";
 import { Icon } from "../components/Icon";
 import { ResultWorkspace } from "../components/ResultWorkspace";
 import { WorkspaceState } from "../components/WorkspaceState";
@@ -14,6 +16,7 @@ import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 export function ExampleDetailPage() {
   const { presetId = "" } = useParams();
   const wt = useWorkspaceCopy();
+  const { user } = useAuth();
   const { locale } = useLocale();
   const navigate = useNavigate();
   const { value: presets, error: presetError, reload: reloadPresets } = useLoadable(workspaceApi.presets);
@@ -34,9 +37,9 @@ export function ExampleDetailPage() {
   return <div className="workspace-page example-detail-page">
     <header className="detail-header example-header">
       <div className="detail-heading"><Link to="/workspace/new" className="back-link" aria-label={wt("presetHeading")} title={wt("presetHeading")}><Icon name="chevronLeft"/></Link><h1 title={localizedPreset?.title || presetId}>{localizedPreset?.title || presetId}</h1></div>
-      <div className="preset-run"><label className="preset-mode"><span className="sr-only">{wt("mode")}</span><select value={mode} onChange={(event) => setMode(event.target.value as TaskMode)}><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select><Icon name="chevronDown" size={16}/></label><button className="button button-primary" disabled={creating} onClick={() => void create()}>{creating ? wt("creatingPreset") : wt("createTask")}</button></div>
+      <div className="preset-run"><AnalystAnchor/><label className="preset-mode"><span className="sr-only">{wt("mode")}</span><select value={mode} onChange={(event) => setMode(event.target.value as TaskMode)}><option value="quick">{wt("quick")}</option><option value="full">{wt("full")}</option></select><Icon name="chevronDown" size={16}/></label><button className="button button-primary" disabled={creating} onClick={() => void create()}>{creating ? wt("creatingPreset") : wt("createTask")}</button></div>
     </header>
     {createError && <p className="task-error-banner" role="alert">{createError}</p>}
-    <ResultWorkspace key={presetId} result={result} resultLoading={loading} resultError={resultError} onRetryResult={reloadResult}/>
+    <ResultWorkspace analystSource={{ kind: "preset", id: presetId }} accountId={user?.id} key={presetId} result={result} resultLoading={loading} resultError={resultError} onRetryResult={reloadResult}/>
   </div>;
 }

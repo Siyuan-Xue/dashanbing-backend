@@ -1,0 +1,17 @@
+import { useLocale } from "../providers/LocaleProvider";
+const copy = {
+  title: ["AI 分析师", "AI analyst"], collapse: ["收起 AI 分析师", "Collapse AI analyst"], expand: ["展开 AI 分析师", "Expand AI analyst"], jump: ["跳转 AI 分析师", "Go to AI analyst"],
+  coach: ["教练", "Coach"], roast: ["锐评", "Roast"], style: ["分析风格", "Analysis style"], report: ["训练报告", "Training report"], chat: ["继续聊聊", "Ask a follow-up"],
+  loading: ["正在读取分析", "Loading analysis"], disabled: ["AI 尚未配置", "AI is not configured"], unavailable: ["AI 分析师暂不可用", "AI analyst unavailable"], retry: ["重试 AI 分析师", "Retry analyst"],
+  waiting: ["报告尚未生成", "Report not generated yet"], presetWaiting: ["示例报告尚未就绪", "Preset report is not ready"], queued: ["分析已排队", "Analysis queued"], running: ["正在分析", "Analyzing"], failed: ["分析未完成", "Analysis failed"], generate: ["生成报告", "Generate report"], regenerate: ["重新生成报告", "Regenerate report"],
+  highlights: ["关键发现", "Highlights"], suggestions: ["下一场训练", "Next practice"], comparison: ["历史对比", "Comparison"], evidence: ["查看证据", "View evidence"], player: ["当前球员", "Current player"], all: ["全场", "All players"],
+  linkPlayer: ["关联球员档案", "Link player profile"], noProfile: ["未关联", "Unlinked"], team: ["球队档案", "Team profile"], compare: ["对比记录", "Compare with"], noComparison: ["不对比", "No comparison"], contextError: ["档案关联暂不可用", "Profile linking unavailable"], contextSaved: ["已保存关联", "Links saved"],
+  scopedComparison: ["按当前球员档案匹配", "Use current player context"],
+  quickReview: ["哪些球值得重看", "Which plays should I rewatch?"], quickPractice: ["下一次重点练什么", "What should I practice next?"], quickCompare: ["这次比上次怎么样", "How does this compare?"], quickRoast: ["球友吐槽一下", "Roast my game"], fillQuestion: ["填入问题", "Use this question"],
+  ask: ["向分析师提问", "Ask the analyst"], prompt: ["这一场，接下来该练什么", "What should I practice next?"], send: ["发送", "Send"], chatEmpty: ["结合这一场的证据继续提问", "Ask about the evidence from this session"], chatError: ["对话暂不可用，请重试", "Conversation unavailable, please retry"], restore: ["恢复对话", "Recover conversation"], user: ["你", "You"], assistant: ["分析师", "Analyst"], responding: ["正在回复", "Replying"],
+  profiles: ["训练档案", "Training profiles"], newProfile: ["新建档案", "New profile"], editProfile: ["编辑档案", "Edit profile"], deleteProfile: ["删除档案", "Delete profile"], playerKind: ["球员", "Player"], teamKind: ["球队", "Team"], kind: ["档案类型", "Profile type"], name: ["名称", "Name"], goals: ["训练目标", "Training goals"], notes: ["已确认笔记", "Confirmed notes"], save: ["保存", "Save"], cancel: ["取消", "Cancel"], history: ["训练记录", "Training history"], noHistory: ["暂无训练记录", "No training history yet"], noProfiles: ["创建球员或球队档案，记录目标与进步", "Create a player or team profile to track goals and progress"], profileError: ["档案加载失败", "Unable to load profiles"], saveError: ["保存失败，请重试", "Unable to save, please retry"], deleteBody: ["删除此档案及其训练记录", "Delete this profile and its training history"], metricsOnly: ["仅保留指标", "Metrics retained"], openTask: ["打开训练记录", "Open training session"],
+  screenshotDetail: ["同场训练报告局部", "Report detail from the same session"], screenshotUnavailable: ["示例截图暂不可用", "Example screenshots unavailable"],
+  hero: ["AI 分析师，看懂这一场，练好下一场", "AI analyst · Understand this game, train for the next"], live: ["查看真实示例", "Explore the real example"], frame: ["真实篮球训练画面", "Actual basketball training frame"], screenshot: ["真实示例的 AI 分析师界面", "AI analyst from an actual preset result"],
+} as const;
+export type AnalystCopyKey = keyof typeof copy;
+export function useAnalystCopy() { const { locale } = useLocale(); return (key: AnalystCopyKey) => copy[key][locale === "zh" ? 0 : 1]; }

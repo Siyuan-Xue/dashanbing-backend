@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAnalystCopy } from "../analyst/copy";
 import { BrandMark } from "../components/Brand";
 import { Icon } from "../components/Icon";
 import { CameraEvidence, ExampleVisual, ProductPreview } from "../components/ProductPreview";
@@ -15,6 +16,7 @@ const capabilities: Array<{ icon: "layers" | "basketball" | "clock"; title: Copy
 
 export function HomePage() {
   const { t } = useLocale();
+  const at = useAnalystCopy();
   const [capability, setCapability] = useState(0);
   return (
     <div className="public-site">
@@ -24,6 +26,7 @@ export function HomePage() {
           <div className="hero-copy">
             <span className="eyebrow"><i/>{t("heroEyebrow")}</span>
             <h1>{t("heroTitle")}</h1>
+            <div className="hero-analyst-tagline">{at("hero")}</div>
             <p>{t("heroBody")}</p>
             <div className="hero-actions"><a className="button button-outline" href="#examples">{t("heroSecondary")}<Icon name="play" size={17}/></a><Link className="button button-primary" to="/workspace/new">{t("heroPrimary")}</Link></div>
           </div>

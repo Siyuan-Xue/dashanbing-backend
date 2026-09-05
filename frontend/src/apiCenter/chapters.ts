@@ -17,6 +17,12 @@ export const apiChapters = [
     { id: "result", title: { zh: "获取结果", en: "Get results" } },
     { id: "media", title: { zh: "复核媒体", en: "Review media" } },
   ] },
+  { id: "analyst", title: { zh: "AI 分析师与档案", en: "AI analyst and profiles" }, children: [
+    { id: "analyst-context", title: { zh: "上下文与证据", en: "Context and evidence" } },
+    { id: "analyst-reports", title: { zh: "分析报告", en: "Reports" } },
+    { id: "analyst-chat", title: { zh: "对话与事件流", en: "Conversations and events" } },
+    { id: "training-profiles", title: { zh: "训练档案与历史", en: "Training profiles and history" } },
+  ] },
   { id: "lifecycle", title: { zh: "任务生命周期", en: "Task lifecycle" }, children: [] },
   { id: "limits", title: { zh: "配额、文件限制与保留", en: "Quotas, file limits, and retention" }, children: [] },
   { id: "examples", title: { zh: "可执行示例", en: "Executable examples" }, children: [

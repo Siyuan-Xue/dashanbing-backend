@@ -1,0 +1,18 @@
+// Frontend domain types for analyst REST responses, streamed messages, and training profiles
+export type AnalystLocale = "zh" | "en";
+export type AnalystStyle = "coach" | "roast";
+export type AnalystSource = { kind: "task" | "preset"; id: string };
+export type MediaKind = "phases" | "cam_01" | "cam_02" | "cam_03" | "cam_04";
+export type TrainingProfile = { id: string; kind: "player" | "team"; name: string; goals: string; notes: string; created_at: string; updated_at: string };
+export type ProfileInput = Pick<TrainingProfile, "kind" | "name" | "goals" | "notes">;
+export type Observation = { id: string; profile_id: string; task_id: string | null; occurred_at: string; mode: string; metrics: Record<string, unknown>; media_available: boolean };
+export type Evidence = { id: string; event_index: number; subject_id: string | null; action_type: string; start_ms: number; end_ms: number; time_ms: number; media_kind: "phases"; times_ms: Partial<Record<MediaKind, number>>; result: "make" | "miss" | "undetermined" | null; confidence: number | null; angles: Record<string, unknown> };
+export type Subject = { id: string; label: string; profile_id?: string | null };
+export type AnalystFacts = { schema_version: 1; metrics: { action_counts: Record<string, number>; shots: Record<string, number | null>; registered_participant_count: number; event_count: number }; subjects: { id: string; label: string }[]; evidence: Evidence[]; warnings: string[]; pose_available: boolean };
+export type AnalystContext = { task_id: string; facts: AnalystFacts; subjects: Subject[]; team_profile_id: string | null; comparison_id: string | null; comparisons: Observation[] };
+export type ContextInput = Pick<AnalystContext, "team_profile_id" | "comparison_id"> & { subjects: { id: string; profile_id: string | null }[] };
+export type CitedText = { text: string; evidence_ids: string[] };
+export type AnalystReport = { id: string; summary: string; highlights: CitedText[]; players: (CitedText & { subject_id: string })[]; comparison: CitedText | null; suggestions: string[]; model: string; locale: AnalystLocale; style: AnalystStyle; created_at: string };
+export type ReportState = { status: "disabled" | "waiting" | "queued" | "running" | "completed" | "failed"; report: AnalystReport | null; error: string | null; facts?: AnalystFacts; subjects?: Subject[]; provenance?: { provider: "glm"; verified: boolean; facts_hash: string } | null };
+export type AnalystMessage = { id: string; role: "user" | "assistant"; content: string; citations: string[]; status: "queued" | "running" | "completed" | "failed" };
+export type Conversation = { id: string; messages: AnalystMessage[] };

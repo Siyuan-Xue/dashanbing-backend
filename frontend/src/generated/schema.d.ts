@@ -485,6 +485,180 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{task_id}/analyst/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_v1_tasks__task_id__analyst_report_get"];
+        put?: never;
+        /** Generate Report */
+        post: operations["generate_report_api_v1_tasks__task_id__analyst_report_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/presets/{preset_id}/analyst/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preset Report */
+        get: operations["preset_report_api_v1_presets__preset_id__analyst_report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyst/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Conversation */
+        post: operations["create_conversation_api_v1_analyst_conversations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyst/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversation */
+        get: operations["get_conversation_api_v1_analyst_conversations__conversation_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyst/conversations/{conversation_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Message */
+        post: operations["create_message_api_v1_analyst_conversations__conversation_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyst/conversations/{conversation_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversation Events */
+        get: operations["conversation_events_api_v1_analyst_conversations__conversation_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/analyst/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Context */
+        get: operations["get_context_api_v1_tasks__task_id__analyst_context_get"];
+        /** Put Context */
+        put: operations["put_context_api_v1_tasks__task_id__analyst_context_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Profiles */
+        get: operations["list_profiles_api_v1_training_profiles_get"];
+        put?: never;
+        /** Create Profile */
+        post: operations["create_profile_api_v1_training_profiles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training-profiles/{profile_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Profile */
+        delete: operations["remove_profile_api_v1_training_profiles__profile_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Profile */
+        patch: operations["update_profile_api_v1_training_profiles__profile_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/training-profiles/{profile_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_v1_training_profiles__profile_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -535,6 +709,115 @@ export interface components {
             started_at: string | null;
             /** Completed At */
             completed_at: string | null;
+        };
+        /** AnalystContext */
+        AnalystContext: {
+            /** Task Id */
+            task_id: string;
+            facts: components["schemas"]["AnalystFacts"];
+            /** Subjects */
+            subjects: components["schemas"]["ContextSubject"][];
+            /** Team Profile Id */
+            team_profile_id?: string | null;
+            /** Comparison Id */
+            comparison_id?: string | null;
+            /** Comparisons */
+            comparisons?: components["schemas"]["ObservationPublic"][];
+        };
+        /** AnalystContextUpdate */
+        AnalystContextUpdate: {
+            /** Subjects */
+            subjects?: components["schemas"]["SubjectAssignment"][];
+            /** Team Profile Id */
+            team_profile_id?: string | null;
+            /** Comparison Id */
+            comparison_id?: string | null;
+        };
+        /** AnalystEvidence */
+        AnalystEvidence: {
+            /** Id */
+            id: string;
+            /** Event Index */
+            event_index: number;
+            /** Subject Id */
+            subject_id: string | null;
+            /**
+             * Action Type
+             * @enum {string}
+             */
+            action_type: "triple_threat" | "free_throw" | "jump_shot" | "layup";
+            /** Start Ms */
+            start_ms: number;
+            /** End Ms */
+            end_ms: number;
+            /** Time Ms */
+            time_ms: number;
+            /**
+             * Media Kind
+             * @default phases
+             * @constant
+             */
+            media_kind: "phases";
+            /** Times Ms */
+            times_ms?: {
+                [key: string]: number;
+            };
+            /** Result */
+            result?: ("make" | "miss" | "undetermined") | null;
+            /** Confidence */
+            confidence?: number | null;
+            /** Angles */
+            angles?: {
+                [key: string]: number;
+            };
+        };
+        /** AnalystFacts */
+        AnalystFacts: {
+            /**
+             * Schema Version
+             * @default 1
+             * @constant
+             */
+            schema_version: 1;
+            metrics?: components["schemas"]["AnalystMetrics"];
+            /** Subjects */
+            subjects?: components["schemas"]["AnalystSubject"][];
+            /** Evidence */
+            evidence?: components["schemas"]["AnalystEvidence"][];
+            /** Warnings */
+            warnings?: string[];
+            /**
+             * Pose Available
+             * @default false
+             */
+            pose_available: boolean;
+            /**
+             * Fingerprint
+             * @default
+             */
+            fingerprint: string;
+        };
+        /** AnalystMetrics */
+        AnalystMetrics: {
+            action_counts?: components["schemas"]["ProductActionCounts"];
+            shots?: components["schemas"]["ProductShotSummary"];
+            /**
+             * Registered Participant Count
+             * @default 0
+             */
+            registered_participant_count: number;
+            /**
+             * Event Count
+             * @default 0
+             */
+            event_count: number;
+        };
+        /** AnalystSubject */
+        AnalystSubject: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
         };
         /** ApiKeyCreate */
         ApiKeyCreate: {
@@ -645,10 +928,117 @@ export interface components {
             /** File */
             file: string;
         };
+        /** ContextSubject */
+        ContextSubject: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Profile Id */
+            profile_id?: string | null;
+        };
+        /** ConversationCreate */
+        ConversationCreate: {
+            /** Task Id */
+            task_id?: string | null;
+            /** Preset Id */
+            preset_id?: string | null;
+            /** Subject Id */
+            subject_id?: string | null;
+            /** Comparison Id */
+            comparison_id?: string | null;
+            /**
+             * Locale
+             * @default zh
+             * @enum {string}
+             */
+            locale: "zh" | "en";
+            /**
+             * Style
+             * @default coach
+             * @enum {string}
+             */
+            style: "coach" | "roast";
+        };
+        /** ConversationPublic */
+        ConversationPublic: {
+            /** Id */
+            id: string;
+            /** Messages */
+            messages: components["schemas"]["MessagePublic"][];
+        };
+        /** EvidenceComment */
+        EvidenceComment: {
+            /** Text */
+            text: string;
+            /** Evidence Ids */
+            evidence_ids?: string[];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** MessageAccepted */
+        MessageAccepted: {
+            /** Message Id */
+            message_id: string;
+            /** Job Id */
+            job_id: string;
+        };
+        /** MessageCreate */
+        MessageCreate: {
+            /** Content */
+            content: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** MessagePublic */
+        MessagePublic: {
+            /** Id */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
+            /** Citations */
+            citations: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "failed";
+        };
+        /** ObservationPublic */
+        ObservationPublic: {
+            /** Id */
+            id: string;
+            /** Profile Id */
+            profile_id: string;
+            /** Task Id */
+            task_id: string | null;
+            /** Occurred At */
+            occurred_at: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "quick" | "full";
+            metrics: components["schemas"]["AnalystMetrics"];
+            /** Media Available */
+            media_available: boolean;
+        };
+        /** PlayerComment */
+        PlayerComment: {
+            /** Text */
+            text: string;
+            /** Evidence Ids */
+            evidence_ids?: string[];
+            /** Subject Id */
+            subject_id: string;
         };
         /** PresetPublic */
         PresetPublic: {
@@ -660,6 +1050,29 @@ export interface components {
             description: string;
             /** Expected Minutes */
             expected_minutes: number;
+        };
+        /** PresetReportState */
+        PresetReportState: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "disabled" | "waiting" | "queued" | "running" | "completed" | "failed";
+            report?: components["schemas"]["ReportPublic"] | null;
+            /** Error */
+            error?: string | null;
+            /** Facts */
+            facts?: {
+                [key: string]: unknown;
+            };
+            /** Subjects */
+            subjects?: {
+                [key: string]: unknown;
+            }[];
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** PresetRerunRequest */
         PresetRerunRequest: {
@@ -765,6 +1178,68 @@ export interface components {
              */
             unlinked_outcomes: number;
         };
+        /** ReportPublic */
+        ReportPublic: {
+            /** Summary */
+            summary: string;
+            /** Highlights */
+            highlights?: components["schemas"]["EvidenceComment"][];
+            /** Players */
+            players?: components["schemas"]["PlayerComment"][];
+            comparison?: components["schemas"]["EvidenceComment"] | null;
+            /** Suggestions */
+            suggestions?: string[];
+            /** Id */
+            id: string;
+            /** Model */
+            model: string;
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "zh" | "en";
+            /**
+             * Style
+             * @enum {string}
+             */
+            style: "coach" | "roast";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ReportRequest */
+        ReportRequest: {
+            /**
+             * Locale
+             * @default zh
+             * @enum {string}
+             */
+            locale: "zh" | "en";
+            /**
+             * Style
+             * @default coach
+             * @enum {string}
+             */
+            style: "coach" | "roast";
+            /**
+             * Regenerate
+             * @default false
+             */
+            regenerate: boolean;
+        };
+        /** ReportState */
+        ReportState: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "disabled" | "waiting" | "queued" | "running" | "completed" | "failed";
+            report?: components["schemas"]["ReportPublic"] | null;
+            /** Error */
+            error?: string | null;
+        };
         /** RetentionDescriptions */
         RetentionDescriptions: {
             /** Drafts */
@@ -775,6 +1250,13 @@ export interface components {
             raw_inputs: string;
             /** Results */
             results: string;
+        };
+        /** SubjectAssignment */
+        SubjectAssignment: {
+            /** Id */
+            id: string;
+            /** Profile Id */
+            profile_id?: string | null;
         };
         /** TaskCreate */
         TaskCreate: {
@@ -877,6 +1359,55 @@ export interface components {
             access_token: string;
             /** Token Type */
             token_type: string;
+        };
+        /** TrainingProfileCreate */
+        TrainingProfileCreate: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "player" | "team";
+            /** Name */
+            name: string;
+            /**
+             * Goals
+             * @default
+             */
+            goals: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+        };
+        /** TrainingProfilePublic */
+        TrainingProfilePublic: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "player" | "team";
+            /** Name */
+            name: string;
+            /** Goals */
+            goals: string;
+            /** Notes */
+            notes: string;
+            /** Created At */
+            created_at: string;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** TrainingProfileUpdate */
+        TrainingProfileUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Goals */
+            goals?: string | null;
+            /** Notes */
+            notes?: string | null;
         };
         /** UsageQuota */
         UsageQuota: {
@@ -1884,6 +2415,451 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_api_v1_tasks__task_id__analyst_report_get: {
+        parameters: {
+            query?: {
+                locale?: "zh" | "en";
+                style?: "coach" | "roast";
+            };
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_report_api_v1_tasks__task_id__analyst_report_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preset_report_api_v1_presets__preset_id__analyst_report_get: {
+        parameters: {
+            query?: {
+                locale?: "zh" | "en";
+                style?: "coach" | "roast";
+            };
+            header?: never;
+            path: {
+                preset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetReportState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_conversation_api_v1_analyst_conversations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversation_api_v1_analyst_conversations__conversation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_message_api_v1_analyst_conversations__conversation_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageAccepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conversation_events_api_v1_analyst_conversations__conversation_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_context_api_v1_tasks__task_id__analyst_context_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalystContext"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_context_api_v1_tasks__task_id__analyst_context_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalystContextUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalystContext"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_profiles_api_v1_training_profiles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingProfilePublic"][];
+                };
+            };
+        };
+    };
+    create_profile_api_v1_training_profiles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrainingProfileCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingProfilePublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_profile_api_v1_training_profiles__profile_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_profile_api_v1_training_profiles__profile_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrainingProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingProfilePublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_api_v1_training_profiles__profile_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationPublic"][];
                 };
             };
             /** @description Validation Error */

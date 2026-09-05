@@ -65,6 +65,8 @@ class RetentionService:
                 age_days = (current - terminal_at).total_seconds() / 86400
                 if age_days >= self.settings.result_retention_days:
                     enqueue_storage_deletion(session, analysis.id, ANALYSIS_ROOT)
+                    from app.services.training_profiles import cleanup_analyst_task
+                    cleanup_analyst_task(session, analysis.id, expired=True)
                     delete_task_inputs(session, analysis.id)
                     session.delete(analysis)
                     session.commit()

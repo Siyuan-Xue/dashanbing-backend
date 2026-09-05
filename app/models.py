@@ -332,3 +332,7 @@ class PresetPublic(SQLModel):
     title: str
     description: str
     expected_minutes: float
+
+
+# Register the analyst tables for schema creation and Alembic metadata discovery.
+from app import analyst_models as analyst_models  # noqa: E402, F401

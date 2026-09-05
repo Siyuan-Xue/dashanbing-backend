@@ -136,6 +136,17 @@ def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
         if not source.is_file():
             raise RuntimeError(f"Research engine did not produce {source}")
         shutil.copy2(source, output_root / name)
+    # Persist evidence before task data/engine-output retention. Never rebuild
+    # it from motion's pseudo3D or from a shared reference dataset.
+    pose_source = group_root / "analyst_pose.json"
+    if pose_source.is_file():
+        shutil.copy2(pose_source, output_root / pose_source.name)
+    else:
+        from src.pose.analyst_pose import unavailable_pose
+
+        (output_root / "analyst_pose.json").write_text(
+            json.dumps(unavailable_pose("pose_export_missing"), ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     viz_source = group_root / "viz"
     viz_target = output_root / "viz"
     viz_target.mkdir(parents=True, exist_ok=True)
@@ -201,6 +212,7 @@ def run_product_task(task_root: Path, manifest_path: Path, mode: str, model_root
         gallery_session_id=enrollment["session_id"],
         student_ids=student_ids,
         progress_callback=emit,
+        calib_dir=Path(manifest["calibration"]) if manifest.get("calibration") else None,
     )
     _copy_product_outputs(engine_output / "group_01", task_root / "output")
 

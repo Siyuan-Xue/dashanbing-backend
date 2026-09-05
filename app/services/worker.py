@@ -80,6 +80,8 @@ def _complete(app: FastAPI, analysis_id: str) -> None:
         analysis.completed_at = _now()
         analysis.updated_at = _now()
         session.add(analysis)
+        from app.services.analyst import configured, enqueue_completed
+        enqueue_completed(session, analysis, enabled=configured(app))
         session.commit()
 
 

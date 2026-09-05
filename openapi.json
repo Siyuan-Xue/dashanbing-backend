@@ -1355,6 +1355,653 @@
           }
         }
       }
+    },
+    "/api/v1/tasks/{task_id}/analyst/report": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Get Report",
+        "operationId": "get_report_api_v1_tasks__task_id__analyst_report_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh",
+                "en"
+              ],
+              "type": "string",
+              "default": "zh",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "style",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "coach",
+                "roast"
+              ],
+              "type": "string",
+              "default": "coach",
+              "title": "Style"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Generate Report",
+        "operationId": "generate_report_api_v1_tasks__task_id__analyst_report_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets/{preset_id}/analyst/report": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Preset Report",
+        "operationId": "preset_report_api_v1_presets__preset_id__analyst_report_get",
+        "parameters": [
+          {
+            "name": "preset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preset Id"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh",
+                "en"
+              ],
+              "type": "string",
+              "default": "zh",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "style",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "coach",
+                "roast"
+              ],
+              "type": "string",
+              "default": "coach",
+              "title": "Style"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresetReportState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyst/conversations": {
+      "post": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Create Conversation",
+        "operationId": "create_conversation_api_v1_analyst_conversations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyst/conversations/{conversation_id}": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Get Conversation",
+        "operationId": "get_conversation_api_v1_analyst_conversations__conversation_id__get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyst/conversations/{conversation_id}/messages": {
+      "post": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Create Message",
+        "operationId": "create_message_api_v1_analyst_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyst/conversations/{conversation_id}/events": {
+      "get": {
+        "tags": [
+          "AI analyst"
+        ],
+        "summary": "Conversation Events",
+        "operationId": "conversation_events_api_v1_analyst_conversations__conversation_id__events_get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/analyst/context": {
+      "get": {
+        "tags": [
+          "analyst-context"
+        ],
+        "summary": "Get Context",
+        "operationId": "get_context_api_v1_tasks__task_id__analyst_context_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalystContext"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "analyst-context"
+        ],
+        "summary": "Put Context",
+        "operationId": "put_context_api_v1_tasks__task_id__analyst_context_put",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalystContextUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalystContext"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training-profiles": {
+      "get": {
+        "tags": [
+          "training-profiles"
+        ],
+        "summary": "List Profiles",
+        "operationId": "list_profiles_api_v1_training_profiles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProfilePublic"
+                  },
+                  "type": "array",
+                  "title": "Response List Profiles Api V1 Training Profiles Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "training-profiles"
+        ],
+        "summary": "Create Profile",
+        "operationId": "create_profile_api_v1_training_profiles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingProfileCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training-profiles/{profile_id}": {
+      "patch": {
+        "tags": [
+          "training-profiles"
+        ],
+        "summary": "Update Profile",
+        "operationId": "update_profile_api_v1_training_profiles__profile_id__patch",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "training-profiles"
+        ],
+        "summary": "Remove Profile",
+        "operationId": "remove_profile_api_v1_training_profiles__profile_id__delete",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training-profiles/{profile_id}/history": {
+      "get": {
+        "tags": [
+          "training-profiles"
+        ],
+        "summary": "History",
+        "operationId": "history_api_v1_training_profiles__profile_id__history_get",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObservationPublic"
+                  },
+                  "title": "Response History Api V1 Training Profiles  Profile Id  History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1540,6 +2187,285 @@
           "completed_at"
         ],
         "title": "AnalysisPublic"
+      },
+      "AnalystContext": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/AnalystFacts"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/ContextSubject"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "team_profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Profile Id"
+          },
+          "comparison_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comparison Id"
+          },
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationPublic"
+            },
+            "type": "array",
+            "title": "Comparisons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "facts",
+          "subjects"
+        ],
+        "title": "AnalystContext"
+      },
+      "AnalystContextUpdate": {
+        "properties": {
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectAssignment"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "team_profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Profile Id"
+          },
+          "comparison_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comparison Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AnalystContextUpdate"
+      },
+      "AnalystEvidence": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "event_index": {
+            "type": "integer",
+            "title": "Event Index"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "triple_threat",
+              "free_throw",
+              "jump_shot",
+              "layup"
+            ],
+            "title": "Action Type"
+          },
+          "start_ms": {
+            "type": "number",
+            "title": "Start Ms"
+          },
+          "end_ms": {
+            "type": "number",
+            "title": "End Ms"
+          },
+          "time_ms": {
+            "type": "number",
+            "title": "Time Ms"
+          },
+          "media_kind": {
+            "type": "string",
+            "const": "phases",
+            "title": "Media Kind",
+            "default": "phases"
+          },
+          "times_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Times Ms"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "make",
+                  "miss",
+                  "undetermined"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "angles": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Angles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_index",
+          "subject_id",
+          "action_type",
+          "start_ms",
+          "end_ms",
+          "time_ms"
+        ],
+        "title": "AnalystEvidence"
+      },
+      "AnalystFacts": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/AnalystMetrics"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/AnalystSubject"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/AnalystEvidence"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "pose_available": {
+            "type": "boolean",
+            "title": "Pose Available",
+            "default": false
+          },
+          "fingerprint": {
+            "type": "string",
+            "title": "Fingerprint",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AnalystFacts"
+      },
+      "AnalystMetrics": {
+        "properties": {
+          "action_counts": {
+            "$ref": "#/components/schemas/ProductActionCounts"
+          },
+          "shots": {
+            "$ref": "#/components/schemas/ProductShotSummary"
+          },
+          "registered_participant_count": {
+            "type": "integer",
+            "title": "Registered Participant Count",
+            "default": 0
+          },
+          "event_count": {
+            "type": "integer",
+            "title": "Event Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "AnalystMetrics"
+      },
+      "AnalystSubject": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "AnalystSubject"
       },
       "ApiKeyCreate": {
         "properties": {
@@ -1867,6 +2793,148 @@
         ],
         "title": "Body_upload_task_input_api_v1_tasks__task_id__inputs__slot__put"
       },
+      "ContextSubject": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "ContextSubject"
+      },
+      "ConversationCreate": {
+        "properties": {
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "preset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preset Id"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "comparison_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comparison Id"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Locale",
+            "default": "zh"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "coach",
+              "roast"
+            ],
+            "title": "Style",
+            "default": "coach"
+          }
+        },
+        "type": "object",
+        "title": "ConversationCreate"
+      },
+      "ConversationPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessagePublic"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "messages"
+        ],
+        "title": "ConversationPublic"
+      },
+      "EvidenceComment": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Evidence Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "EvidenceComment"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1879,6 +2947,174 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "MessageAccepted": {
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_id",
+          "job_id"
+        ],
+        "title": "MessageAccepted"
+      },
+      "MessageCreate": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "request_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content",
+          "request_id"
+        ],
+        "title": "MessageCreate"
+      },
+      "MessagePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "citations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "content",
+          "citations",
+          "status"
+        ],
+        "title": "MessagePublic"
+      },
+      "ObservationPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "occurred_at": {
+            "type": "string",
+            "title": "Occurred At"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "quick",
+              "full"
+            ],
+            "title": "Mode"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/AnalystMetrics"
+          },
+          "media_available": {
+            "type": "boolean",
+            "title": "Media Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "profile_id",
+          "task_id",
+          "occurred_at",
+          "mode",
+          "metrics",
+          "media_available"
+        ],
+        "title": "ObservationPublic"
+      },
+      "PlayerComment": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Evidence Ids"
+          },
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "subject_id"
+        ],
+        "title": "PlayerComment"
       },
       "PresetPublic": {
         "properties": {
@@ -1907,6 +3143,73 @@
           "expected_minutes"
         ],
         "title": "PresetPublic"
+      },
+      "PresetReportState": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "waiting",
+              "queued",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "facts": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Facts"
+          },
+          "subjects": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "PresetReportState"
       },
       "PresetRerunRequest": {
         "properties": {
@@ -2107,6 +3410,161 @@
         "type": "object",
         "title": "ProductShotSummary"
       },
+      "ReportPublic": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "highlights": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceComment"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Highlights"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerComment"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Players"
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceComment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Suggestions"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Locale"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "coach",
+              "roast"
+            ],
+            "title": "Style"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "summary",
+          "id",
+          "model",
+          "locale",
+          "style",
+          "created_at"
+        ],
+        "title": "ReportPublic"
+      },
+      "ReportRequest": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Locale",
+            "default": "zh"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "coach",
+              "roast"
+            ],
+            "title": "Style",
+            "default": "coach"
+          },
+          "regenerate": {
+            "type": "boolean",
+            "title": "Regenerate",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "ReportRequest"
+      },
+      "ReportState": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "waiting",
+              "queued",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReportState"
+      },
       "RetentionDescriptions": {
         "properties": {
           "drafts": {
@@ -2134,6 +3592,31 @@
           "results"
         ],
         "title": "RetentionDescriptions"
+      },
+      "SubjectAssignment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "SubjectAssignment"
       },
       "TaskCreate": {
         "properties": {
@@ -2433,6 +3916,134 @@
           "token_type"
         ],
         "title": "Token"
+      },
+      "TrainingProfileCreate": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "player",
+              "team"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "goals": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Goals",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "name"
+        ],
+        "title": "TrainingProfileCreate"
+      },
+      "TrainingProfilePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "player",
+              "team"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "goals": {
+            "type": "string",
+            "title": "Goals"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "goals",
+          "notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TrainingProfilePublic"
+      },
+      "TrainingProfileUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "goals": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goals"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TrainingProfileUpdate"
       },
       "UsageQuota": {
         "properties": {

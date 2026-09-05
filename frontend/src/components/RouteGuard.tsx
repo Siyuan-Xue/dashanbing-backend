@@ -12,7 +12,7 @@ export function RouteGuard() {
     return <main className="route-state"><section className="route-error" role="alert"><h1>{t("authCheckFailed")}</h1><p>{t("authCheckFailedBody")}</p><button className="button button-primary button-icon" type="button" aria-label={t("retry")} title={t("retry")} onClick={() => void refresh()}><Icon name="refresh"/></button></section></main>;
   }
   if (!user) {
-    const next = `${location.pathname}${location.search}`;
+    const next = `${location.pathname}${location.search}${location.hash}`;
     return <Navigate to={`/login?${new URLSearchParams({ next })}`} replace />;
   }
   return <Outlet />;
