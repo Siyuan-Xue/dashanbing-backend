@@ -152,3 +152,80 @@ test("mobile header actions remain usable without horizontal overflow", async ({
   await expect(page).toHaveURL(/\/api\/docs$/);
   await expect(page.locator(".public-menu-toggle")).toHaveAttribute("aria-expanded", "false");
 });
+
+async function signedIn(page: Page, path = "/") {
+  await page.route("**/api/v1/users/me", route => route.fulfill({ status: 200, json: user }));
+  await page.goto(path);
+  await openMenu(page);
+  const avatar = page.getByRole("button", { name: "账户：coach" });
+  await expect(avatar).toBeVisible();
+  return avatar;
+}
+
+test("account dropdown supports keyboard, outside dismissal and route changes", async ({ page }) => {
+  const avatar = await signedIn(page);
+  await avatar.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "退出登录" })).toBeFocused();
+  await expect(page.getByText("coach@example.com", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await page.keyboard.press("Escape");
+  await expect(avatar).toBeFocused();
+  await expect(avatar).toHaveAttribute("aria-expanded", "false");
+  // On phones, closing the account popup leaves its parent navigation open.
+  if (await page.locator(".public-menu-toggle").isVisible()) await expect(page.locator(".public-menu-toggle")).toHaveAttribute("aria-expanded", "true");
+  await avatar.click();
+  await page.locator(".hero-copy > p").click();
+  await expect(avatar).toHaveAttribute("aria-expanded", "false");
+  await avatar.click();
+  await page.keyboard.press("Tab");
+  await expect(avatar).toHaveAttribute("aria-expanded", "false");
+  await avatar.click();
+  await page.getByRole("navigation", { name: "主导航" }).getByRole("link", { name: "API", exact: true }).click();
+  await expect(page).toHaveURL(/\/api\/docs$/);
+  await expect(page.locator("#account-dropdown")).toHaveCount(0);
+});
+
+test("logout can retry a network failure and clears access to protected pages", async ({ page }) => {
+  const avatar = await signedIn(page, "/api/docs");
+  let attempts = 0;
+  await page.route("**/api/v1/logout", async route => {
+    expect(route.request().method()).toBe("POST");
+    attempts += 1;
+    if (attempts === 1) return route.abort("failed");
+    await page.route("**/api/v1/users/me", r => r.fulfill({ status: 401, json: { detail: "Not authenticated" } }));
+    return route.fulfill({ status: 204 });
+  });
+  await avatar.click();
+  await page.getByRole("button", { name: "退出登录" }).click();
+  await expect(page.getByRole("alert")).toContainText("退出失败");
+  await expect(avatar).toBeVisible();
+  await expect(page.getByRole("button", { name: "退出登录" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(avatar).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/$/);
+  if (await page.locator(".public-menu-toggle").isVisible()) await expect(page.locator(".public-menu-toggle")).toBeFocused();
+  else await expect(page.getByRole("link", { name: "登录", exact: true })).toBeFocused();
+  await openMenu(page);
+  await expect(page.getByRole("link", { name: "登录", exact: true })).toBeVisible();
+  expect(attempts).toBe(2);
+  await page.getByRole("link", { name: "在线使用" }).click();
+  await expect(page).toHaveURL(/\/login\?next=/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "登录大山冰" })).toBeVisible();
+});
+
+test("account details wrap at 320px and remain usable in a short window", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 480 });
+  await page.route("**/api/v1/users/me", route => route.fulfill({ status: 200, json: { ...user, username: "coach".repeat(10), email: "basketball".repeat(20) + "@example.com" } }));
+  await page.goto("/");
+  await openMenu(page);
+  await page.locator(".account-link").click();
+  const dropdown = page.locator(".account-dropdown");
+  await expect(dropdown).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "退出登录" }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole("button", { name: "退出登录" })).toBeInViewport();
+});

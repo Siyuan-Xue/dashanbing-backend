@@ -1,5 +1,6 @@
 export const copy = {
   zh: {
+    logout: "退出登录", loggingOut: "正在退出", logoutFailed: "退出失败，请稍后重试",
     menuOpen: "打开导航菜单", menuClose: "关闭导航菜单",
     home: "首页", api: "API", github: "GitHub", onlineUse: "在线使用", login: "登录", register: "注册", account: "账户",
     mainNav: "主导航", brandHome: "大山冰首页", brandMark: "大山冰标志", brandPrimary: "大山冰", brandSecondary: "DaShanBing",
@@ -34,6 +35,7 @@ export const copy = {
     authChecking: "正在确认登录状态", authCheckFailed: "暂时无法确认登录状态", authCheckFailedBody: "网络或服务出现问题。请重试，我们不会把这次错误当作退出登录。", retry: "重试",
   },
   en: {
+    logout: "Log out", loggingOut: "Logging out", logoutFailed: "Could not log out, please try again",
     menuOpen: "Open navigation menu", menuClose: "Close navigation menu",
     home: "Home", api: "API", github: "GitHub", onlineUse: "Online Use", login: "Log in", register: "Sign up", account: "Account",
     mainNav: "Main navigation", brandHome: "DaShanBing home", brandMark: "DaShanBing logo", brandPrimary: "DaShanBing", brandSecondary: "大山冰",

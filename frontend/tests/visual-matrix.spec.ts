@@ -217,3 +217,13 @@ for (const width of [320,390]) for (const theme of themes) {
     await expect(popover).toBeHidden();
   });
 }
+
+for (const width of [390, 1440]) for (const locale of locales) for (const theme of themes) {
+  test(`account menu ${width} ${locale} ${theme}`, async ({page}) => {
+    await setup(page, "home", "/", locale, theme, width);
+    if (width < 768) await page.locator(".public-menu-toggle").click();
+    await page.locator(".account-link").click();
+    await expect(page.locator(".account-dropdown")).toBeVisible();
+    await expect(page).toHaveScreenshot(`account-menu-${width}-${locale}-${theme}.png`, { animations: "disabled", maxDiffPixelRatio: 0.001 });
+  });
+}
