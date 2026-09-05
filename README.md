@@ -114,6 +114,7 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 新的集成应使用分阶段任务接口：
 
 - `POST /api/v1/tasks` 创建 `quick` 或 `full` 草稿；
+- `PATCH /api/v1/tasks/{id}` 修改草稿名称与分析模式，保留已上传视频；
 - `PUT /api/v1/tasks/{id}/inputs/{slot}` 依次上传 `enrollment_video` 与 `cam_01`–`cam_04`（multipart 字段名为 `file`）；
 - `POST /api/v1/tasks/{id}/submit` 提交，`GET /api/v1/tasks/{id}` 轮询；
 - `GET /api/v1/tasks/{id}/result` 和 `GET /api/v1/tasks/{id}/media/{kind}` 获取结果与复核媒体；

@@ -144,6 +144,7 @@ export function ApiDocsPage() {
         <DocHeading id="create"/>
         <p><code>POST /api/v1/tasks</code></p>
         <Code>{`{"title":"Friday shooting","mode":"quick"}`}</Code>
+        <p><code>PATCH /api/v1/tasks/{`{task_id}`}</code> · {locale === "zh" ? "提交前可修改任务名称和分析模式，请求体同上，已上传视频保留" : "Before submission, update the title and mode using the same body, keeping uploaded videos"}</p>
         <DocHeading id="upload"/>
         <p><code>PUT /api/v1/tasks/{`{task_id}`}/inputs/{`{slot}`}</code> · {locale === "zh" ? "multipart 字段" : "multipart field"} <code>file</code></p>
         <div className="slot-row">{["enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04"].map(slot => <code key={slot}>{slot}</code>)}</div>

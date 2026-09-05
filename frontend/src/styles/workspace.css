@@ -93,6 +93,8 @@
 .upload-drop { position: relative; min-height: 112px; margin-top: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--border-strong); border-radius: 8px; color: var(--muted); text-align: center; cursor: pointer; }
 .upload-card:first-child .upload-drop { min-height: 100px; }
 .upload-drop:hover { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+.upload-drop.is-disabled { cursor: wait; }
+.upload-drop.is-disabled:hover { color: var(--muted); border-color: var(--border-strong); background: transparent; }
 .upload-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .upload-drop b { max-width: 100%; color: var(--text-soft); font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
 .upload-drop small { color: var(--brand); font-size: 12px; }
@@ -105,6 +107,7 @@
 .upload-error button { width: 36px; min-height: 36px; flex: none; padding: 7px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; color: inherit; background: transparent; }
 .create-submit { margin-top: 18px; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 14px; }
 .create-submit > span { color: var(--muted); font-size: 13px; }
+.create-submit .draft-note { flex: 1 1 200px; color: var(--text-soft); font-size: 12px; }
 .inline-error, .task-error-banner { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent); border-radius: 8px; color: var(--danger); background: color-mix(in srgb, var(--danger) 6%, var(--surface)); font-size: 13px; overflow-wrap: anywhere; }
 .workspace-section { margin-top: 32px; }
 .workspace-section-heading h2 { margin: 0; font-size: 18px; font-weight: 500; }

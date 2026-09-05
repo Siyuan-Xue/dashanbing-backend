@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.config import AppSettings
 from app.main import create_app
-from app.models import Analysis, TaskInput
+from app.models import Analysis, SubmissionEvent, TaskInput
 from app.api.routes import analyses as analyses_routes
 from app.api.routes import tasks as task_routes
 from app.services.retention import RetentionService
@@ -137,6 +137,267 @@ def test_create_draft_and_list_with_paging_filters_and_tenant_isolation(client: 
     other_headers = _register(client, "othercoach")
     assert client.get("/api/v1/tasks", headers=other_headers).json()["items"] == []
     assert client.get(f"/api/v1/tasks/{first.json()['id']}", headers=other_headers).status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("title", "mode", "expected_title"),
+    [(" \t 新训练任务 \n", "full", "新训练任务"), (" x ", "quick", "x"),
+     (" " + "训" * 120 + " ", "full", "训" * 120)],
+)
+def test_update_task_metadata_preserves_inputs_and_lifecycle(
+    client: TestClient, title: str, mode: str, expected_title: str,
+):
+    task_id = _create(client).json()["id"]
+    before = _upload(client, task_id, "cam_01", _mkv(b"original")).json()
+    with Session(client.app.state.engine) as session:
+        stored_before = session.get(Analysis, task_id).model_dump()
+        input_before = session.get(TaskInput, (task_id, "cam_01")).model_dump()
+
+    response = client.patch(f"/api/v1/tasks/{task_id}", json={"title": title, "mode": mode})
+
+    assert response.status_code == 200
+    updated = response.json()
+    assert updated["title"] == expected_title
+    assert updated["mode"] == mode
+    assert updated["updated_at"] > before["updated_at"]
+    for key in before.keys() - {"title", "mode", "updated_at"}:
+        assert updated[key] == before[key]
+    assert client.get(f"/api/v1/tasks/{task_id}").json() == updated
+    with Session(client.app.state.engine) as session:
+        stored_after = session.get(Analysis, task_id).model_dump()
+        assert session.get(TaskInput, (task_id, "cam_01")).model_dump() == input_before
+    for key in stored_before.keys() - {"title", "mode", "updated_at"}:
+        assert stored_after[key] == stored_before[key]
+    assert Path(input_before["path"]).read_bytes() == _mkv(b"original")
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {}, {"title": "Updated"}, {"mode": "full"},
+        {"title": "", "mode": "quick"},
+        {"title": " \t\n\u3000", "mode": "quick"},
+        {"title": None, "mode": "quick"},
+        {"title": 123, "mode": "quick"},
+        {"title": "x" * 121, "mode": "quick"},
+        {"title": "Updated", "mode": None},
+        {"title": "Updated", "mode": ""},
+        {"title": "Updated", "mode": "invalid"},
+        {"title": "Updated", "mode": "FULL"},
+    ],
+)
+def test_update_task_metadata_rejects_invalid_payload(client: TestClient, payload: dict):
+    before = _create(client).json()
+    task_id = before["id"]
+
+    response = client.patch(f"/api/v1/tasks/{task_id}", json=payload)
+
+    assert response.status_code == 422
+    assert client.get(f"/api/v1/tasks/{task_id}").json() == before
+
+
+@pytest.mark.parametrize(
+    "status",
+    ["queued", "running", "registering", "perception", "ball_tracking",
+     "synchronizing", "action_recognition", "outcome_detection", "exporting",
+     "visualizing", "cancel_requested", "completed", "failed", "canceled",
+     "interrupted", "expired"],
+)
+def test_update_task_metadata_rejects_non_draft_states(client: TestClient, status: str):
+    task_id = _create(client).json()["id"]
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        task.status = status
+        session.add(task)
+        session.commit()
+    before = client.get(f"/api/v1/tasks/{task_id}").json()
+
+    response = client.patch(
+        f"/api/v1/tasks/{task_id}", json={"title": "Changed", "mode": "full"},
+    )
+
+    assert response.status_code == 409
+    assert client.get(f"/api/v1/tasks/{task_id}").json() == before
+
+
+def test_update_task_metadata_requires_owner_and_authentication(client: TestClient):
+    before = _create(client).json()
+    task_id = before["id"]
+    payload = {"title": "Changed", "mode": "full"}
+    other_headers = _register(client, "metadataother")
+
+    assert client.patch(
+        f"/api/v1/tasks/{task_id}", json=payload, headers=other_headers,
+    ).status_code == 404
+    assert client.patch("/api/v1/tasks/missing", json=payload).status_code == 404
+    client.cookies.clear()
+    response = client.patch(f"/api/v1/tasks/{task_id}", json=payload)
+    assert response.status_code == 401
+    _login(client)
+    assert client.get(f"/api/v1/tasks/{task_id}").json() == before
+
+
+def test_update_task_metadata_does_not_consume_or_require_submission_quota(client: TestClient):
+    task_id = _create(client).json()["id"]
+    now = datetime.now(timezone.utc)
+    with Session(client.app.state.engine) as session:
+        for index in range(20):
+            session.add(Analysis(
+                title=f"submitted-{index}", status="completed", owner_id=1,
+                input_manifest_json="{}", submitted_at=now, completed_at=now,
+            ))
+        for index, status in enumerate(("draft", "draft", "queued", "queued")):
+            session.add(Analysis(
+                title=f"unfinished-{index}", status=status, owner_id=1,
+                input_manifest_json="{}",
+            ))
+        session.commit()
+    usage_before = client.get("/api/v1/account/usage").json()
+    assert usage_before["submitted_today"]["used"] == 20
+    assert usage_before["drafts"]["used"] == 3
+    assert usage_before["unfinished_tasks"]["used"] == 5
+
+    response = client.patch(
+        f"/api/v1/tasks/{task_id}", json={"title": "Changed", "mode": "full"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["submitted_at"] is None
+    assert client.get("/api/v1/account/usage").json() == usage_before
+    with Session(client.app.state.engine) as session:
+        assert session.exec(select(SubmissionEvent)).all() == []
+
+
+@pytest.mark.parametrize("status", ["draft", "uploading"])
+def test_update_task_metadata_expires_stale_drafts_before_writing(client: TestClient, status: str):
+    task_id = _create(client, "Old title").json()["id"]
+    assert _upload(client, task_id, "cam_01", _mkv(b"old")).status_code == 200
+    root = client.app.state.storage.analysis_root(task_id)
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        task.status = status
+        task.created_at = datetime.now(timezone.utc) - timedelta(hours=25)
+        created_at = task.created_at.replace(tzinfo=None)
+        session.add(task)
+        session.commit()
+
+    response = client.patch(
+        f"/api/v1/tasks/{task_id}", json={"title": "Changed", "mode": "full"},
+    )
+
+    assert response.status_code == 409
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, task_id)
+        assert task.status == "expired"
+        assert task.title == "Old title"
+        assert task.mode == "quick"
+        assert task.created_at == created_at
+        assert session.get(TaskInput, (task_id, "cam_01")).validation_state == "expired"
+    assert not root.exists()
+
+
+def test_update_task_metadata_during_upload_preserves_uploaded_file(client: TestClient, monkeypatch):
+    task_id = _create(client).json()["id"]
+    assert _upload(client, task_id, "cam_01", _mkv(b"original")).status_code == 200
+    validation_started = threading.Event()
+    allow_validation = threading.Event()
+    results = {}
+
+    def gated_probe(_path: Path, _title: str) -> None:
+        validation_started.set()
+        assert allow_validation.wait(timeout=5)
+
+    def upload() -> None:
+        results["upload"] = _upload(client, task_id, "cam_02", _mkv(b"new"))
+
+    monkeypatch.setattr(client.app.state.storage, "video_probe", gated_probe)
+    thread = threading.Thread(target=upload)
+    thread.start()
+    try:
+        assert validation_started.wait(timeout=5)
+        before = client.get(f"/api/v1/tasks/{task_id}").json()
+        response = client.patch(
+            f"/api/v1/tasks/{task_id}", json={"title": "During upload", "mode": "full"},
+        )
+        assert response.status_code == 200
+        updated = response.json()
+        assert updated["status"] == "uploading"
+        assert updated["title"] == "During upload"
+        assert updated["mode"] == "full"
+        for key in ("inputs", "stage_message", "created_at", "submitted_at"):
+            assert updated[key] == before[key]
+    finally:
+        allow_validation.set()
+        thread.join(timeout=5)
+    assert not thread.is_alive()
+    assert results["upload"].status_code == 200
+    after = client.get(f"/api/v1/tasks/{task_id}").json()
+    assert after["status"] == "draft"
+    assert after["title"] == "During upload"
+    assert after["mode"] == "full"
+    assert {item["slot"] for item in after["inputs"]} == {"cam_01", "cam_02"}
+    root = client.app.state.storage.analysis_root(task_id) / "input"
+    assert (root / "cam_01.mkv").read_bytes() == _mkv(b"original")
+    assert (root / "cam_02.mkv").read_bytes() == _mkv(b"new")
+
+
+def test_update_task_metadata_cannot_change_a_concurrently_submitted_task(
+    client: TestClient, monkeypatch,
+):
+    task_id = _create(client, "Original title").json()["id"]
+    for slot in SLOTS:
+        assert _upload(client, task_id, slot, _mkv(slot.encode())).status_code == 200
+    submission_started = threading.Event()
+    allow_submission = threading.Event()
+    patch_waiting_or_finished = threading.Event()
+    original_prepare = client.app.state.storage.prepare_task_submission
+    original_begin = task_routes.begin_write
+    results = {}
+
+    def gated_prepare(*args, **kwargs):
+        submission_started.set()
+        assert allow_submission.wait(timeout=5)
+        return original_prepare(*args, **kwargs)
+
+    def observed_begin(session: Session) -> None:
+        if submission_started.is_set():
+            patch_waiting_or_finished.set()
+        original_begin(session)
+
+    def submit() -> None:
+        results["submit"] = client.post(f"/api/v1/tasks/{task_id}/submit")
+
+    def patch() -> None:
+        try:
+            results["patch"] = client.patch(
+                f"/api/v1/tasks/{task_id}", json={"title": "Too late", "mode": "full"},
+            )
+        finally:
+            patch_waiting_or_finished.set()
+
+    monkeypatch.setattr(client.app.state.storage, "prepare_task_submission", gated_prepare)
+    monkeypatch.setattr(task_routes, "begin_write", observed_begin)
+    submit_thread = threading.Thread(target=submit)
+    patch_thread = threading.Thread(target=patch)
+    submit_thread.start()
+    try:
+        assert submission_started.wait(timeout=5)
+        patch_thread.start()
+        assert patch_waiting_or_finished.wait(timeout=5)
+    finally:
+        allow_submission.set()
+        submit_thread.join(timeout=5)
+        if patch_thread.ident is not None:
+            patch_thread.join(timeout=5)
+    assert not submit_thread.is_alive()
+    assert not patch_thread.is_alive()
+    assert results["submit"].status_code == 200
+    assert results["patch"].status_code == 409
+    after = client.get(f"/api/v1/tasks/{task_id}").json()
+    assert after == results["submit"].json()
+    assert after["status"] == "queued"
+    assert after["title"] == "Original title"
+    assert after["mode"] == "quick"
 
 
 def test_per_user_draft_and_unfinished_quotas(client: TestClient):

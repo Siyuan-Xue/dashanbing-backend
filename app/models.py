@@ -245,6 +245,16 @@ class TaskCreate(SQLModel):
     mode: TaskMode = "full"
 
 
+class TaskUpdate(SQLModel):
+    title: str = Field(min_length=1, max_length=120)
+    mode: TaskMode
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def normalize_title(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
 class TaskInputPublic(SQLModel):
     slot: TaskInputSlot
     original_filename: str

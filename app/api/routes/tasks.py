@@ -17,6 +17,7 @@ from app.models import (
     TaskInput,
     TaskListPublic,
     TaskPublic,
+    TaskUpdate,
     User,
 )
 from app.services.analysis_state import ACTIVE_STATUSES, AnalysisStatus
@@ -212,6 +213,25 @@ def list_tasks(
         page=page,
         page_size=page_size,
     )
+
+
+@router.patch("/{task_id}", response_model=TaskPublic)
+def update_task(
+    task_id: str,
+    payload: TaskUpdate,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> TaskPublic:
+    expire_drafts(session, current_user.id, request.app.state.storage)
+    begin_write(session)
+    task = task_or_404(task_id, current_user.id, session)
+    if task.status not in DRAFT_STATUSES:
+        raise HTTPException(status_code=409, detail="Only draft task metadata can be changed")
+    task.title = payload.title
+    task.mode = payload.mode
+    _commit(session, task)
+    return task_public(task, session)
 
 
 @router.put("/{task_id}/inputs/{slot}", response_model=TaskPublic)
