@@ -1,6 +1,13 @@
-type IconName = "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
+export type IconName = "pencil" | "activity" | "stop" | "statusCheck" | "alert" | "ban" | "calendarX" | "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
 
 const paths: Record<IconName, React.ReactNode> = {
+  pencil: <><path d="m4 15 11-11 5 5L9 20H4v-5Zm9-9 5 5"/></>,
+  activity: <path d="M3 12h4l3-8 4 16 3-8h4"/>,
+  stop: <rect x="6" y="6" width="12" height="12" rx="1"/>,
+  statusCheck: <path d="m5 12 5 5 9-10"/>,
+  alert: <><path d="M12 5v8"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></>,
+  ban: <><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></>,
+  calendarX: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18m-12 3 6 5m0-5-6 5"/></>,
   logout: <><path d="M9 4H4v16h5M9 12h12m-4-4 4 4-4 4"/></>,
   collapse: <path d="m11 6-6 6 6 6m7-12-6 6 6 6"/>,
   expand: <path d="m6 6 6 6-6 6m7-12 6 6-6 6"/>,

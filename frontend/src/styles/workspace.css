@@ -25,14 +25,10 @@
 .workspace-nav a.active { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
 .workspace-recent { min-height: 0; flex: 1; padding-top: 16px; overflow-y: auto; border-top: 1px solid var(--border); }
 .workspace-recent h2 { margin: 0 10px 8px; color: var(--muted); font-size: 12px; font-weight: 400; }
-.workspace-recent a { min-height: 34px; padding: 6px 10px; display: grid; grid-template-columns: 6px minmax(0, 1fr); align-items: center; gap: 9px; border-radius: 8px; color: var(--text-soft); font-size: 14px; }
+.workspace-recent a { min-height: 34px; padding: 6px 10px; display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 9px; border-radius: 8px; color: var(--text-soft); font-size: 14px; }
 .workspace-recent a:hover { color: var(--text); background: var(--surface); }
 .workspace-recent a > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .workspace-recent p { margin: 10px; color: var(--muted); font-size: 13px; }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); }
-.status-dot.status-running, .status-dot.status-queued { background: var(--brand); }
-.status-dot.status-completed { background: var(--success); }
-.status-dot.status-failed { background: var(--danger); }
 .workspace-sidebar-bottom { min-height: 48px; margin-top: auto; padding: 6px 8px; display: flex; align-items: center; justify-content: space-between; flex: none; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 .workspace-account { display: grid; place-items: center; flex: none; border-radius: 50%; }
 .workspace-avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #16171a; }
@@ -166,18 +162,46 @@
 .task-file-icon { width: 32px; height: 32px; display: grid; place-items: center; flex: none; border: 1px solid var(--border); border-radius: 50%; color: var(--muted); }
 .task-title-link b { overflow: hidden; color: var(--text); font-size: 14px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .task-title-link small { margin-top: 2px; color: var(--muted); font-size: 11px; }
-.status-chip { padding: 3px 7px; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; color: var(--muted); background: var(--surface-subtle); white-space: nowrap; font-size: 12px; }
-.status-chip i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.status-chip i .icon { display: none; }
-.task-table .status-chip[class] { padding: 0; background: transparent; color: var(--text-soft); font-size: 13px; white-space: normal; }
-.task-table .status-chip i { width: 16px; height: 16px; display: grid; place-items: center; flex: none; color: white; background: var(--muted); }
-.task-table .status-chip i .icon { display: block; }
-.task-table .status-completed i { background: var(--success); }
-.task-table .status-running i, .task-table .status-queued i { background: var(--brand); }
-.task-table .status-failed i { background: var(--danger); }
-.status-chip.status-running, .status-chip.status-queued { color: var(--brand); background: var(--brand-soft); }
-.status-chip.status-completed { color: var(--success); background: color-mix(in srgb, var(--success) 10%, var(--surface)); }
-.status-chip.status-failed { color: var(--danger); background: color-mix(in srgb, var(--danger) 9%, var(--surface)); }
+/* Shared semantic colors keep symbols and labels consistent in every task surface */
+:root {
+  --status-draft: #5e6c7c;
+  --status-uploading: #087582;
+  --status-queued: #946200;
+  --status-running: #126e99;
+  --status-canceling: #a45112;
+  --status-completed: #13794f;
+  --status-failed: #c33442;
+  --status-canceled: #9b4436;
+  --status-expired: #786653;
+  --status-on-symbol: #fff;
+}
+:root[data-theme="dark"] {
+  --status-draft: #a9b8c8;
+  --status-uploading: #58d1ce;
+  --status-queued: #eac060;
+  --status-running: #73c9ed;
+  --status-canceling: #f3ab69;
+  --status-completed: #66d6a1;
+  --status-failed: #ff8995;
+  --status-canceled: #e6a598;
+  --status-expired: #c6b49c;
+  --status-on-symbol: #101a21;
+}
+.status-draft { --status-color: var(--status-draft); }
+.status-uploading { --status-color: var(--status-uploading); }
+.status-queued { --status-color: var(--status-queued); }
+.status-running { --status-color: var(--status-running); }
+.status-canceling { --status-color: var(--status-canceling); }
+.status-completed { --status-color: var(--status-completed); }
+.status-failed { --status-color: var(--status-failed); }
+.status-canceled { --status-color: var(--status-canceled); }
+.status-expired { --status-color: var(--status-expired); }
+.status-chip { padding: 4px 8px; display: inline-flex; align-items: center; gap: 7px; border-radius: 6px; color: var(--status-color); background: transparent; white-space: nowrap; font-size: 12px; line-height: 20px; }
+.status-symbol { width: 20px; height: 20px; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 20px; border-radius: 50%; color: var(--status-on-symbol); background: var(--status-color); line-height: 0; }
+.status-symbol > .icon { display: block; width: 14px; height: 14px; margin: 0; flex: none; }
+.status-label { color: inherit; }
+.task-table .status-chip { padding: 0; background: transparent; font-size: 13px; }
+.status-chip-compact { padding: 0; background: transparent; }
 .mode-label { color: var(--muted); font-size: 12px; }
 .mini-progress { width: 64px; height: 3px; margin-bottom: 4px; border-radius: 3px; background: var(--surface-subtle); }
 .mini-progress i { display: block; height: 100%; border-radius: inherit; background: var(--brand); }

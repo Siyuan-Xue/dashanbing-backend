@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
+import { StatusChip } from "./StatusChip";
 import { useAuth } from "../providers/AuthProvider";
 import { workspaceApi } from "../workspace/api";
 import type { Task } from "../workspace/types";
@@ -135,7 +136,7 @@ export function WorkspaceShell() {
         </nav>
         <section className="workspace-recent" aria-labelledby="recent-heading">
           <h2 id="recent-heading">{wt("recent")}</h2>
-          {recent.length ? recent.map((item) => <Link key={item.id} to={`/workspace/tasks/${item.id}`} title={item.title}><span className={`status-dot status-${item.status}`} aria-hidden="true"/><span>{item.title}</span></Link>) : <p>{wt("noRecent")}</p>}
+          {recent.length ? recent.map((item) => <Link key={item.id} to={`/workspace/tasks/${item.id}`} title={item.title} aria-label={item.title} aria-describedby={`recent-status-${item.id}`}><StatusChip id={`recent-status-${item.id}`} status={item.status} stageMessage={item.stage_message} compact/><span>{item.title}</span></Link>) : <p>{wt("noRecent")}</p>}
         </section>
         <div className="workspace-sidebar-bottom">
           <Link to="/workspace/settings" className="workspace-account" aria-label={`${wt("account")}${wt("labelSeparator")}${user?.username || ""}`} title={user?.username}><span className="workspace-avatar"><Icon name="user" size={18}/></span></Link>
