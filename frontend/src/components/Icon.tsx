@@ -1,6 +1,7 @@
-type IconName = "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
+type IconName = "logout" | "collapse" | "expand" | "copy" | "download" | "chevronLeft" | "chevronDown" | "chevronRight" | "filter" | "arrow" | "basketball" | "chart" | "check" | "clock" | "code" | "file" | "github" | "language" | "layers" | "menu" | "moon" | "plus" | "play" | "refresh" | "search" | "settings" | "sun" | "trash" | "upload" | "user" | "x";
 
 const paths: Record<IconName, React.ReactNode> = {
+  logout: <><path d="M9 4H4v16h5M9 12h12m-4-4 4 4-4 4"/></>,
   collapse: <path d="m11 6-6 6 6 6m7-12-6 6 6 6"/>,
   expand: <path d="m6 6 6 6-6 6m7-12 6 6-6 6"/>,
   copy: <><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></>,

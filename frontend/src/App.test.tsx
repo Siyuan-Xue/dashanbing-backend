@@ -86,6 +86,47 @@ describe("public foundation", () => {
     expect(screen.queryByText(/客户端|合集|生态|资讯|促销/)).not.toBeInTheDocument();
   });
 
+  test("account dropdown shows identity and signs out through the cookie API", async () => {
+    const user = userEvent.setup();
+    const signOut = deferred<Response>();
+    const fetcher = vi.fn().mockImplementation((url: string) => url === "/api/v1/logout"
+      ? signOut.promise
+      : Promise.resolve(new Response(JSON.stringify({ id: 7, username: "coach", email: "coach@example.com", is_active: true }))));
+    vi.stubGlobal("fetch", fetcher);
+    renderAt("/api/docs");
+    const avatar = await screen.findByRole("button", { name: "账户：coach" });
+    await user.click(avatar);
+    expect(screen.getByTestId("location")).toHaveTextContent("/api/docs");
+    expect(screen.getByText("coach@example.com")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "退出登录" }));
+    expect(screen.getByRole("button", { name: "正在退出" })).toHaveAttribute("aria-disabled", "true");
+    await user.click(screen.getByRole("button", { name: "正在退出" }));
+    expect(fetcher.mock.calls.filter(([url]) => url === "/api/v1/logout")).toHaveLength(1);
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/logout", { method: "POST", credentials: "include" });
+    await act(async () => signOut.resolve(new Response(null, { status: 204 })));
+    expect(await screen.findByRole("link", { name: "登录" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "账户：coach" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("location").textContent).toBe("/");
+  });
+
+  test("failed logout preserves the user and offers a retry", async () => {
+    const user = userEvent.setup();
+    const fetcher = vi.fn().mockImplementation((url: string) => Promise.resolve(url === "/api/v1/logout"
+      ? new Response(null, { status: 503 })
+      : new Response(JSON.stringify({ id: 7, username: "coach", email: null, is_active: true }))));
+    vi.stubGlobal("fetch", fetcher);
+    renderAt();
+    const avatar = await screen.findByRole("button", { name: "账户：coach" });
+    await user.click(avatar);
+    await user.click(screen.getByRole("button", { name: "退出登录" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("退出失败，请稍后重试");
+    expect(avatar).toBeVisible();
+    expect(screen.getByRole("button", { name: "退出登录" })).toBeEnabled();
+    await user.keyboard("{Escape}");
+    expect(avatar).toHaveFocus();
+    expect(avatar).toHaveAttribute("aria-expanded", "false");
+  });
+
   test("capability accordion reveals the selected explanation and closes the previous one", async () => {
     const user = userEvent.setup();
     renderAt();
