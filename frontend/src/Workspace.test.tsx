@@ -597,6 +597,28 @@ describe("task list workflows", () => {
 });
 
 describe("task and example result workspaces", () => {
+  test("starts every camera when ready without restarting a manually paused view", async () => {
+    const user = userEvent.setup();
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    try {
+      render(<LocaleProvider><ResultWorkspace result={productResult}/></LocaleProvider>);
+      for (const label of ["阶段合成", "机位 1", "机位 2", "机位 3", "机位 4"]) {
+        await user.click(screen.getByRole("tab", { name: label }));
+        const video = screen.getByTitle(`${label} 播放器`);
+        const before = play.mock.calls.length;
+        fireEvent.canPlay(video);
+        expect(play).toHaveBeenCalledTimes(before + 1);
+        expect(video).toHaveProperty("defaultMuted", true);
+        expect(video).toHaveProperty("muted", true);
+        fireEvent.play(video);
+        fireEvent.pause(video);
+        fireEvent.canPlay(video);
+        await user.click(screen.getByRole("tab", { name: "JSON" }));
+        expect(play).toHaveBeenCalledTimes(before + 1);
+      }
+    } finally { play.mockRestore(); }
+  });
+
   test("selects the first available camera, announces loading and exposes a playable player", async () => {
     render(<LocaleProvider><ResultWorkspace result={{ ...productResult, media: { cam_02: productResult.media.cam_02 } }}/></LocaleProvider>);
     await waitFor(() => expect(screen.getByRole("tab", { name: "机位 2" })).toHaveAttribute("aria-selected", "true"));
