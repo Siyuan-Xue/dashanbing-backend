@@ -16,6 +16,8 @@ export type AccountUsage =
 
 export type CreateTaskRequest =
   paths["/api/v1/tasks"]["post"]["requestBody"]["content"]["application/json"];
+export type UpdateDraftRequest =
+  paths["/api/v1/tasks/{task_id}"]["patch"]["requestBody"]["content"]["application/json"];
 export type CreateFromPresetRequest =
   paths["/api/v1/tasks/from-preset"]["post"]["requestBody"]["content"]["application/json"];
 export type TaskListQuery = NonNullable<

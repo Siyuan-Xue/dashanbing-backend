@@ -1,5 +1,6 @@
 export const workspaceCopy = {
   zh: {
+    continueDraft: "继续编辑", replaceHint: "点击替换", draftHint: "未提交的任务保留为草稿，可稍后继续",
     workspaceNav: "工作台导航", createTask: "创建任务", tasks: "任务列表", recent: "最近任务", settings: "设置",
     sidebarExpand: "展开侧边栏", sidebarCollapse: "收起侧边栏", labelSeparator: "：", minutes: "分钟", makeRate: "命中率", mediaLoading: "正在加载视频", mediaError: "视频加载失败", reloadMedia: "重新加载视频", light: "浅色", dark: "深色", settingsNav: "设置导航", uploadCount: "已验证视频",
     account: "账户", userInfo: "用户信息", menuOpen: "打开工作台菜单", menuClose: "关闭工作台菜单", github: "GitHub", api: "API",
@@ -20,6 +21,7 @@ export const workspaceCopy = {
     loadFailed: "暂时无法加载数据", noRecent: "暂无最近任务",
   },
   en: {
+    continueDraft: "Continue editing", replaceHint: "Click to replace", draftHint: "Unsubmitted tasks stay in drafts so you can continue later",
     workspaceNav: "Workspace navigation", createTask: "Create task", tasks: "Tasks", recent: "Recent tasks", settings: "Settings",
     sidebarExpand: "Expand sidebar", sidebarCollapse: "Collapse sidebar", labelSeparator: ": ", minutes: "min", makeRate: "Make rate", mediaLoading: "Loading video", mediaError: "Video could not be loaded", reloadMedia: "Reload video", light: "Light", dark: "Dark", settingsNav: "Settings navigation", uploadCount: "Verified videos",
     account: "Account", userInfo: "User information", menuOpen: "Open workspace menu", menuClose: "Close workspace menu", github: "GitHub", api: "API",

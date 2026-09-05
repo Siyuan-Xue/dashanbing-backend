@@ -161,7 +161,7 @@ describe("workspace shell and staged creation", () => {
     expect(document.querySelector(".workspace-mobile-actions")).not.toBeInTheDocument();
   });
 
-  test("locks the title and mode while the first draft request is pending", async () => {
+  test("keeps title and mode editable while the first draft request is pending", async () => {
     let resolveCreate!: (response: Response) => void;
     const createResponse = new Promise<Response>((resolve) => { resolveCreate = resolve; });
     installBaseFetch((url, init) => {
@@ -179,12 +179,17 @@ describe("workspace shell and staged creation", () => {
     await user.type(title, "训练 A");
     await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "enroll.mp4", { type: "video/mp4" }));
 
-    expect(title).toBeDisabled();
-    expect(screen.getByRole("radio", { name: /快速/ })).toBeDisabled();
+    expect(title).toBeEnabled();
+    expect(screen.getByRole("radio", { name: /快速/ })).toBeEnabled();
+    await user.clear(title);
+    await user.type(title, "训练 B");
+    await user.click(screen.getByRole("radio", { name: /完整/ }));
     await act(async () => { resolveCreate(json(task({ title: "训练 A" }), { status: 201 })); });
+    expect(title).toHaveValue("训练 B");
+    expect(screen.getByRole("radio", { name: /完整/ })).toBeChecked();
   });
 
-  test("enforces the 120-code-point title boundary and localizes a first-upload 422", async () => {
+  test("localizes a draft creation validation failure without losing the entered name", async () => {
     const fetchMock = installBaseFetch((url, init) => {
       if (url.pathname === "/api/v1/tasks" && init?.method === "POST") return new Response(JSON.stringify({ detail: [{ loc: ["body", "title"], type: "string_too_long", msg: "String should have at most 120 characters" }] }), { status: 422, headers: { "Content-Type": "application/json" } });
     });
@@ -197,16 +202,8 @@ describe("workspace shell and staged creation", () => {
     const user = userEvent.setup();
     renderAt("/workspace/new");
     const title = await screen.findByLabelText("任务标题");
-    expect(title).toBeRequired();
+    expect(title).not.toBeRequired();
     expect(title).not.toHaveAttribute("maxlength");
-    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "missing-title.mp4", { type: "video/mp4" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("请输入任务标题");
-    expect(fetchMock.mock.calls.filter(([input, init]) => String(input).endsWith("/api/v1/tasks") && init?.method === "POST")).toHaveLength(0);
-    fireEvent.change(title, { target: { value: "🏀".repeat(121) } });
-    await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "too-long.mp4", { type: "video/mp4" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("任务标题不能超过 120 个字符");
-    expect(fetchMock.mock.calls.filter(([input, init]) => String(input).endsWith("/api/v1/tasks") && init?.method === "POST")).toHaveLength(0);
-
     fireEvent.change(title, { target: { value: "🏀".repeat(120) } });
     await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "boundary.mp4", { type: "video/mp4" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("任务标题不能超过 120 个字符");

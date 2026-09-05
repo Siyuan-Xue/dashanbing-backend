@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 
 import { Icon } from "../components/Icon";
 import { ResultWorkspace } from "../components/ResultWorkspace";
@@ -66,6 +66,7 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
 
   if (taskError) return <div className="workspace-page"><WorkspaceState title={wt("detailError")} body={taskError.message} onRetry={() => setRevision((value) => value + 1)}/></div>;
   if (!task) return <div className="workspace-page"><div className="loading-block page-loading" role="status" aria-label={wt("detailLoading")}/></div>;
+  if (task.status === "draft" || task.status === "uploading") return <Navigate to={`/workspace/new?draft=${encodeURIComponent(task.id)}`} replace/>;
   return <div className="workspace-page detail-page">
     <header className="detail-header">
       <div className="detail-heading"><Link to="/workspace/tasks" className="back-link" aria-label={wt("tasks")} title={wt("tasks")}><Icon name="chevronLeft"/></Link><h1 title={task.title}>{task.title}</h1></div>

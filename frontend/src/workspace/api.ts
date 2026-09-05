@@ -11,6 +11,7 @@ import type {
   TaskSlot,
   UploadTaskPath,
   UploadTaskResponse,
+  UpdateDraftRequest,
 } from "./types";
 import { ApiError } from "../api";
 import type { ApiValidationIssue } from "../api";
@@ -79,6 +80,10 @@ export const workspaceApi = {
     return request<Task>("/api/v1/tasks", jsonInit("POST", body));
   },
   submitTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/submit`, jsonInit("POST")),
+  updateDraft: (taskId: string, title: string, mode: TaskMode) => {
+    const body: UpdateDraftRequest = { title, mode };
+    return request<Task>(`/api/v1/tasks/${taskId}`, jsonInit("PATCH", body));
+  },
   getTask: (taskId: string, signal?: AbortSignal) => request<Task>(`/api/v1/tasks/${taskId}`, { signal }),
   listTasks: (query: TaskListQuery) => request<TaskPage>(`/api/v1/tasks?${taskListSearch(query)}`),
   cancelTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/cancel`, jsonInit("POST")),
