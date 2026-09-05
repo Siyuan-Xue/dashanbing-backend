@@ -572,7 +572,10 @@ def test_cancellation_and_restart_recover_running_job_without_duplicate_rows(job
         complete = get_row(client, AnalystJob, job.id)
         assert complete.status == "completed"
         assert complete.attempts == 2
-        assert len(all_rows(client, AnalystJob)) == 1
+        jobs = all_rows(client, AnalystJob)
+        assert [row.id for row in jobs if row.kind != "prepare"] == [job.id]
+        # Startup separately backfills the missing default Chinese report.
+        assert len([row for row in jobs if row.kind == "prepare"]) == 1
         assert client.app.state.glm_client.calls[0][1] == job.request_id
         if kind == "message":
             assert len(all_rows(client, AnalystMessage)) == 2
@@ -1044,3 +1047,142 @@ def test_conversation_creation_rechecks_task_after_facts_load_without_orphans(jo
     assert all_rows(client, AnalystReport) == []
     assert all_rows(client, AnalystJob) == []
     assert client.app.state.glm_client.calls == []
+
+
+def test_reconcile_backfills_tasks_completed_before_ai_enablement_once(job_client, report_body):
+    client = job_client
+    supervisor = analyst.AnalystSupervisor(client.app)
+    client.app.state.settings = client.app.state.settings.model_copy(update={"glm_api_key": SecretStr("")})
+    assert supervisor.reconcile_completed() == 0
+    assert all_rows(client, AnalystJob) == []
+    client.app.state.settings = client.app.state.settings.model_copy(update={"glm_api_key": SecretStr(FAKE_KEY)})
+    assert supervisor.reconcile_completed() == 1
+    assert supervisor.reconcile_completed() == 0
+    client.app.state.glm_client = ScriptedProvider(reports=[report_body])
+    assert run_once(client)
+    assert run_once(client)
+    report = client.get(report_url(client)).json()
+    assert report['status'] == 'completed'
+    assert report['report']['locale'] == 'zh'
+    assert supervisor.reconcile_completed() == 0
+    assert len(client.app.state.glm_client.calls) == 1
+    assert_video_completed(client)
+
+
+def test_reconcile_preserves_existing_manual_report_and_terminal_failures(job_client, report_body):
+    client = job_client
+    with Session(client.app.state.engine) as session:
+        task = session.get(Analysis, client.task_id)
+        analyst.request_report(client.app, session, task)
+        session.commit()
+    client.app.state.glm_client = ScriptedProvider(reports=[report_body])
+    assert run_once(client)
+    original = all_rows(client, AnalystReport)[0]
+    supervisor = analyst.AnalystSupervisor(client.app)
+    assert supervisor.reconcile_completed() == 0
+    assert get_row(client, AnalystReport, original.id).body_json == original.body_json
+    with Session(client.app.state.engine) as session:
+        row = session.get(AnalystReport, original.id)
+        row.status = 'failed'
+        session.add(row); session.commit()
+    assert supervisor.reconcile_completed() == 0
+    assert len(all_rows(client, AnalystJob)) == 1
+
+
+def test_reconcile_refreshes_report_revoked_by_confirmed_memory_change(job_client, report_body):
+    client = job_client
+    supervisor = analyst.AnalystSupervisor(client.app)
+    client.app.state.glm_client = ScriptedProvider(reports=[report_body, report_body])
+    assert supervisor.reconcile_completed() == 1
+    assert run_once(client) and run_once(client)
+    original_id = all_rows(client, AnalystReport)[0].id
+    from app.services.analyst_invalidation import revoke_snapshots
+    with Session(client.app.state.engine) as session:
+        revoke_snapshots(session, client.owner_id, task_ids={client.task_id})
+        session.commit()
+    assert supervisor.reconcile_completed() == 1
+    assert supervisor.reconcile_completed() == 0
+    assert run_once(client) and run_once(client)
+    assert client.get(report_url(client)).json()['status'] == 'completed'
+    assert all_rows(client, AnalystReport)[0].id != original_id
+    assert len([j for j in all_rows(client, AnalystJob) if j.kind == 'prepare']) == 1
+
+
+@pytest.mark.parametrize('status', ['draft', 'uploading', 'running', 'canceled', 'failed', 'expired'])
+def test_reconcile_ignores_tasks_without_completed_results(job_client, status):
+    with Session(job_client.app.state.engine) as session:
+        task = session.get(Analysis, job_client.task_id)
+        task.status = status; session.add(task); session.commit()
+    assert analyst.AnalystSupervisor(job_client.app).reconcile_completed() == 0
+    assert all_rows(job_client, AnalystJob) == []
+
+
+def test_reconcile_does_not_keep_retrying_missing_source_files(job_client):
+    client = job_client
+    supervisor = analyst.AnalystSupervisor(client.app)
+    (client.app.state.storage.analysis_root(client.task_id) / 'output' / 'report.json').unlink()
+    assert supervisor.reconcile_completed() == 1
+    assert run_once(client)
+    assert all_rows(client, AnalystJob)[0].status == 'failed'
+    assert supervisor.reconcile_completed() == 0
+    assert client.get(report_url(client)).json()['status'] == 'failed'
+    assert_video_completed(client)
+
+
+def test_supervisor_start_reconciles_preexisting_completed_tasks(job_client, monkeypatch):
+    async def parked(*_):
+        await asyncio.Event().wait()
+    monkeypatch.setattr(analyst.AnalystSupervisor, '_loop', parked)
+    async def check():
+        supervisor = analyst.AnalystSupervisor(job_client.app)
+        await supervisor.start()
+        try:
+            assert len(all_rows(job_client, AnalystJob)) == 1
+            assert all_rows(job_client, AnalystJob)[0].kind == 'prepare'
+        finally:
+            await supervisor.stop()
+    asyncio.run(check())
+
+
+def test_reconcile_batches_and_concurrent_scans_never_duplicate_jobs(job_client, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    monkeypatch.setattr(analyst, 'RECONCILE_BATCH_SIZE', 2)
+    with Session(job_client.app.state.engine) as session:
+        for _ in range(4):
+            session.add(Analysis(title='Earlier session', owner_id=job_client.owner_id,
+                                 status='completed', input_manifest_json='{}'))
+        session.commit()
+    supervisor = analyst.AnalystSupervisor(job_client.app)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: supervisor.reconcile_completed(), range(2)))
+    assert sum(results) == 4
+    assert supervisor.reconcile_completed() == 1
+    assert supervisor.reconcile_completed() == 0
+    jobs = all_rows(job_client, AnalystJob)
+    assert len(jobs) == len({job.task_id for job in jobs}) == 5
+
+
+def test_periodic_reconcile_finds_tasks_without_another_restart(job_client, monkeypatch):
+    monkeypatch.setattr(analyst, 'RECONCILE_SECONDS', 0.01)
+    async def check():
+        supervisor = analyst.AnalystSupervisor(job_client.app)
+        maintenance = asyncio.create_task(supervisor._reconcile_loop())
+        async def found():
+            while not all_rows(job_client, AnalystJob):
+                await asyncio.sleep(0.005)
+        try:
+            await asyncio.wait_for(found(), timeout=2)
+            assert all_rows(job_client, AnalystJob)[0].status == 'queued'
+        finally:
+            maintenance.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await maintenance
+    asyncio.run(check())
+
+
+def test_reconcile_respects_disabled_accounts(job_client):
+    with Session(job_client.app.state.engine) as session:
+        owner = session.get(User, job_client.owner_id)
+        owner.is_active = False; session.add(owner); session.commit()
+    assert analyst.AnalystSupervisor(job_client.app).reconcile_completed() == 0
+    assert all_rows(job_client, AnalystJob) == []

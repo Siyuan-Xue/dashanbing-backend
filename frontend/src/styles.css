@@ -220,12 +220,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .public-menu-toggle { display: inline-flex; font-size: 22px; }
   .public-nav { display: none; }
   .header-actions .theme-button, .header-actions .header-cta, .header-actions .login-link, .header-actions .account-menu { display: none; }
-  .menu-open .public-nav { position: absolute; top: 56px; left: 0; right: 0; display: flex; gap: 8px; padding: 16px 16px 74px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow-md); }
-  .menu-open .public-nav a { flex: 1; font-size: 15px; }
-  .menu-open .header-actions .theme-button { position: absolute; display: inline-flex; left: 20px; top: 129px; z-index: 1; }
-  .menu-open .header-actions .header-cta { position: absolute; display: inline-flex; left: 65px; top: 128px; z-index: 1; font-size: 14px; }
+  /* Reserve the row's end for the theme, CTA and avatar, including English labels. */
+  .menu-open .public-nav { position: absolute; top: 56px; left: 0; right: 0; height: 64px; display: flex; gap: 4px; padding: 12px 186px 12px 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow-md); }
+  .menu-open .public-nav a { flex: 1; min-width: 0; padding: 8px 4px; font-size: 14px; white-space: nowrap; }
+  .menu-open .header-actions .theme-button, .menu-open .header-actions .header-cta, .menu-open .header-actions .login-link, .menu-open .header-actions .account-menu { position: absolute; display: inline-flex; top: 88px; transform: translateY(-50%); z-index: 1; }
+  .menu-open .header-actions .theme-button { right: 152px; }
+  .menu-open .header-actions .header-cta { right: 46px; width: 100px; min-height: 32px; padding-inline: 8px; font-size: 14px; }
   .account-dropdown { max-height: calc(100dvh - 180px); }
-  .menu-open .header-actions .login-link, .menu-open .header-actions .account-menu { position: absolute; display: inline-flex; right: 24px; top: 129px; z-index: 1; }
+  .menu-open .header-actions .login-link, .menu-open .header-actions .account-menu { right: 12px; }
   .hero { width: calc(100% - 20px); padding-top: 110px; padding-bottom: 35px; }
   .hero-copy { padding-inline: 10px; }
   .hero .eyebrow { font-size: 12px; padding: 5px 12px; }

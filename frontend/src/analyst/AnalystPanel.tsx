@@ -33,7 +33,7 @@ function AnalystSession(props: Props) {
 }
 function AnalystBody({ source, accountId, onEvidence, style, onStyle, ready = true }: Props & { style: AnalystStyle; onStyle: (value: AnalystStyle) => void }) {
   const t = useAnalystCopy(); const { locale } = useLocale();
-  const { state, error, busy, generate, reload } = useReport(source, locale, style);
+  const { state, error, busy, generate, reload } = useReport(source, locale, style, ready);
   const [context, setContext] = useState<AnalystContext | null>(null); const [contextRevision, setContextRevision] = useState(0); const [subjectId, setSubjectId] = useState("");
   useEffect(() => {
     if (source.kind !== "task") return;

@@ -15,11 +15,13 @@ from sqlmodel import Session, select
 
 from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport
 from app.analyst_reports import ReportBody, ReportPublic, ReportState, MessagePublic
-from app.models import Analysis, utc_now
+from app.models import Analysis, User, utc_now
 
 logger = logging.getLogger(__name__)
 PROMPT_VERSION = "basketball-analyst-v1"
 MAX_ATTEMPTS = 3
+RECONCILE_SECONDS = 60
+RECONCILE_BATCH_SIZE = 100
 
 
 def pack(value) -> str:
@@ -238,7 +240,61 @@ class AnalystSupervisor:
                     if message:
                         message.content = ""; message.citations_json = "[]"; message.status = "queued"; message.revision += 1; session.add(message)
             session.commit()
+        await asyncio.to_thread(self.reconcile_completed)
         self.tasks = [asyncio.create_task(self._loop(), name=f"analyst-{i}") for i in range(self.app.state.settings.analyst_concurrency)]
+        self.tasks.append(asyncio.create_task(self._reconcile_loop(), name="analyst-reconcile"))
+
+    def reconcile_completed(self) -> int:
+        """Fill missing default reports, including tasks finished before AI was enabled.
+
+        Only enqueue work here: video hashing and GLM calls belong to the workers.
+        A failed report/prepare remains visible for explicit retry after the bounded
+        provider retries, rather than causing an unlimited paid retry loop.
+        """
+        if not configured(self.app):
+            return 0
+        with Session(self.app.state.engine) as session:
+            session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            has_report = select(AnalystReport.id).where(
+                AnalystReport.task_id == Analysis.id,
+                AnalystReport.owner_id == Analysis.owner_id,
+                AnalystReport.locale == "zh", AnalystReport.style == "coach",
+            ).exists()
+            blocked_prepare = select(AnalystJob.id).where(
+                AnalystJob.task_id == Analysis.id,
+                AnalystJob.owner_id == Analysis.owner_id,
+                AnalystJob.kind == "prepare",
+                AnalystJob.status.in_(("queued", "running", "failed")),
+            ).exists()
+            tasks = session.exec(select(Analysis).join(User, User.id == Analysis.owner_id).where(
+                Analysis.status == "completed", User.is_active.is_(True),
+                ~has_report, ~blocked_prepare,
+            ).order_by(Analysis.created_at, Analysis.id).limit(RECONCILE_BATCH_SIZE)).all()
+            for task in tasks:
+                key = f"automatic:{task.id}:{task.retry_count}"
+                previous = session.exec(select(AnalystJob).where(AnalystJob.request_id == key)).first()
+                if previous:
+                    # Confirmed context changes can revoke a report after its
+                    # preparation succeeded, so reuse its idempotency marker.
+                    previous.status = "queued"; previous.attempts = 0
+                    previous.error = None; previous.available_at = utc_now()
+                    previous.updated_at = utc_now(); session.add(previous)
+                else:
+                    enqueue_completed(session, task, enabled=True)
+            session.commit()
+            if tasks:
+                logger.info("Queued %d missing automatic analyst reports", len(tasks))
+            return len(tasks)
+
+    async def _reconcile_loop(self):
+        while True:
+            await asyncio.sleep(RECONCILE_SECONDS)
+            try:
+                await asyncio.to_thread(self.reconcile_completed)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("Automatic analyst report reconciliation failed")
 
     async def stop(self):
         for task in self.tasks:
