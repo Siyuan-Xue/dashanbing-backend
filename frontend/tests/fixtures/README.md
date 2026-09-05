@@ -1,0 +1,1 @@
+autoplay.webm is a synthetic six-second 80×48 VP8 video with alternating blue/black frames at 10 fps and no audio, recorded from a Chromium canvas stream for autoplay tests. It contains no user footage.

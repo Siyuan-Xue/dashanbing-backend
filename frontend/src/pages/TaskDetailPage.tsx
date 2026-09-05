@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import { Icon } from "../components/Icon";
 import { ResultWorkspace } from "../components/ResultWorkspace";
 import { StatusChip } from "../components/StatusChip";
 import { WorkspaceState } from "../components/WorkspaceState";
 import { useLocale } from "../providers/LocaleProvider";
 import { workspaceApi } from "../workspace/api";
-import { taskModeLabel, taskSourceLabel, taskStageMessageLabel, taskStatusLabel } from "../workspace/labels";
+import { taskModeLabel, taskStageMessageLabel, taskStatusLabel } from "../workspace/labels";
 import type { ProductResult, Task } from "../workspace/types";
 import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 
@@ -66,7 +67,10 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
   if (taskError) return <div className="workspace-page"><WorkspaceState title={wt("detailError")} body={taskError.message} onRetry={() => setRevision((value) => value + 1)}/></div>;
   if (!task) return <div className="workspace-page"><div className="loading-block page-loading" role="status" aria-label={wt("detailLoading")}/></div>;
   return <div className="workspace-page detail-page">
-    <header className="detail-header"><div><Link to="/workspace/tasks" className="back-link">← {wt("tasks")}</Link><h1>{task.title}</h1><div className="detail-meta"><StatusChip status={task.status}/><span>{taskModeLabel(locale, task.mode)}</span><span>{taskSourceLabel(locale, task.source_type)}</span><span>{task.id.slice(0, 8)}</span></div></div><div className="detail-progress"><span><b>{task.progress}%</b><small>{taskStageMessageLabel(locale, task.stage_message)}</small></span><div><i style={{ width: `${task.progress}%` }}/></div></div></header>
+    <header className="detail-header">
+      <div className="detail-heading"><Link to="/workspace/tasks" className="back-link" aria-label={wt("tasks")} title={wt("tasks")}><Icon name="chevronLeft"/></Link><h1 title={task.title}>{task.title}</h1></div>
+      <div className="detail-actions"><span className="detail-mode">{taskModeLabel(locale, task.mode)}</span><StatusChip status={task.status}/>{ACTIVE.has(task.status) && <div className="detail-progress" role="progressbar" aria-label={wt("progress")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={task.progress} aria-valuetext={`${task.progress}% · ${taskStageMessageLabel(locale, task.stage_message)}`} title={taskStageMessageLabel(locale, task.stage_message)}><div><i style={{ width: `${task.progress}%` }}/></div><span>{task.progress}%</span></div>}</div>
+    </header>
     {task.error_message && <p className="task-error-banner" role="alert">{task.error_message}</p>}
     <ResultWorkspace key={taskId} task={task} result={result} resultLoading={resultLoading} resultError={resultError} onRetryResult={() => setRevision((value) => value + 1)} downloadUrl={task.status === "completed" && result ? `/api/v1/tasks/${task.id}/result` : undefined}/>
     <section className="task-history"><h2>{wt("timeline")}</h2><ol><li className="done"><span/><div><b>{wt("created")}</b><time>{new Date(task.created_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>{task.submitted_at && <li className="done"><span/><div><b>{wt("submit")}</b><time>{new Date(task.submitted_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}{task.started_at && <li className="done"><span/><div><b>{wt("progress")}</b><time>{new Date(task.started_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}{task.completed_at && <li className="done"><span/><div><b>{taskStatusLabel(locale, task.status)}</b><time>{new Date(task.completed_at).toLocaleString(locale === "zh" ? "zh-CN" : "en")}</time></div></li>}</ol></section>

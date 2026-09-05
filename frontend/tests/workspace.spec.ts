@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 
 const authUser = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
@@ -364,4 +365,43 @@ test("filter reset clears options on confirm while preserving search and page si
   await expect(page).toHaveURL(/q=training&page=1&page_size=20$/);
   await expect(trigger).toBeFocused();
   await expect(trigger).not.toHaveClass(/has-filters/);
+});
+
+
+test("result videos autoplay muted inline and retain manual pause across result tabs", async ({ page }) => {
+  await page.route("**/api/v1/**/media/**", route => route.fulfill({contentType:"video/webm",path:fileURLToPath(new URL("./fixtures/autoplay.webm",import.meta.url))}));
+  await page.route("**/api/v1/presets/quick-demo/result", route => route.fulfill({json:{...result,media:{phases:"/api/v1/presets/quick-demo/media/phases",cam_01:"/api/v1/presets/quick-demo/media/cam_01"}}}));
+  await page.goto("/workspace/tasks/task-1");
+  const video=page.locator(".media-stage video");
+  await expect.poll(()=>video.evaluate((v: HTMLVideoElement)=>!v.paused && v.currentTime>0.05)).toBe(true);
+  await expect(video).toHaveJSProperty("muted",true);
+  await expect(video).toHaveJSProperty("playsInline",true);
+  await page.getByRole("tab",{name:"机位 1",exact:true}).click();
+  await expect(video).toHaveAttribute("src",/cam_01$/);
+  await expect.poll(()=>video.evaluate((v: HTMLVideoElement)=>!v.paused && v.currentTime>0.05)).toBe(true);
+  await video.evaluate((v: HTMLVideoElement)=>v.pause());
+  await page.getByRole("tab",{name:"JSON",exact:true}).click();
+  await expect(video).toHaveJSProperty("paused",true);
+  await page.goto("/workspace/examples/quick-demo");
+  await expect.poll(()=>video.evaluate((v: HTMLVideoElement)=>!v.paused && v.currentTime>0.05)).toBe(true);
+  await expect(video).toHaveJSProperty("muted",true);
+});
+
+test("detail toolbars align on desktop and fit long titles on mobile", async ({ page }, info) => {
+  const title="LongTrainingSession".repeat(6);
+  await page.route("**/api/v1/tasks/task-1", route => route.fulfill({json:{...baseTask,title,status:"running",progress:35,stage_message:"Analyzing actions"}}));
+  await page.goto("/workspace/tasks/task-1");
+  await expect(page.getByRole("heading",{name:title})).toBeVisible();
+  await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow","35");
+  const aligned = async (selector: string) => {
+    const boxes=await page.locator(selector).evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {middle:r.y+r.height/2,right:r.right};}));
+    expect(boxes.every(b=>b.right<= (info.project.name==="mobile-chromium"?390:1440))).toBe(true);
+    if(info.project.name==="desktop-chromium")expect(Math.max(...boxes.map(b=>b.middle))-Math.min(...boxes.map(b=>b.middle))).toBeLessThan(2);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  };
+  await aligned(".detail-header > div");
+  await page.goto("/workspace/examples/quick-demo");
+  await expect(page.getByRole("heading",{name:"快速演示"})).toBeVisible();
+  await expect(page.getByRole("button",{name:"创建任务",exact:true})).toBeVisible();
+  await aligned(".detail-header > div");
 });

@@ -193,17 +193,16 @@
 .pagination button:disabled { opacity: .45; cursor: not-allowed; }
 
 /* Result views use bounded local scrolling for long data, never page clipping. */
-.detail-header { margin-bottom: 16px; padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--border); }
-.detail-header > div:first-child { flex: 1; }
-.detail-header h1 { display: inline; margin: 0; font-size: 16px; line-height: 1.5; }
-.back-link { margin-right: 12px; display: inline-flex; align-items: center; color: var(--muted); font-size: 12px; }
-.back-link:hover { color: var(--brand); }
-.detail-meta { margin-top: 8px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 12px; }
-.detail-progress { width: 230px; max-width: 100%; flex: none; display: flex; flex-direction: column; gap: 8px; }
-.detail-progress > span { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.detail-progress b { font-size: 14px; font-weight: 500; }
-.detail-progress small { color: var(--muted); font-size: 12px; }
-.detail-progress > div { height: 4px; border-radius: 4px; background: var(--surface-subtle); }
+.detail-header { min-height: 48px; margin-bottom: 16px; padding-bottom: 12px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border); }
+.detail-heading { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.detail-header h1 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; line-height: 1.5; }
+.back-link { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; flex: none; border-radius: 7px; color: var(--muted); }
+.back-link:hover { color: var(--brand); background: var(--surface-subtle); }
+.detail-actions { flex: none; display: flex; align-items: center; gap: 12px; }
+.detail-mode { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.detail-progress { width: 132px; max-width: 100%; display: flex; align-items: center; gap: 8px; }
+.detail-progress > span { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.detail-progress > div { flex: 1; height: 4px; border-radius: 4px; background: var(--surface-subtle); }
 .detail-progress i { display: block; height: 100%; border-radius: inherit; background: var(--brand); }
 .result-workspace { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
 .result-media-panel { min-width: 0; padding: 0 0 16px; border-bottom: 1px solid var(--border); }
@@ -258,9 +257,11 @@
 .task-history li > span { width: 7px; height: 7px; margin-top: 7px; flex: none; border-radius: 50%; background: var(--brand); }
 .task-history b { display: block; font-size: 13px; font-weight: 500; }
 .task-history time { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
-.preset-run { max-width: 100%; display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
-.preset-run label { display: grid; gap: 6px; color: var(--muted); font-size: 12px; }
-.preset-run select { min-height: 38px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.preset-run { max-width: 100%; flex: none; display: flex; align-items: center; gap: 10px; }
+.preset-mode { position: relative; display: block; }
+.preset-mode select { height: 38px; padding: 0 34px 0 12px; appearance: none; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
+.preset-mode > .icon { position: absolute; right: 10px; top: 11px; color: var(--muted); pointer-events: none; }
+.preset-run .button { white-space: nowrap; }
 
 /* Account settings shown directly in the main content area. */
 .settings-content { min-width: 0; width: 100%; }
@@ -307,11 +308,9 @@
   .new-task-page { padding-top: 32px; }
   .upload-grid, .preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .insight-content { max-height: 520px; }
-  .example-header { align-items: flex-start; flex-wrap: wrap; }
 }
 @media (min-width: 768px) and (max-width: 1100px) {
   .workspace-shell:not(.is-collapsed) .create-fields { grid-template-columns: minmax(0, 1fr); }
-  .detail-header { align-items: flex-start; flex-wrap: wrap; }
 }
 
 /* Phone: one drawer, no duplicate bottom navigation. */
@@ -322,7 +321,9 @@
   .workspace-scrim { position: fixed; inset: 0; z-index: 40; display: block; border: 0; background: rgba(10, 12, 20, .4); }
   .workspace-main { min-height: calc(100vh - 52px); margin-left: 0; }
   .workspace-page { min-height: calc(100vh - 52px); padding: 20px 16px; }
-  .workspace-page-header, .detail-header { align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+  .workspace-page-header { align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+  .detail-header { flex-wrap: wrap; gap: 10px; }
+  .detail-heading { flex-basis: 100%; }
   .new-task-page .workspace-page-header h1 { font-size: 22px; }
   .workspace-page-header p, .detail-header p { font-size: 13px; }
   .create-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -338,13 +339,12 @@
   .task-filters .search-field { flex: 1; }
   .task-filters .search-field input { width: 100%; }
   .pagination { gap: 12px; }
-  .detail-progress { width: 100%; }
   .media-tabs button, .insight-tabs button { padding-inline: 9px; }
   .result-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .insight-tabs { padding-inline: 8px; }
   .insight-content, .insight-alternate { padding: 12px; }
   .task-history ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .preset-run { width: 100%; align-items: stretch; flex-direction: column; }
+  .preset-run { width: 100%; justify-content: flex-end; }
   .settings-section { scroll-margin-top: 72px; }
 }
 @media (max-width: 374px) {
