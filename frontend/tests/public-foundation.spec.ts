@@ -48,7 +48,7 @@ test("theme and locale choices survive real clicks and reloads", async ({ page }
   await expect(page.getByRole("link", { name: "Home", exact: true })).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
-    "Great shot or lucky bounce? Review your basketball footage from every angle, with actions, shots and results side by side.",
+    "DaShanBing turns multi-camera basketball training video into reviewable action and shooting insight",
   );
 });
 

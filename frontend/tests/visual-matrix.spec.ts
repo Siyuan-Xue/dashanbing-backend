@@ -42,7 +42,7 @@ type PageName = typeof pages[number][0];
 async function ready(page: import("@playwright/test").Page, name: PageName, locale: typeof locales[number]) {
   const zh = locale === "zh";
   const headings: Record<PageName, string> = {
-    home: zh ? "让我看看你打球什么b样" : "Talk is cheap. Show me your game.",
+    home: zh ? "让我看看你打球什么b样" : "Turn multi-angle training video into basketball insight you can review",
     login: zh ? "登录大山冰" : "Log in to DaShanBing",
     register: zh ? "创建大山冰账号" : "Create a DaShanBing account",
     new: zh ? "创建分析任务" : "Create analysis task", list: zh ? "任务列表" : "Tasks",
@@ -102,8 +102,8 @@ for (const width of [390,1440]) for (const theme of themes) {
     await page.locator(".capabilities-section").scrollIntoViewIfNeeded();
     await ready(page, "home", "zh");
     await expect(page).toHaveScreenshot(`home-capabilities-${width}-${theme}.png`);
-    await page.getByRole("button", {name:"你继续打，录像我来翻。"}).click();
-    await expect(page.getByText("上传并提交后，关掉页面也能继续处理。回来就能查看进度和结果。")).toBeVisible();
+    await page.getByRole("button", {name:"后台排队，回来继续"}).click();
+    await expect(page.getByText("任务状态会被保留，回来时从上次进度继续，不必守着页面等待")).toBeVisible();
     await page.locator("#examples").scrollIntoViewIfNeeded();
     await ready(page, "home", "zh");
     await expect(page).toHaveScreenshot(`home-examples-${width}-${theme}.png`);
@@ -147,7 +147,7 @@ for (const width of [390,1440]) for (const theme of themes) {
     await page.locator(".hero-preview-wrap").scrollIntoViewIfNeeded();
     await ready(page, "home", "zh");
     await expect(page).toHaveScreenshot(`home-real-preview-${width}-${theme}.png`);
-    await page.getByRole("button", {name:"好球还是好巧？回放见。"}).click();
+    await page.getByRole("button", {name:"动作与投篮，分别求证"}).click();
     await page.locator(".model-evidence").scrollIntoViewIfNeeded();
     await ready(page, "home", "zh");
     await expect(page).toHaveScreenshot(`home-model-output-${width}-${theme}.png`);

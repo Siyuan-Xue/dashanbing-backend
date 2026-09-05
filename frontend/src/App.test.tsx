@@ -63,7 +63,7 @@ describe("public foundation", () => {
     renderAt();
 
     expect(await screen.findByRole("heading", { name: "让我看看你打球什么b样" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "上传，验验货" })).toHaveAttribute("href", "/workspace/new");
+    expect(screen.getByRole("link", { name: "开始一次复盘" })).toHaveAttribute("href", "/workspace/new");
 
     const navigation = screen.getByRole("navigation", { name: "主导航" });
     expect(within(navigation).getAllByRole("link")).toHaveLength(2);
@@ -89,14 +89,14 @@ describe("public foundation", () => {
   test("capability accordion reveals the selected explanation and closes the previous one", async () => {
     const user = userEvent.setup();
     renderAt();
-    const first = await screen.findByRole("button", { name: "这个角度帅，换一个呢？" });
-    const queue = screen.getByRole("button", { name: "你继续打，录像我来翻。" });
+    const first = await screen.findByRole("button", { name: "多路证据，同步复盘" });
+    const queue = screen.getByRole("button", { name: "后台排队，回来继续" });
     expect(first).toHaveAttribute("aria-expanded", "true");
     expect(queue).toHaveAttribute("aria-expanded", "false");
     await user.click(queue);
     expect(queue).toHaveAttribute("aria-expanded", "true");
     expect(first).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByText("上传并提交后，关掉页面也能继续处理。回来就能查看进度和结果。")).toBeVisible();
+    expect(screen.getByText("任务状态会被保留，回来时从上次进度继续，不必守着页面等待")).toBeVisible();
   });
 
   test("public menu closes on Escape and restores focus to its toggle", async () => {
@@ -182,7 +182,7 @@ describe("public foundation", () => {
     const first = renderAt();
 
     await user.click(await screen.findByRole("button", { name: "English" }));
-    expect(screen.getByRole("heading", { name: "Talk is cheap. Show me your game." })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Turn multi-angle training video into basketball insight you can review" })).toBeVisible();
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
     expect(screen.getByRole("link", { name: "DaShanBing home" })).toBeVisible();
     expect(screen.getByLabelText("DaShanBing logo")).toBeVisible();
@@ -190,7 +190,7 @@ describe("public foundation", () => {
     expect(document.title).toBe("DaShanBing · Multi-camera basketball review");
     expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
       "content",
-      "Great shot or lucky bounce? Review your basketball footage from every angle, with actions, shots and results side by side.",
+      "DaShanBing turns multi-camera basketball training video into reviewable action and shooting insight",
     );
     expect(document.documentElement.lang).toBe("en");
     expect(localStorage.getItem("dashanbing-locale")).toBe("en");
