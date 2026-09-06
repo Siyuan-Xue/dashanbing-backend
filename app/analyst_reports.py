@@ -2,7 +2,9 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
+
+from app.services.analyst_numbers import format_analyst_numbers
 
 
 Locale = Literal["zh", "en"]
@@ -33,6 +35,11 @@ class EvidenceComment(BaseModel):
     text: str = Field(min_length=1, max_length=3000)
     evidence_ids: list[str] = Field(default_factory=list, max_length=20)
 
+    @field_validator('text')
+    @classmethod
+    def readable_numbers(cls, value: str) -> str:
+        return format_analyst_numbers(value)
+
 
 class PlayerComment(EvidenceComment):
     subject_id: str
@@ -45,6 +52,16 @@ class ReportBody(BaseModel):
     players: list[PlayerComment] = Field(default_factory=list, max_length=30)
     comparison: EvidenceComment | None = None
     suggestions: list[str] = Field(default_factory=list, max_length=8)
+
+    @field_validator('summary')
+    @classmethod
+    def readable_summary(cls, value: str) -> str:
+        return format_analyst_numbers(value)
+
+    @field_validator('suggestions')
+    @classmethod
+    def readable_suggestions(cls, values: list[str]) -> list[str]:
+        return [format_analyst_numbers(value) for value in values]
 
 
 class ReportPublic(ReportBody):
@@ -115,6 +132,11 @@ class MessagePublic(BaseModel):
     content: str
     citations: list[str]
     status: Literal["queued", "running", "completed", "failed"]
+
+    @field_validator('content')
+    @classmethod
+    def readable_answer(cls, value: str, info: ValidationInfo) -> str:
+        return format_analyst_numbers(value) if info.data.get('role') == 'assistant' else value
 
 
 class ConversationPublic(BaseModel):

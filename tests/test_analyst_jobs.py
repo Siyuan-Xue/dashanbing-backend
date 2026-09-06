@@ -1291,3 +1291,45 @@ def test_reconcile_respects_disabled_accounts(job_client):
         owner.is_active = False; session.add(owner); session.commit()
     assert analyst.AnalystSupervisor(job_client.app).reconcile_completed() == 0
     assert all_rows(job_client, AnalystJob) == []
+
+
+def test_existing_report_numbers_are_formatted_on_read_without_regeneration(job_client, report_body):
+    client = job_client
+    client.app.state.glm_client = ScriptedProvider(reports=[report_body])
+    job = request_report(client)
+    assert run_once(client)
+    with Session(client.app.state.engine) as session:
+        row = session.get(AnalystReport, job.report_id)
+        body = json.loads(row.body_json)
+        body['summary'] = 'Make rate 66.6666667%'
+        row.body_json = json.dumps(body)
+        original = row.body_json
+        session.add(row); session.commit()
+    count = len(all_rows(client, AnalystJob))
+    assert client.get(report_url(client), params={'locale': 'en'}).json()['report']['summary'] == 'Make rate 66.67%'
+    collection = client.get(report_url(client) + 's', params={'locale': 'en'}).json()
+    assert next(item for item in collection['items'] if item['style'] == 'coach' and item['subject_id'] is None)['report']['summary'] == 'Make rate 66.67%'
+    assert get_row(client, AnalystReport, job.report_id).body_json == original
+    assert len(all_rows(client, AnalystJob)) == count
+
+
+def test_chat_rounds_split_decimal_output_but_keeps_question_and_citations(job_client, facts):
+    client = job_client
+    reference = facts.evidence[0].id
+    client.app.state.glm_client = ScriptedProvider(streams=[[
+        GlmTextDelta(text='Make rate 33.33'), GlmTextDelta(text=f'566667% [{reference}]'), GlmUsage(usage=dict(USAGE)),
+    ]])
+    conversation_id = create_conversation(client)
+    question = 'Why is the rate 0.3333566667?'
+    accepted = submit(client, conversation_id, content=question)
+    assert accepted.status_code == 202
+    assert run_once(client)
+    messages = client.get(f'/api/v1/analyst/conversations/{conversation_id}').json()['messages']
+    assert next(message for message in messages if message['role'] == 'user')['content'] == question
+    answer = next(message for message in messages if message['role'] == 'assistant')
+    assert answer['content'] == f'Make rate 33.34% [{reference}]'
+    assert answer['citations'] == [reference]
+    assert get_row(client, AnalystMessage, answer['id']).content == answer['content']
+    stream = client.get(f'/api/v1/analyst/conversations/{conversation_id}/events').text
+    assert 'Make rate 33.34%' in stream
+    assert '33.33566667' not in stream
