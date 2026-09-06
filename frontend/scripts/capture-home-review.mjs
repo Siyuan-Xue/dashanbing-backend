@@ -20,23 +20,22 @@ try{
     await page.locator('.product-preview-video img').evaluate(image=>image.decode());
     await page.screenshot({path:join(output,`home-${width}-${locale}-${theme}.png`),animations:'disabled'});
     const section=page.locator('.ai-showcase');await section.scrollIntoViewIfNeeded();
-    await section.locator('picture img').evaluate(image=>image.decode());
+    await section.locator('.ai-preview-cameras img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
     const geometry=await section.boundingBox();
-    const preview=await section.locator('picture img').evaluate(image=>{
-      const rect=image.getBoundingClientRect();const frame=image.closest('figure').getBoundingClientRect();
-      const source=image.parentElement.querySelector('source');
-      // naturalWidth/Height are density-corrected integers for srcset images.
-      // Use original source dimensions so rounding cannot look like a crop.
-      const dimensions=matchMedia(source.media).matches?source:image;
-      return {height:rect.height,expectedHeight:rect.width*Number(dimensions.getAttribute('height'))/Number(dimensions.getAttribute('width')),left:rect.left-frame.left,right:frame.right-rect.right};
+    const layout=await page.evaluate(()=>{
+      const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
+      const video=box('.hero-preview-wrap > .product-preview');const ai=box('.ai-preview-frame');
+      const headings=[...document.querySelectorAll('main h1,main h2')].map(element=>{const r=element.getBoundingClientRect();return {text:element.textContent,center:r.x+r.width/2,align:getComputedStyle(element).textAlign};});
+      const overflow=[...document.querySelectorAll('.ai-preview-content *')].filter(element=>{const r=element.getBoundingClientRect();return r.width&&r.height&&(r.left<ai.x||r.right>ai.right+1||r.bottom>ai.bottom+1);}).map(element=>element.className);
+      const matchingCanvas=getComputedStyle(document.querySelector('.ai-showcase')).backgroundColor===getComputedStyle(document.body).backgroundColor;
+      return {video,ai,headings,overflow,matchingCanvas,pageOverflow:document.documentElement.scrollWidth>innerWidth};
     });
-    const matchingCanvas=await section.evaluate(element=>getComputedStyle(element).backgroundColor===getComputedStyle(document.body).backgroundColor);
-    if(!matchingCanvas||Math.abs(preview.height-preview.expectedHeight)>1||preview.left<12||preview.right<12||await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)||aiRequests.length)throw new Error(`Invalid showcase ${width}/${locale}/${theme}`);
+    if(!layout.matchingCanvas||layout.pageOverflow||layout.overflow.length||aiRequests.length||Math.max(Math.abs(layout.video.width-layout.ai.width),Math.abs(layout.video.height-layout.ai.height),Math.abs(layout.video.x-layout.ai.x))>1||layout.headings.some(heading=>Math.abs(heading.center-width/2)>1||heading.align!=='center'))throw new Error(`Invalid showcase ${width}/${locale}/${theme}: ${JSON.stringify(layout)}`);
     // Keep the sticky public header outside this native document-coordinate crop.
     await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
     const clip=await section.boundingBox();
     await page.screenshot({path:join(output,`ai-${width}-${locale}-${theme}.png`),clip,fullPage:true,animations:'disabled'});
-    results.push({width,locale,theme,height:geometry.height,matching_canvas:matchingCanvas,preview,ai_requests:aiRequests.length});
+    results.push({width,locale,theme,height:geometry.height,layout,ai_requests:aiRequests.length});
     await page.close();
   }
   await writeFile(join(output,'verification.json'),JSON.stringify({source:origin.origin,captured_at:new Date().toISOString(),results},null,2));

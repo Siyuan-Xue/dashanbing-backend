@@ -1,40 +1,28 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "./Icon";
+import { ProductPreviewSidebar } from "./ProductPreview";
 import { useLocale } from "../providers/LocaleProvider";
-import { useTheme } from "../providers/ThemeProvider";
 import { useAnalystCopy } from "../analyst/copy";
-import { parsePreviewManifest } from "../analyst/previewManifest";
-import type { PreviewManifest } from "../analyst/previewManifest";
 
+// A concise website illustration, not a screenshot or a generated report.
+// Numbers and camera frames come from the existing quick-demo sample.
 export function HeroAnalystPreview({ decorative = false }: { decorative?: boolean }) {
-  const { locale } = useLocale(); const { theme } = useTheme(); const t = useAnalystCopy();
-  const [manifest, setManifest] = useState<PreviewManifest | null>(null);
-  const [assetFailed, setAssetFailed] = useState(false);
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("/assets/previews/analyst/manifest.json", { signal: controller.signal, credentials: "omit" }).then(async response => {
-      if (!response.ok) return;
-      const data = parsePreviewManifest(await response.json());
-      if (!controller.signal.aborted) setManifest(data);
-    }).catch(() => { /* Static screenshots are optional; no AI request is made on home */ });
-    return () => controller.abort();
-  }, []);
-  const images = assetFailed ? [] : manifest?.images.filter(item => item.locale === locale && item.theme === theme) || [];
-  const picture = (kind: "main" | "analyst") => {
-    const desktop = images.find(item => item.viewport === "desktop" && item.kind === kind);
-    const mobile = images.find(item => item.viewport === "mobile" && item.kind === kind);
-    if (!desktop || !mobile) return null;
-    const detail = kind === "analyst";
-    return <picture className={detail ? "hero-analyst-detail" : undefined}>
-      <source media="(max-width: 767px)" type="image/webp" srcSet={`${mobile.src} ${mobile.width}w`} sizes="calc(100vw - 20px)" width={mobile.width / mobile.pixel_ratio} height={mobile.height / mobile.pixel_ratio}/>
-      <img src={desktop.src} srcSet={`${desktop.src} ${desktop.width}w`} sizes="(max-width: 767px) calc(100vw - 20px), (max-width: 1279px) calc(100vw - 48px), min(100vw - 48px, 1120px)" width={desktop.width / desktop.pixel_ratio} height={desktop.height / desktop.pixel_ratio} alt={t(detail ? "screenshotDetail" : "screenshot")} loading="lazy" decoding="async" onError={() => setAssetFailed(true)}/>
-    </picture>;
-  };
-  const main = picture("analyst");
-  const artwork = main ? main : <><img src="/assets/previews/quick-cam-1.webp" width={1920} height={1080} alt={t("frame")} loading="lazy" decoding="async"/><div className="hero-analyst-state"><Icon name="sparkles"/><span>{t("screenshotUnavailable")}</span></div></>;
-  return <figure className={`hero-analyst-preview${main ? " has-screenshot" : ""}`} aria-label={decorative ? undefined : t("screenshot")} aria-hidden={decorative || undefined}>
-    {artwork}
+  const { locale } = useLocale(); const t = useAnalystCopy();
+  const zh = locale === "zh";
+  return <figure className="hero-analyst-preview" aria-hidden={decorative || undefined}>
+    <div className="product-preview ai-preview-frame" role="img" aria-label={zh ? "AI 分析师功能示意：本场复盘、视频证据、训练建议与追问" : "AI analyst illustration: session review, video evidence, practice advice and follow-ups"}>
+      <ProductPreviewSidebar/>
+      <div className="ai-preview-content">
+        <header><strong><Icon name="sparkles" size={20}/>{t("title")}</strong><span>{t("coach")}<Icon name="chevronDown" size={13}/></span></header>
+        <div className="ai-preview-report">
+          <div className="ai-preview-intro"><small>{zh ? "本场复盘" : "Session review"}</small><h3>{zh ? "每一球，都有下一步" : "Every shot has a next step"}</h3><p>{zh ? "找到值得重看的片段，把复盘变成下一场的练习" : "Find the plays worth revisiting and turn your review into practice"}</p></div>
+          <div className="ai-preview-stats">{(zh ? [["跳投", "4"], ["命中", "2"], ["命中率", "50%"]] : [["Jump shots", "4"], ["Made", "2"], ["Make rate", "50%"]]).map(([label, value]) => <div key={label}><b>{value}</b><span>{label}</span></div>)}</div>
+          <div className="ai-preview-evidence"><h4><Icon name="play" size={15}/>{zh ? "回到画面，看看细节" : "Revisit the details"}</h4><div className="ai-preview-cameras">{[1, 3].map(camera => <div key={camera}><img src={`/assets/previews/quick-cam-${camera}.webp`} alt="" width={1920} height={1080} loading="lazy"/><span><Icon name="play" size={13}/>{zh ? "机位" : "Camera"} {camera}</span></div>)}</div></div>
+          <div className="ai-preview-practice"><Icon name="basketball" size={20}/><div><h4>{t("suggestions")}</h4><p>{zh ? "对照命中与偏出的片段，下一组带着问题上场" : "Compare makes and misses, then take one focus into your next set"}</p></div></div>
+        </div>
+        <div className="ai-preview-chat"><Icon name="chat" size={17}/><span>{t("quickPractice")}</span><span className="ai-preview-send"><Icon name="arrow" size={17}/></span></div>
+      </div>
+    </div>
     {!decorative && <figcaption><Link to="/workspace/examples/quick-demo#analyst">{t("live")}<Icon name="arrow" size={17}/></Link></figcaption>}
   </figure>;
 }

@@ -20,8 +20,8 @@ test("preserves the basketball hero and places the standalone AI showcase before
   const showcase = screen.getByRole("region", { name: "AI 分析师，看懂这一场，练好下一场" });
   expect(hero.nextElementSibling).toBe(showcase);
   expect(showcase.nextElementSibling).toHaveClass("capabilities-section");
-  expect(await within(showcase).findByAltText("同场训练报告局部")).toBeVisible();
-  expect(showcase.querySelectorAll("picture")).toHaveLength(1);
+  expect(within(showcase).getByRole("img", { name: /AI 分析师功能示意/ })).toBeVisible();
+  expect(showcase.querySelectorAll(".ai-preview-frame")).toHaveLength(1);
   expect(within(showcase).getByRole("link", { name: "查看 AI 复盘" })).toHaveAttribute("href", "/workspace/examples/quick-demo#analyst");
   expect(container.querySelectorAll(".product-preview-metrics b")).toHaveLength(4);
   // Cross-checked against local sample-bundle group_04 report.json and summary.json.
@@ -41,5 +41,5 @@ test("mobile menu and capability controls keep accessible labels with official i
   fireEvent.click(next);
   expect(next).toHaveAttribute("aria-expanded", "true");
   expect(next.querySelector(".lucide-minus")).not.toBeNull();
-  await screen.findByAltText("同场训练报告局部");
+  expect(screen.getByRole("img", { name: /AI 分析师功能示意/ })).toBeVisible();
 });

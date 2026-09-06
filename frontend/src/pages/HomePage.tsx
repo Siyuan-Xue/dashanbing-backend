@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAnalystCopy } from "../analyst/copy";
 import { BrandMark } from "../components/Brand";
@@ -19,10 +19,22 @@ export function HomePage() {
   const { t } = useLocale();
   const at = useAnalystCopy();
   const [capability, setCapability] = useState(0);
+  const main = useRef<HTMLElement>(null);
+  const videoPreview = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = videoPreview.current;
+    if (!element || typeof ResizeObserver === "undefined") return;
+    // Follow the real video preview, including localized text and mobile layout.
+    const syncSize = () => main.current?.style.setProperty("--home-preview-height", `${element.getBoundingClientRect().height}px`);
+    syncSize();
+    const observer = new ResizeObserver(syncSize);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   return (
     <div className="public-site">
       <PublicHeader/>
-      <main>
+      <main className="home-page" ref={main}>
         <section className="hero section-shell">
           <div className="hero-copy">
             <span className="eyebrow"><i/>{t("heroEyebrow")}</span>
@@ -30,7 +42,7 @@ export function HomePage() {
             <p>{t("heroBody")}</p>
             <div className="hero-actions"><a className="button button-outline" href="#examples">{t("heroSecondary")}<Icon name="play" size={17}/></a><Link className="button button-primary" to="/workspace/new">{t("heroPrimary")}</Link></div>
           </div>
-          <div className="hero-preview-wrap"><div className="hero-glow"/><ProductPreview/></div>
+          <div className="hero-preview-wrap" ref={videoPreview}><div className="hero-glow"/><ProductPreview/></div>
         </section>
 
         <section className="ai-showcase" aria-labelledby="ai-showcase-title">
@@ -54,7 +66,7 @@ export function HomePage() {
         </section>
 
         <section className="examples-section section-shell" id="examples">
-          <div className="section-heading split"><div><span className="eyebrow"><i/>{t("examplesEyebrow")}</span><h2>{t("examplesTitle")}</h2></div><p>{t("examplesBody")}</p></div>
+          <div className="section-heading centered"><span className="eyebrow"><i/>{t("examplesEyebrow")}</span><h2>{t("examplesTitle")}</h2><p>{t("examplesBody")}</p></div>
           <div className="example-grid">
             <article className="example-card" data-testid="public-example-card"><ExampleVisual/><div className="example-copy"><span>{t("quickTag")}</span><h3>{t("quickTitle")}</h3><p>{t("quickBody")}</p><Link to="/workspace/examples/quick-demo">{t("viewExample")}<Icon name="arrow"/></Link></div></article>
             <article className="example-card" data-testid="public-example-card"><ExampleVisual mixed/><div className="example-copy"><span>{t("mixedTag")}</span><h3>{t("mixedTitle")}</h3><p>{t("mixedBody")}</p><Link to="/workspace/examples/mixed-actions">{t("viewExample")}<Icon name="arrow"/></Link></div></article>

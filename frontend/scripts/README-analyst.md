@@ -1,6 +1,6 @@
 # Actual analyst screenshots
 
-The homepage reads only `/assets/previews/analyst/manifest.json` and static WebP files. Without a complete verified matrix it shows the shipped basketball frame and `AI 尚未配置`. It never calls an analyst endpoint or a model provider.
+The homepage now uses a concise HTML/CSS feature illustration in `HeroAnalystPreview`, sharing the video preview's frame and showing existing quick-demo metrics and camera images. It does not fetch screenshot manifests, analyst endpoints or a model provider. The real screenshot workflow below remains available for result-page documentation and visual review; those long-form captures are no longer the homepage artwork.
 
 Prerequisites:
 
