@@ -1,6 +1,7 @@
 """Validate imported v3 reports, evaluations, outcome truth, and review media."""
 
 import json
+import argparse
 import sys
 from pathlib import Path
 
@@ -25,13 +26,19 @@ def load(path: Path) -> dict:
 
 
 def main() -> None:
-    catalog = PresetCatalog(SAMPLE_ROOT)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sample-root', type=Path, default=SAMPLE_ROOT)
+    catalog = PresetCatalog(parser.parse_args().sample_root)
     for preset in catalog.list():
         preset_id = preset["id"]
         group = catalog.group_root(preset_id)
         report = load(group / "report.json")
         evaluation = load(group / "eval_vs_gt.json")
         product = catalog.result(preset_id)
+        assert not product.warnings, f"{preset_id}: {product.warnings}"
+        from app.services.analyst_facts import build_analyst_facts
+        facts = build_analyst_facts(report, load(group / 'summary.json'))
+        assert facts.metrics.shots.unlinked_outcomes == 0, preset_id
         serialized = product.model_dump_json()
         assert "stu_" not in serialized and "student_id" not in serialized
         supported_total = sum(product.action_counts.model_dump().values())

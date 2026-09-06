@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import BaseModel, Field
+from app.services.outcome_links import linked_outcomes
 
 
 ProductActionType = Literal["triple_threat", "free_throw", "jump_shot", "layup"]
@@ -70,12 +71,7 @@ def build_product_result(
 
     counts = {action: 0 for action in SUPPORTED_ACTIONS}
     unsupported_event_count = 0
-    final_clip_ids = {clip.get("clip_id") for clip in clips if clip.get("clip_id")}
-    outcome_by_clip = {
-        outcome.get("clip_id"): outcome
-        for outcome in outcomes
-        if outcome.get("clip_id") in final_clip_ids
-    }
+    outcome_by_clip, rejected = linked_outcomes(clips, outcomes)
     events: list[ProductActionEvent] = []
 
     for clip in clips:
@@ -84,7 +80,7 @@ def build_product_result(
             unsupported_event_count += 1
             continue
         counts[action] += 1
-        outcome = outcome_by_clip.get(clip.get("clip_id"))
+        labels = {_outcome_label(row.get("made")) for row in outcome_by_clip.get(clip.get("clip_id"), [])}
         release_ms = clip.get("release_ms")
         events.append(
             ProductActionEvent(
@@ -93,15 +89,13 @@ def build_product_result(
                 start_ms=float(clip.get("start_ms", 0)),
                 end_ms=float(clip.get("end_ms", 0)),
                 time_ms=float(release_ms if release_ms is not None else clip.get("start_ms", 0)),
-                result=_outcome_label(outcome.get("made")) if outcome is not None else None,
+                result=(next(iter(labels)) if len(labels) == 1 else "undetermined") if labels else None,
             )
         )
 
     attempts = int(stats.get("attempts", 0))
     makes = int(stats.get("makes", 0))
-    unlinked_outcomes = sum(
-        1 for outcome in outcomes if outcome.get("clip_id") not in final_clip_ids
-    )
+    unlinked_outcomes = len(rejected)
     warnings = list(extra_warnings)
     if unsupported_event_count:
         warnings.append(f"{unsupported_event_count} 个事件属于当前版本未支持的动作类型。")

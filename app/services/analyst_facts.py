@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from app.services.outcome_links import linked_outcomes
 import json
 import math
 import os
@@ -90,12 +91,8 @@ def build_analyst_facts(
             identities.append(student)
     mapping = {student: f"player_{index}" for index, student in enumerate(identities, 1)}
     subjects = [AnalystSubject(id=public, label=f"球员 {index}") for index, public in enumerate(mapping.values(), 1)]
-    final_keys = {_key(clip) for clip in clips if _key(clip) is not None}
-    joined: dict[tuple[str, str], list[dict]] = {}
-    for outcome in outcomes:
-        if _key(outcome) in final_keys:
-            joined.setdefault(_key(outcome), []).append(outcome)
-    unlinked = sum(_key(outcome) not in final_keys for outcome in outcomes)
+    joined, rejected = linked_outcomes(clips, outcomes, require_identity=True)
+    unlinked = len(rejected)
     counts = dict.fromkeys(SUPPORTED_ACTIONS, 0)
     evidence = []
     pose = pose if isinstance(pose, dict) else {}
@@ -126,7 +123,7 @@ def build_analyst_facts(
         time = min(end, max(start, release)) if release is not None else start
         results = {
             "make" if row.get("made") is True else "miss" if row.get("made") is False else "undetermined"
-            for row in joined.get(_key(clip), [])
+            for row in joined.get(clip.get("clip_id"), [])
         }
         result = (next(iter(results)) if len(results) == 1 else "undetermined") if action != "triple_threat" else None
         confidence = _number(clip.get("confidence"))
