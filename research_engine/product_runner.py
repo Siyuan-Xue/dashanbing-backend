@@ -16,9 +16,6 @@ if str(RESEARCH_ROOT) not in sys.path:
     sys.path.insert(0, str(RESEARCH_ROOT))
 
 from src.utils.files import link_or_copy_file
-from src.identity.enrollment_validation import (
-    RegistrationError, validate_registration_config, validate_gallery_samples,
-)
 
 
 STAGE_MESSAGES = {
@@ -179,6 +176,8 @@ def run_product_task(task_root: Path, manifest_path: Path, mode: str, model_root
     if (task_root / "output" / "report.json").exists():
         raise RuntimeError("completed_report_exists: Existing report must not be overwritten")
     configure_runtime(task_root, model_root)
+    # Import identity only after paths are set: its package loads src.config.
+    from src.identity.enrollment_validation import validate_registration_config, validate_gallery_samples
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     legacy = not any(key in manifest for key in ("enrollment_mode", "expected_persons", "sync_schema_version"))
     enrollment_mode = manifest.get("enrollment_mode", "sequential")
@@ -245,6 +244,7 @@ def main() -> None:
         return
     if args.task_root is None or args.manifest is None:
         parser.error("--task-root and --manifest are required for a task")
+    from src.identity.enrollment_validation import RegistrationError
     try:
         run_product_task(args.task_root.resolve(), args.manifest.resolve(), args.mode, args.model_root.resolve())
     except RegistrationError as error:

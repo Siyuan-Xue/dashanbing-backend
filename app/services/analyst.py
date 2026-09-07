@@ -485,7 +485,32 @@ class AnalystSupervisor:
 
     async def run_once(self) -> bool:
         from app.services.admin_scheduling import claim_ai, release_lease
-        job_id = claim_ai(self.app)
+        # SQLite may wait for a request transaction whose rollback needs this loop.
+        claim = asyncio.create_task(asyncio.to_thread(claim_ai, self.app))
+        try:
+            job_id = await asyncio.shield(claim)
+        except asyncio.CancelledError:
+            async def finish_claim():
+                try:
+                    job_id = await claim
+                    if job_id is not None:
+                        def interrupt_claim():
+                            from app.services.admin_scheduling import mark_interrupted
+                            try:
+                                mark_interrupted(self.app.state.engine, "ai", job_id)
+                            finally:
+                                release_lease(self.app.state.engine, "ai", job_id)
+                        await asyncio.to_thread(interrupt_claim)
+                except Exception:
+                    logger.exception("Failed to finish analyst claim during cancellation")
+
+            # Keep claim and cleanup alive through repeated cancellation, then
+            # propagate the original cancellation even if either operation failed.
+            cleanup = asyncio.create_task(finish_claim())
+            while not cleanup.done():
+                with suppress(asyncio.CancelledError):
+                    await asyncio.shield(cleanup)
+            raise
         if job_id is None:
             from app.services.admin_presets import next_preset, run_preset
             preset_id = next_preset(self.app)

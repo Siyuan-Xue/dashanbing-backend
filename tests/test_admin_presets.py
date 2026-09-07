@@ -44,6 +44,8 @@ def test_preset_generation_never_overwrites_and_counts_actual_attempts(admin_app
     original=path.read_bytes()
     assert asyncio.run(run_preset(app,pid)) is False
     assert len(calls)==1 and path.read_bytes()==original
+    assert calls == [pid]
+    assert 6 <= len(calls[0]) <= 64, "BigModel rejects longer request IDs with HTTP 400"
     with Session(app.state.engine) as s:
         assert s.get(AdminPresetJob,pid).status=='completed'
         assert len(s.exec(select(AdminAttempt).where(AdminAttempt.job_id==pid)).all())==1

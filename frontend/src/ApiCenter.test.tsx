@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import App from "./App";
+import { accountLimitsFixture } from "./test/accountLimitsFixture";
 import "./styles.css";
 
 const user = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
@@ -22,6 +23,7 @@ function installFetch(authenticated = true) {
     const url = new URL(String(input), "http://localhost");
     if (url.pathname === "/api/v1/users/me") return Response.json(authenticated ? user : { detail: "Not authenticated" }, { status: authenticated ? 200 : 401 });
     if (url.pathname === "/api/v1/account/usage") return Response.json(usage);
+    if (url.pathname === "/api/v1/account/limits") return Response.json(accountLimitsFixture);
     if (url.pathname === "/api/v1/api-keys" && init?.method === "POST") return Response.json({ ...keys[0], id: "new", name: "CI runner", secret: "dsb_live_only_once_123456", prefix: "dsb_live_only_o", last_four: "3456" }, { status: 201 });
     if (url.pathname === "/api/v1/api-keys") return Response.json(keys);
     if (url.pathname.startsWith("/api/v1/api-keys/") && init?.method === "DELETE") return new Response(null, { status: 204 });
@@ -58,10 +60,21 @@ describe("API center", () => {
     expect(screen.getByText(/while :; do/)).toBeVisible();
     expect(screen.getByText("运行前执行：python3 -m pip install requests")).toBeVisible();
     expect([...document.querySelectorAll(".api-code")].some(block => block.textContent?.includes("failed|canceled|expired"))).toBe(true);
-    expect(screen.queryByText(/\/api\/v1\/analyses/)).not.toBeInTheDocument();
+    expect(screen.getByText("POST /api/v1/analyses/upload", { exact: true })).toBeVisible();
+    expect(document.getElementById("single-upload")).toHaveRole("heading");
+    expect(screen.getByText(/multipart 包含 title、mode、enrollment_mode、expected_persons、analyst_locale/)).toBeVisible();
     expect(screen.queryByText("客户端")).not.toBeInTheDocument();
     expect(screen.queryByText("生态")).not.toBeInTheDocument();
     expect(screen.queryByText("资讯")).not.toBeInTheDocument();
+  });
+
+  test("shows effective account limits instead of server defaults", async () => {
+    vi.stubGlobal("fetch", installFetch());
+    renderAt("/api/docs");
+    const ai = await screen.findByRole("row", { name: "每日主动 AI 操作 37" });
+    expect(within(ai).getByRole("cell")).toHaveTextContent("37");
+    expect(screen.getByRole("row", { name: "单任务上传总量 4 GB" })).toBeVisible();
+    expect(screen.queryByText("暂时无法读取当前配额")).not.toBeInTheDocument();
   });
 
   test("keeps the English guide executable and documents upload cancellation", async () => {

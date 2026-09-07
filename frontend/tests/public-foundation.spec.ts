@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { accountLimitsFixture } from "../src/test/accountLimitsFixture";
 
 const user = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
 
@@ -10,7 +11,13 @@ async function openMenu(page: Page) {
 test.beforeEach(async ({ page }) => {
   // Every test API request stays in the fixture boundary, including post-login task loads.
   await page.route("**/api/v1/**", route => {
-    if (new URL(route.request().url()).pathname === "/api/v1/tasks") return route.fulfill({status:200,json:{items:[],total:0,page:1,page_size:10}});
+    const path = new URL(route.request().url()).pathname;
+    if (path === "/api/v1/tasks") return route.fulfill({status:200,json:{items:[],total:0,page:1,page_size:10}});
+    if (path === "/api/v1/account/limits") return route.fulfill({status:200,json:accountLimitsFixture});
+    if (path === "/api/v1/account/usage") return route.fulfill({status:200,json:{
+      drafts:{used:0,limit:3},unfinished_tasks:{used:0,limit:5},submitted_today:{used:0,limit:20},active_api_keys:{used:0,limit:5},
+      retention:{drafts:"24 hours",enrollment_data:"7 days",raw_inputs:"30 days",results:"180 days"},
+    }});
     return route.fulfill({status:404,json:{detail:"No fixture for this request"}});
   });
   await page.route("**/api/v1/users/me", (route) => route.fulfill({
@@ -188,6 +195,7 @@ test("account dropdown supports keyboard, outside dismissal and route changes", 
 
 test("logout can retry a network failure and clears access to protected pages", async ({ page }) => {
   const avatar = await signedIn(page, "/api/docs");
+  await expect(page.getByRole("row", { name: "每日主动 AI 操作 37" })).toBeVisible();
   let attempts = 0;
   await page.route("**/api/v1/logout", async route => {
     expect(route.request().method()).toBe("POST");
@@ -198,7 +206,7 @@ test("logout can retry a network failure and clears access to protected pages", 
   });
   await avatar.click();
   await page.getByRole("button", { name: "退出登录" }).click();
-  await expect(page.getByRole("alert")).toContainText("退出失败");
+  await expect(page.locator("#account-dropdown").getByRole("alert")).toContainText("退出失败");
   await expect(avatar).toBeVisible();
   await expect(page.getByRole("button", { name: "退出登录" })).toBeFocused();
   await page.keyboard.press("Escape");

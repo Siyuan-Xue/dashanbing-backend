@@ -120,7 +120,9 @@ def auth_cookie(token):
 
 def error_record(error, message, *, public=False):
     known = {"session not created", "unknown error", "invalid argument", "invalid session id",
-             "unsupported operation", "timeout", "no such window", "javascript error"}
+             "unsupported operation", "timeout", "no such window", "javascript error",
+             "element not interactable", "element click intercepted", "no such element",
+             "stale element reference", "move target out of bounds", "script timeout"}
     result = {"webdriver_error": error if error in known else "webdriver_request_failed"}
     # Public diagnostics are used ONLY before any credentials or navigation.
     if public and isinstance(message, str):
@@ -172,6 +174,9 @@ def local_driver(port, timeout):
         raise BrowserError("invalid_dedicated_webdriver_port")
     # Never attach to an existing driver or kill another agent's driver.
     with socket.socket() as probe:
+        # A just-deleted session can leave closed TCP connections in TIME_WAIT.
+        # SO_REUSEADDR permits that reuse; a live listener still refuses bind.
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind(("127.0.0.1", port))
     process = subprocess.Popen(["/usr/bin/safaridriver", "-p", str(port)],
                                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

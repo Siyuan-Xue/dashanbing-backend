@@ -793,9 +793,11 @@ def test_memory_changes_preserve_inflight_session_but_revoke_chat_without_refund
 @pytest.mark.parametrize("kind", ["report", "message"])
 @pytest.mark.parametrize("invalidation_point", ["before_load", "after_load"])
 def test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message(job_client, kind, invalidation_point, monkeypatch):
+    from app.admin_models import AdminAttempt
     from app.services.training_profiles import invalidate_memory
 
     client = job_client
+    set_daily_ai_limit(client, 1)
     job = request_report(client) if kind == "report" else request_chat(client)[0]
     original_load = analyst.AnalystSupervisor._load
 
@@ -813,9 +815,15 @@ def test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_mes
     ledger = get_row(client, AnalystJob, job.id)
     assert ledger is not None, "Revoked jobs must retain the quota ledger"
     assert ledger.status == "failed"
-    assert ledger.attempts == 1
+    # Claim/load revocation happens before any actual provider attempt.
+    assert ledger.attempts == 0
+    assert ledger.request_id == job.request_id
+    assert ledger.created_at == job.created_at
+    assert ledger.usage_json == job.usage_json
     assert json.loads(ledger.payload_json) == {"automatic": False}
     assert client.app.state.glm_client.calls == []
+    assert all_rows(client, AdminAttempt) == []
+    assert client.post(report_url(client), json={"locale": "en", "style": "roast"}).status_code == 429
     if kind == "message":
         message = get_row(client, AnalystMessage, job.message_id)
         assert message.status == "failed"

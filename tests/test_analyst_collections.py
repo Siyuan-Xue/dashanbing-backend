@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from app.analyst_models import AnalystJob, AnalystReport
 from app.models import Analysis
 from app.services import analyst
-from test_analyst_jobs import job_client, facts, report_body, ScriptedProvider, all_rows, run_once
+from test_analyst_jobs import job_client, facts, report_body, ScriptedProvider, all_rows, run_once, set_daily_ai_limit
 
 
 def collection_url(client):
@@ -16,7 +16,7 @@ def collection_url(client):
 
 def test_collection_queues_full_reports_for_both_styles_once_and_charges_once(job_client, report_body):
     client = job_client
-    client.app.state.settings.analyst_daily_limit = 1
+    set_daily_ai_limit(client, 1)
     response = client.post(collection_url(client), json={"locale": "en"})
     assert response.status_code == 202, response.text
     items = response.json()['items']

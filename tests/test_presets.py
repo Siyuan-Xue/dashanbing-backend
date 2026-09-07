@@ -118,4 +118,6 @@ def test_preset_rerun_manifest_binds_registration_cameras_and_group_sync(sample_
         "cam_03": str(sample_root / "test_data_v3" / "4-3.mkv"),
         "cam_04": str(sample_root / "test_data_v3" / "4-4.mkv"),
         "sync": str(sample_root / "test_data_v3" / "sync" / "group_04.json"),
+        "enrollment_mode": "lineup",
+        "expected_persons": 4,
     }

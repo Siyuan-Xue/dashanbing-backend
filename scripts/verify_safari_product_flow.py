@@ -12,16 +12,32 @@ if not __package__:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.capture_browser_closeout import (BrowserError, ROOT, FIXTURE_CREDENTIALS, WebDriver,
     local_driver, load_fixture_account, auth_cookie, capabilities, capture_guard, fixture_origin,
-    physical_path, session_capabilities, write_private)
+    physical_path, session_capabilities, write_private, error_record)
 
 CAMERAS = [f"cam_0{i}" for i in range(1, 5)]
 SAFE_ERRORS = {"assertion_failed", "condition_timeout", "credential_controls_present",
-               "webdriver_command_failed", "webdriver_transport_or_protocol_error"}
+               "webdriver_command_failed", "webdriver_transport_or_protocol_error",
+               "native_click_not_observed"}
 
 
 def need(value):
     if not value:
         raise BrowserError("assertion_failed")
+
+
+def safe_failure(error):
+    code = str(error) if isinstance(error, BrowserError) and str(error) in SAFE_ERRORS else 'unexpected_error'
+    record = {'error': code}
+    if isinstance(error, BrowserError):
+        diagnostic = {}
+        status = error.evidence.get('http_status')
+        if type(status) is int and 100 <= status <= 599:
+            diagnostic['http_status'] = status
+        if 'webdriver_error' in error.evidence:
+            diagnostic.update(error_record(error.evidence['webdriver_error'], None))
+        if diagnostic:
+            record['diagnostic'] = diagnostic
+    return record
 
 
 def run_steps(steps, records):
@@ -32,8 +48,7 @@ def run_steps(steps, records):
             records.append({"step": name, "status": "matched", "details": details,
                             "elapsed_ms": (time.monotonic() - start) * 1000})
         except Exception as error:
-            code = str(error) if isinstance(error, BrowserError) and str(error) in SAFE_ERRORS else "unexpected_error"
-            records.append({"step": name, "status": "failed", "error": code,
+            records.append({"step": name, "status": "failed", **safe_failure(error),
                             "elapsed_ms": (time.monotonic() - start) * 1000})
             return False
     return True
@@ -43,6 +58,8 @@ class Flow:
     def __init__(self, driver: WebDriver, session, args, output):
         self.driver, self.session, self.args, self.output = driver, session, args, output
         self.selected, self.saved, self.anchor = {}, None, None
+        self.interactions = []
+        self.compact = False
     def command(self, method, suffix, payload=None):
         return self.driver.request(method, self.session + suffix, payload)
     def js(self, script, *args, asynchronous=False):
@@ -57,10 +74,87 @@ class Flow:
                 return value
             time.sleep(0.1)  # Poll readiness only; never repeat clicks or failed steps.
         raise BrowserError("condition_timeout")
+    def interaction_state(self, selector):
+        return self.js("""
+const e=document.querySelector(arguments[1]);
+if(!e||!e.getClientRects().length)return {present:false};
+const r=e.getBoundingClientRect(),v=visualViewport;
+let b={left:v?.offsetLeft||0,top:v?.offsetTop||0,
+       right:(v?.offsetLeft||0)+(v?.width||innerWidth),
+       bottom:(v?.offsetTop||0)+(v?.height||innerHeight)};
+for(let a=e.parentElement;a;a=a.parentElement){
+ const s=getComputedStyle(a),q=a.getBoundingClientRect();
+ if(/auto|scroll|hidden|clip/.test(s.overflowY)&&q.bottom>b.top&&q.top<b.bottom){
+  b.top=Math.max(b.top,q.top);b.bottom=Math.min(b.bottom,q.bottom);
+ }
+ if(/auto|scroll|hidden|clip/.test(s.overflowX)&&q.right>b.left&&q.left<b.right){
+  b.left=Math.max(b.left,q.left);b.right=Math.min(b.right,q.right);
+ }
+}
+const left=Math.max(r.left,b.left),right=Math.min(r.right,b.right),
+      top=Math.max(r.top,b.top),bottom=Math.min(r.bottom,b.bottom),
+      visible=right>left&&bottom>top,
+      x=Math.floor((left+right)/2),y=Math.floor((top+bottom)/2),
+      hit=visible&&e.contains(document.elementFromPoint(x,y));
+return {present:true,enabled:!e.disabled,hit,x,y,
+ scroll_x:Math.floor((b.left+b.right)/2),scroll_y:Math.floor((b.top+b.bottom)/2),
+ delta_y:visible?0:Math.round((r.top+r.bottom-b.top-b.bottom)/2)};
+""", selector)
     def click(self, selector):
-        self.wait(lambda: self.js("const e=document.querySelector(arguments[1]);return !!e&&e.getClientRects().length>0&&!e.disabled;", selector))
+        previous, scrolls = None, 0
+        record = {"index": len(self.interactions) + 1, "scroll_actions": 0}
+        self.interactions.append(record)
+        def positioned():
+            nonlocal previous, scrolls
+            state = self.interaction_state(selector)
+            record.setdefault('before', state)
+            record['last'] = state
+            if not state.get('present') or not state.get('enabled'):
+                return False
+            if not state['hit']:
+                previous = None
+                if state['delta_y'] and scrolls < 8:
+                    self.command('POST', '/actions', {'actions': [{
+                        'type': 'wheel', 'id': 'flow-scroll', 'actions': [{
+                            'type': 'scroll', 'origin': 'viewport', 'duration': 300,
+                            'x': state['scroll_x'], 'y': state['scroll_y'],
+                            'deltaX': 0, 'deltaY': state['delta_y']}]}]})
+                    scrolls += 1
+                    record['scroll_actions'] = scrolls
+                return False
+            position = (state['x'], state['y'])
+            stable = position == previous
+            previous = position
+            return stable
+        self.wait(positioned)
         element = self.command("POST", "/element", {"using": "css selector", "value": selector})
-        self.command("POST", "/element/" + quote(element["element-6066-11e4-a52e-4f735466cecf"], safe="") + "/click", {})
+        self.js("""
+const e=arguments[1],types=['pointerdown','pointerup','mousedown','mouseup','click'];
+window.__safariFlowInput={clicked:false,events:[]};
+const listener=event=>{if(event.isTrusted){window.__safariFlowInput.events.push(event.type);
+ if(event.type==='click')window.__safariFlowInput.clicked=true;}};
+for(const type of types)e.addEventListener(type,listener,true);
+window.__safariFlowInputCleanup=()=>{for(const type of types)e.removeEventListener(type,listener,true);};
+return true;
+""", element)
+        try:
+            self.command("POST", "/element/" + quote(element["element-6066-11e4-a52e-4f735466cecf"], safe="") + "/click", {})
+            record['method'] = 'webdriver_element_click'
+            def clicked():
+                value = self.js('return window.__safariFlowInput;')
+                record['native_input'] = value
+                return value and value.get('clicked')
+            try:
+                self.wait(clicked)
+            except BrowserError as error:
+                if str(error) == 'condition_timeout':
+                    raise BrowserError('native_click_not_observed') from None
+                raise
+        finally:
+            try:
+                self.js('window.__safariFlowInputCleanup?.();return true;')
+            except BrowserError:
+                record['observer_cleanup'] = 'unavailable'
     def read(self, kind, camera=None, time_ms=None):
         return self.js("""
 const [origin,id,kind,camera,t]=arguments, done=arguments[arguments.length-1], b='/api/v1/tasks/'+encodeURIComponent(id);
@@ -90,6 +184,18 @@ return {camera_matches:f.camera===camera,frame_index:f.frame_index,actual_time_m
         self.command("POST", "/cookie", {"cookie": auth_cookie(load_fixture_account(FIXTURE_CREDENTIALS, "user", self.args.account_index))})
         result = self.read("auth"); need(result.get("http_status") == 200)
         return result
+    def viewport(self):
+        metrics = self.js('return {width:innerWidth,height:innerHeight};')
+        if self.args.platform == 'mac':
+            outer = self.command('GET', '/window/rect')
+            self.command('POST', '/window/rect', {
+                'width': 1440 + outer['width'] - metrics['width'],
+                'height': 900 + outer['height'] - metrics['height']})
+            metrics = self.wait(lambda: (m if m == {'width': 1440, 'height': 900} else None)
+                                if (m := self.js('return {width:innerWidth,height:innerHeight};')) else None)
+        return metrics
+    def expected_cameras(self, camera='cam_01'):
+        return {'cam_03', camera if camera != 'cam_03' else 'cam_01'} if self.compact else set(CAMERAS)
     def draft(self):
         self.command("POST", "/url", {"url": self.args.fixture_url + "/workspace/tasks"})
         self.click(f"a.task-title-link[href='/workspace/tasks/{self.args.task_id}']")
@@ -105,8 +211,11 @@ return {camera_matches:f.camera===camera,frame_index:f.frame_index,actual_time_m
         self.selected = {}
         self.click(".task-sync-summary button")
         players = self.wait(lambda: (p if p and all(v['ready'] and v['image'] for v in p) else None) if (p := self.players()) is not None else None)
-        need({p['camera'] for p in players} == ({'cam_03', 'cam_01'} if self.args.platform == 'ios' else set(CAMERAS)))
+        layout = self.js("return {width:innerWidth,height:innerHeight,compact:matchMedia('(max-width: 640px)').matches,tabs:!!document.querySelector('.video-sync-tabs')};")
+        self.compact = layout['compact']
+        need(layout['tabs'] == self.compact and {p['camera'] for p in players} == self.expected_cameras())
         result = self.read("preview"); need(result.get('ready') and result.get('camera_count') == 4 and all(n > 1 for n in result['frame_counts']))
+        result['layout'] = layout
         self.anchor = next(p['time_ms'] for p in players if p['camera'] == 'cam_03')
         self.snapshot(f"preview-{number}")
         return result
@@ -120,13 +229,13 @@ return {camera_matches:f.camera===camera,frame_index:f.frame_index,actual_time_m
         return result
     def select(self, camera):
         number = int(camera[-1])
-        if self.args.platform == 'ios' and number in (2, 4):
+        if self.compact and number in (2, 4):
             self.click(f".video-sync-tabs button:nth-child({2 if number == 2 else 3})")
         selector = f'.video-sync-camera:is([aria-label^="Camera {number}"],[aria-label^="机位 {number}"]) .video-sync-select'
         self.click(selector)
         players = self.players(); value = next(p for p in players if p['camera'] == camera)
         need(value['selected'] and value['image'])
-        need({p['camera'] for p in players} == ({'cam_03', camera if camera != 'cam_03' else 'cam_01'} if self.args.platform == 'ios' else set(CAMERAS)))
+        need({p['camera'] for p in players} == self.expected_cameras(camera))
         self.selected[camera] = value['time_ms']
         return {"visible_count": len(players), "selected_count": len(self.selected), **self.frame_json(camera, value['time_ms'])}
     def cancel(self):
@@ -171,7 +280,7 @@ def run(args):
                 report['capabilities'] = negotiated
                 flow = Flow(driver, session, args, output)
                 flow.command('POST', '/timeouts', {'pageLoad': 20000, 'script': 20000, 'implicit': 0})
-                steps = [('authenticate', flow.authenticate), ('open_draft', flow.draft), ('initial_status', lambda: flow.status('unconfirmed'))]
+                steps = [('authenticate', flow.authenticate), ('viewport', flow.viewport), ('open_draft', flow.draft), ('initial_status', lambda: flow.status('unconfirmed'))]
                 for number in (1, 2):
                     steps += [(f'open_sync_{number}', lambda n=number: flow.open(n))]
                     if number == 1:
@@ -180,9 +289,11 @@ def run(args):
                     steps += [('cancel_unconfirmed', flow.cancel)] if number == 1 else [('confirm_saved', flow.confirm)]
                 steps += [('reopen_persisted', flow.persisted)]
                 report['status'] = 'recorded' if run_steps(steps, report['steps']) else 'failed'
-            except Exception:
-                report.update(status='failed', error='session_or_fixture_setup_failed')
+            except Exception as error:
+                report.update(status='failed', **safe_failure(error))
             finally:
+                if flow:
+                    report['interactions'] = flow.interactions
                 if flow and report['status'] == 'failed':
                     try: report['error_geometry'] = flow.snapshot('error')
                     except Exception: report['error_capture'] = 'unavailable_or_credential_controls'

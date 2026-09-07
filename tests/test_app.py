@@ -138,7 +138,7 @@ def test_default_credentials_do_not_bootstrap_admin(tmp_path: Path):
     assert users == []
 
 
-def test_readiness_rejects_admin_password_that_does_not_match_database(tmp_path: Path):
+def test_readiness_preserves_database_password_when_bootstrap_password_changes(tmp_path: Path):
     database_url = f"sqlite:///{tmp_path / 'credential-mismatch.db'}"
     original = AppSettings(
         database_url=database_url,
@@ -158,13 +158,18 @@ def test_readiness_rejects_admin_password_that_does_not_match_database(tmp_path:
     )
     with TestClient(create_app(settings=changed)) as client:
         response = client.get("/readyz")
+        assert client.post("/api/v1/login/access-token", data={
+            "username": "local_admin", "password": "different-secure-password",
+        }).status_code == 401
+        assert client.post("/api/v1/login/access-token", data={
+            "username": "local_admin", "password": "original-secure-password",
+        }).status_code == 200
 
     credentials = next(
         check for check in response.json()["checks"] if check["name"] == "credentials"
     )
-    assert response.status_code == 503
-    assert credentials["ready"] is False
-    assert "数据库" in credentials["detail"]
+    assert response.status_code == 200
+    assert credentials["ready"] is True
 
 
 def test_login_issues_configured_expiring_token_and_cookie(client: TestClient, configured_app):
@@ -242,6 +247,7 @@ def test_registration_normalizes_identity_and_returns_a_public_user(client: Test
         "username": "newuser",
         "email": "person@example.com",
         "is_active": True,
+        "role": "user",
     }
     assert "password" not in response.text
 

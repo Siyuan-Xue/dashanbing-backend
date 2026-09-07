@@ -180,7 +180,7 @@ def test_standalone_preset_recovers_canceled_job_without_new_identity(admin_app)
             return SimpleNamespace(data=dict(summary='complete', highlights=[], players=[], comparison=None, suggestions=[]), usage={})
     app.state.glm_client = Provider()
     assert asyncio.run(run_preset(app, job_id)) is True
-    assert calls == ['preset-' + job_id]
+    assert calls == [job_id]
     with Session(app.state.engine) as session:
         job = session.get(AdminPresetJob, job_id)
         assert job.status == 'completed' and job.attempts == 2

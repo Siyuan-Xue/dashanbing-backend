@@ -449,7 +449,7 @@ async function collectBoundaries(browser, variant, role, credentials, options, r
       const index = session.events.network.length;
       const path = role === "admin" ? "/workspace/tasks" : "/admin/users";
       await session.page.goto(options.base + path, { waitUntil: "domcontentloaded" });
-      if (role === "admin") { await session.page.waitForURL(url => url.pathname === "/admin/overview"); await session.page.locator(".admin-nav").waitFor(); require(await session.page.locator('.workspace-create, .workspace-recent').count() === 0, "Admin mounted ordinary workspace content"); }
+      if (role === "admin") { await session.page.waitForURL(url => url.pathname === "/admin/overview"); await session.page.locator(".admin-page-header h1").waitFor(); require(await session.page.locator('.workspace-create, .workspace-recent').count() === 0, "Admin mounted ordinary workspace content"); }
       else { await session.page.locator(".route-error").waitFor(); require(await session.page.locator(".admin-nav").count() === 0, "Ordinary account mounted admin navigation"); }
       await session.page.waitForTimeout(options.settle);
       const requests = session.events.network.slice(index).filter(event => event.event === "response");

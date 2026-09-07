@@ -69,7 +69,7 @@ async def run_preset(app,job_id):
         attempted = True
         response=await asyncio.wait_for(AnalystSupervisor(app)._provider().complete_json([
             {'role':'system','content':system_prompt(payload,report=True)},
-            {'role':'user','content':pack({'facts':payload['facts'],'memory':{}})}],request_id='preset-'+job_id),
+            {'role':'user','content':pack({'facts':payload['facts'],'memory':{}})}],request_id=job_id),
             timeout=app.state.settings.glm_timeout_seconds)
         body=validate_report(response.data,payload['facts'],{})
         report={**body.model_dump(),'id':str(uuid4()),'model':payload['model'],'locale':payload['locale'],'style':payload['style'],'created_at':utc_now().isoformat()}

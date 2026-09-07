@@ -5,6 +5,7 @@ from contextlib import suppress
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
+from sqlalchemy.exc import OperationalError
 from sqlmodel import Session, select
 
 from app.models import Analysis, TaskInput
@@ -96,7 +97,11 @@ class AnalysisSupervisor:
         while not self._stop.is_set():
             if time.monotonic() - self._last_retention_run >= 3600:
                 await self._run_retention()
-            analysis_id = self._next_queued_id()
+            try:
+                analysis_id = await self._claim_next()
+            except OperationalError:
+                logger.exception("Analysis queue claim failed")
+                analysis_id = None
             if analysis_id is None:
                 try:
                     await asyncio.wait_for(self._stop.wait(), timeout=1.0)
@@ -115,6 +120,28 @@ class AnalysisSupervisor:
             return None
         from app.services.admin_scheduling import claim_video
         return claim_video(self.app)
+
+    async def _claim_next(self) -> str | None:
+        claim = asyncio.create_task(asyncio.to_thread(self._next_queued_id))
+        try:
+            return await asyncio.shield(claim)
+        except asyncio.CancelledError:
+            async def finish_claim():
+                from app.services.admin_scheduling import release_lease
+                try:
+                    analysis_id = await claim
+                    if analysis_id is not None:
+                        # Execution has not started; leave the task queued while
+                        # releasing both its durable lease and the video mutex.
+                        await asyncio.to_thread(release_lease, self.app.state.engine, "video", analysis_id)
+                except Exception:
+                    logger.exception("Failed to finish video claim during cancellation")
+
+            cleanup = asyncio.create_task(finish_claim())
+            while not cleanup.done():
+                with suppress(asyncio.CancelledError):
+                    await asyncio.shield(cleanup)
+            raise
 
     async def _run_one(self, analysis_id: str) -> None:
         from app.services.worker import run_analysis

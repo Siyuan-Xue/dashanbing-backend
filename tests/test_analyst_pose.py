@@ -260,6 +260,7 @@ def test_product_real_runner_carries_task_context_and_retains_artifact(
     monkeypatch.setitem(sys.modules, "rtmlib", rtmlib)
     from scripts import run_v2_testset as runner
     from src.action import pipeline
+    from src.identity import enrollment
     from scripts import build_group_dashboard, extract_action_skeletons_3d
 
     root = tmp_path / "real-product-task"
@@ -271,8 +272,20 @@ def test_product_real_runner_carries_task_context_and_retains_artifact(
     monkeypatch.setattr(runner, "create_session", lambda *a, **k: pose_task["session_id"])
     for name in ("init_db", "register_student", "grant_consent", "run_ball_tracking_on_video", "run_shot_outcome_session"):
         monkeypatch.setattr(runner, name, lambda *a, **kw: None)
-    monkeypatch.setattr(runner, "_copy_gallery", lambda *a: ["stu_A"])
-    monkeypatch.setattr(runner, "run_enroll_group", lambda *a, **kw: {"student_ids": ["stu_A"], "session_id": "enrollment"})
+    # Keep gallery validation/copy real; only the GPU enrollment stage is a
+    # fixture. Both its source and action-session copy must contain usable data.
+    monkeypatch.setattr(enrollment, "create_face_embedder", lambda: object())
+    monkeypatch.setattr(enrollment, "create_body_embedder", lambda: object())
+
+    def enroll(*args, **kwargs):
+        assert kwargs == {"expected_persons": 1, "enroll_mode": "sequential", "allow_legacy_count": False}
+        gallery = data / "enrollment" / "enrollment" / "stu_A"
+        gallery.mkdir(parents=True)
+        np.save(gallery / "face_000.npy", np.array([1., 0., 0.], dtype=np.float32))
+        np.save(gallery / "body_000.npy", np.array([0., 1., 0., 0.], dtype=np.float32))
+        return {"student_ids": ["stu_A"], "session_id": "enrollment"}
+
+    monkeypatch.setattr(runner, "run_enroll_group", enroll)
     monkeypatch.setattr(pipeline, "run_action_session_auto", lambda *a: 1)
     monkeypatch.setattr(runner, "remux_to_mp4", lambda src, dst: (shutil.copy2(src, dst), dst)[1])
 
@@ -308,10 +321,13 @@ def test_product_real_runner_carries_task_context_and_retains_artifact(
     cam4.write_bytes(b"ball-only-video")
     manifest = {cam: str(path) for cam, path in pose_task["videos"].items()}
     manifest.update(cam_04=str(cam4), enrollment_video=str(cam4), sync=str(pose_task["sync_path"]),
-                    calibration=str(pose_task["calib_dir"]))
+                    calibration=str(pose_task["calib_dir"]), enrollment_mode="sequential", expected_persons=1)
     manifest_path = root / "input_manifest.json"
     write_json(manifest_path, manifest)
     product_runner.run_product_task(root, manifest_path, "full", tmp_path / "models")
+    copied_gallery = data / "enrollment" / pose_task["session_id"] / "stu_A"
+    assert np.array_equal(np.load(copied_gallery / "face_000.npy"), [1., 0., 0.])
+    assert np.array_equal(np.load(copied_gallery / "body_000.npy"), [0., 1., 0., 0.])
     shutil.rmtree(root / "engine-output")
     shutil.rmtree(root / "data")
     artifact = json.loads((root / "output" / "analyst_pose.json").read_text())

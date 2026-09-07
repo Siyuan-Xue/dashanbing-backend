@@ -2,6 +2,8 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
+import runpy
+import shutil
 import sys
 from pathlib import Path
 
@@ -12,11 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from conftest import isolated_server_settings
 from test_analyst_jobs import (job_client, facts, report_body, all_rows, run_once,
-    create_conversation, submit, ScriptedProvider)
+    create_conversation, submit, ScriptedProvider, set_daily_ai_limit)
 from app.analyst_models import AnalystJob, AnalystReport
 from app.models import Analysis
 from app.services import analyst
-from app.services.analyst_collections import preset_report_path, preset_reports
+from app.services.analyst_collections import preset_report_path
 from app.services.glm import GlmJsonResult, GlmTextDelta
 
 
@@ -63,7 +65,7 @@ def test_initial_pending_auto_collection_does_not_charge_on_ensure(job_client):
 
 def test_concurrent_collection_posts_charge_once(job_client):
     client = job_client
-    client.app.state.settings.analyst_daily_limit = 1
+    set_daily_ai_limit(client, 1)
     url = f'/api/v1/tasks/{client.task_id}/analyst/reports'
     with ThreadPoolExecutor(max_workers=2) as pool:
         responses = list(pool.map(lambda _: client.post(url, json={'locale': 'en'}), range(2)))
@@ -122,47 +124,106 @@ def test_eight_slots_are_shared_between_chat_and_reports(job_client):
     asyncio.run(scenario())
 
 
-def test_generator_reuses_legacy_preset_and_fills_both_styles(job_client, facts, monkeypatch):
-    from scripts import generate_analyst_presets as generator
+def test_generator_reuses_legacy_preset_and_fills_both_styles(job_client, monkeypatch, capsys):
+    """Run the CLI, catalog, facts, durable pool and publication; fake only GLM."""
+    from app.admin_models import AdminAttempt, AdminLease, AdminPresetJob
+    from app.services.analyst_facts import load_preset_facts
+    from app.services.glm import GlmClient
+
     client = job_client
+    settings = client.app.state.settings
+    # Isolated on-disk sample with two players, one made and one missed shot.
+    # The CLI constructs its own real app against this already-created test DB.
+    group = settings.sample_root / 'outputs' / 'v3' / 'group_04'
+    shutil.copytree(client.app.state.storage.analysis_root(client.task_id) / 'output', group)
+    inputs = settings.sample_root / 'test_data_v3'
+    (inputs / 'sync').mkdir(parents=True)
+    for name in ('0-2.mkv', '4-1.mkv', '4-2.mkv', '4-3.mkv', '4-4.mkv'):
+        (inputs / name).write_bytes(b'synthetic-preset-' + name.encode())
+    (inputs / 'sync' / 'group_04.json').write_text('{}')
+    facts = load_preset_facts(client.app, 'quick-demo')
+    assert [subject.id for subject in facts.subjects] == ['player_1', 'player_2']
+    assert len(facts.evidence) == 2
+    for field in ('database_url', 'runtime_root', 'sample_root'):
+        monkeypatch.setenv('BASKETBALL_' + field.upper(), str(getattr(settings, field)))
+    monkeypatch.setenv('GLM_API_KEY', 'synthetic-cli-provider-key')
+    monkeypatch.setenv('BASKETBALL_GLM_BASE_URL', 'http://provider.invalid')
+    monkeypatch.setattr(sys, 'argv', [str(ROOT / 'scripts' / 'generate_analyst_presets.py'),
+        '--presets', 'quick-demo', '--locales', 'zh', 'en', '--styles', 'coach', 'roast'])
     saved = {
         'verified': True,
         'facts_hash': analyst.digest(facts.model_dump()),
         'report': {'summary': 'Verified legacy body', 'id': 'old-report', 'model': 'glm-5.3',
                    'locale': 'zh', 'style': 'coach', 'created_at': '2026-09-01T00:00:00Z'},
     }
-    path = preset_report_path(client.app.state.settings, 'quick-demo', 'zh', 'coach')
+    path = preset_report_path(settings, 'quick-demo', 'zh', 'coach')
     path.parent.mkdir(parents=True)
     original = json.dumps(saved).encode()
     path.write_bytes(original)
     calls = []
-    class Provider:
-        def __init__(self, **kwargs):
-            pass
-        async def __aenter__(self):
-            return self
-        async def __aexit__(self, *args):
-            pass
-        async def complete_json(self, messages, *, request_id):
-            calls.append(json.loads(messages[1]['content']))
-            return GlmJsonResult(data={'summary': 'Recorded facts only'}, usage={})
-    monkeypatch.setattr(generator, 'GlmClient', Provider)
-    monkeypatch.setattr(generator, 'create_app', lambda: client.app)
-    monkeypatch.setattr(generator, 'load_preset_facts', lambda *args: facts)
-    monkeypatch.setattr('app.services.analyst_facts.load_preset_facts', lambda *args: facts)
-    asyncio.run(generator.generate(['quick-demo'], ['zh', 'en'], ['coach', 'roast']))
+
+    async def complete_json(self, messages, *, request_id):
+        # Enforce the provider boundary even with synthetic responses: an
+        # oversized durable preset ID must not be accepted only by this fake.
+        assert 1 <= len(request_id) <= 64
+        calls.append((request_id, json.loads(messages[1]['content'])))
+        await asyncio.sleep(0)  # Exercise concurrent workers in the real CLI pool.
+        return GlmJsonResult(data={'summary': 'Recorded facts only'}, usage={'total_tokens': 7})
+
+    monkeypatch.setattr(GlmClient, 'complete_json', complete_json)
+    runpy.run_path(str(ROOT / 'scripts' / 'generate_analyst_presets.py'), run_name='__main__')
+    assert 'Completed 12; failed 0' in capsys.readouterr().out
     assert len(calls) == 11
+    assert len({request_id for request_id, _ in calls}) == 11
     assert path.read_bytes() == original
     for locale in ('zh', 'en'):
-        collection = preset_reports(client.app, 'quick-demo', locale)
-        assert len(collection.items) == 6
-        assert all(item.status == 'completed' for item in collection.items)
-        assert collection.provenance['verified'] is True
-    for payload in calls:
+        response = client.get('/api/v1/presets/quick-demo/analyst/reports', params={'locale': locale})
+        assert response.status_code == 200, response.text
+        collection = response.json()
+        assert len(collection['items']) == 6
+        assert {(item['subject_id'], item['style'], item['locale']) for item in collection['items']} == {
+            (subject, style, locale) for subject in (None, 'player_1', 'player_2') for style in ('coach', 'roast')}
+        assert all(item['status'] == 'completed' for item in collection['items'])
+        assert collection['provenance']['verified'] is True
+        assert all(item['report']['summary'] == ('Verified legacy body' if locale == 'zh' and
+            item['subject_id'] is None and item['style'] == 'coach' else 'Recorded facts only')
+            for item in collection['items'])
+    for _, payload in calls:
         assert payload['memory'] == {}
         if len(payload['facts']['subjects']) == 1:
             subject = payload['facts']['subjects'][0]['id']
-            assert all(event['subject_id'] == subject for event in payload['facts']['evidence'])
+            assert {event['subject_id'] for event in payload['facts']['evidence']} == {subject}
+            shots = payload['facts']['metrics']['shots']
+            assert (shots['attempts'], shots['makes'], shots['misses']) == (
+                (1, 1, 0) if subject == 'player_1' else (1, 0, 1))
+
+    with Session(client.app.state.engine) as session:
+        jobs = session.exec(select(AdminPresetJob)).all()
+        assert len(jobs) == 12
+        for job in jobs:
+            payload = json.loads(job.payload_json)
+            reused = payload['locale'] == 'zh' and payload['style'] == 'coach' and payload['subject_id'] is None
+            assert job.status == 'completed'
+            assert job.attempts == (0 if reused else 1)
+            assert json.loads(job.usage_json) == ({} if reused else {'total_tokens': 7})
+        attempts = session.exec(select(AdminAttempt).where(AdminAttempt.kind == 'preset')).all()
+        assert len(attempts) == 11
+        assert {attempt.job_id for attempt in attempts} == {job.id for job in jobs if job.attempts == 1}
+        assert session.exec(select(AdminLease)).all() == []
+        ledger_before = {job.id: job.model_dump() for job in jobs}
+    files_before = {p.name: p.read_bytes() for p in path.parent.glob('*.json')}
+    assert len(files_before) == 12
+
+    # A second CLI invocation reuses every durable variant and preserves bytes,
+    # identities, usage and actual-attempt accounting, without another call.
+    runpy.run_path(str(ROOT / 'scripts' / 'generate_analyst_presets.py'), run_name='__main__')
+    assert 'Completed 12; failed 0' in capsys.readouterr().out
+    assert len(calls) == 11
+    assert {p.name: p.read_bytes() for p in path.parent.glob('*.json')} == files_before
+    with Session(client.app.state.engine) as session:
+        assert {job.id: job.model_dump() for job in session.exec(select(AdminPresetJob)).all()} == ledger_before
+        assert len(session.exec(select(AdminAttempt).where(AdminAttempt.kind == 'preset')).all()) == 11
+        assert session.exec(select(AdminLease)).all() == []
 
 
 def test_personal_refresh_failure_preserves_original_and_siblings(job_client, facts):
@@ -241,6 +302,9 @@ def test_additive_migration_defaults_language_and_preserves_legacy_rows(tmp_path
         task = dict(connection.execute(text('SELECT * FROM analysis')).mappings().one())
         report = dict(connection.execute(text('SELECT * FROM analyst_report')).mappings().one())
         assert task.pop('analyst_locale') == 'zh'
+        assert task.pop('enrollment_mode') == 'sequential'
+        assert task.pop('expected_persons') is None
+        assert task.pop('sync_config_json') is None
         assert report.pop('subject_id') is None
         assert task == before_task
         assert report == before_report

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { accountLimitsFixture } from "../src/test/accountLimitsFixture";
 
 const user = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
 const usage = { submitted_today: { used: 4, limit: 20 }, unfinished_tasks: { used: 2, limit: 5 }, drafts: { used: 1, limit: 3 }, active_api_keys: { used: 1, limit: 5 }, retention: { drafts: "24 hours", enrollment_data: "7 days", raw_inputs: "30 days", results: "180 days" } };
@@ -9,6 +10,7 @@ test.beforeEach(async ({ page }) => {
     const { pathname } = new URL(route.request().url());
     if (pathname === "/api/v1/users/me") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) });
     if (pathname === "/api/v1/account/usage") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(usage) });
+    if (pathname === "/api/v1/account/limits") return route.fulfill({ status: 200, json: accountLimitsFixture });
     if (pathname === "/api/v1/api-keys" && route.request().method() === "POST") return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ...key, id: "key-2", name: "CI", prefix: "dsb_live_once12", last_four: "7890", secret: "dsb_live_once_visible_7890" }) });
     if (pathname === "/api/v1/api-keys") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([key]) });
     if (pathname === "/api/v1/api-keys/key-1" && route.request().method() === "DELETE") return route.fulfill({ status: 204 });
@@ -24,7 +26,8 @@ test("API docs keep the public header contract and responsive navigation", async
   }
   await expect(page.getByText("Authorization: Bearer dsb_live_…", { exact: true })).toBeVisible();
   await expect(page.getByText("enrollment_video", { exact: true })).toBeVisible();
-  await expect(page.getByText(/\/api\/v1\/analyses/)).toHaveCount(0);
+  await expect(page.getByText("POST /api/v1/analyses/upload", { exact: true })).toBeVisible();
+  await expect(page.getByRole("row", { name: "每日主动 AI 操作 37" })).toBeVisible();
   const bodyTextContrast = await page.evaluate(() => {
     const values = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
     const luminance = (value: string) => {

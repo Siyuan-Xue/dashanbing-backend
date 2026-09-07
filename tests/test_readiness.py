@@ -35,7 +35,7 @@ def test_readiness_rejects_disabled_worker(tmp_path: Path):
     assert worker["ready"] is False
 
 
-def test_real_readiness_names_missing_active_models_and_sync(tmp_path: Path, monkeypatch):
+def test_real_readiness_names_missing_active_models_without_global_sync(tmp_path: Path, monkeypatch):
     monkeypatch.setitem(sys.modules, "torch", None)
     monkeypatch.setattr(
         "app.services.readiness.shutil.which",
@@ -59,10 +59,10 @@ def test_real_readiness_names_missing_active_models_and_sync(tmp_path: Path, mon
         "osnet",
         "basketball",
         "buffalo_l",
-        "sync_config",
         "ffprobe",
         "cuda",
     } <= failed
+    assert "sync_config" not in {item["name"] for item in report["checks"]}
     assert "empty_frame_inference" not in {item["name"] for item in report["checks"]}
 
 

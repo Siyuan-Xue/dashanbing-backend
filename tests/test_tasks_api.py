@@ -526,7 +526,7 @@ def test_task_reports_uploading_while_server_validates_a_complete_slot(
     assert result["response"].json()["status"] == "draft"
 
 
-def test_submit_requires_all_slots_and_injects_sync_only_at_submit(client: TestClient):
+def test_submit_requires_all_slots_and_snapshots_confirmed_task_sync(client: TestClient):
     task_id = _create(client).json()["id"]
     job_input = Path(client.app.state.settings.runtime_root) / "analyses" / task_id / "input"
     assert not (job_input / "sync.json").exists()
@@ -539,14 +539,24 @@ def test_submit_requires_all_slots_and_injects_sync_only_at_submit(client: TestC
     assert not (job_input / "sync.json").exists()
 
     assert _upload(client, task_id, "cam_04", _mkv(b"four")).status_code == 200
-    confirm_task_sync(client, task_id)
+    confirmed = confirm_task_sync(client, task_id)
+    assert confirmed["anchor_camera"] == "cam_03"
+    assert confirmed["camera_time_offsets_ms"] == {"cam_01": 40, "cam_02": 80, "cam_03": 0, "cam_04": 40}
+    assert not (job_input / "sync.json").exists()
     submitted = client.post(f"/api/v1/tasks/{task_id}/submit")
     assert submitted.status_code == 200
     assert submitted.json()["status"] == "queued"
     assert submitted.json()["submitted_at"].endswith("Z")
-    assert json.loads((job_input / "sync.json").read_text()) == {"offset": 17}
+    assert json.loads((job_input / "sync.json").read_text()) == confirmed
     manifest = json.loads((job_input.parent / "input_manifest.json").read_text())
-    assert set(manifest) == set(SLOTS) | {"sync"}
+    with Session(client.app.state.engine) as session:
+        stored_inputs = session.exec(select(TaskInput).where(TaskInput.task_id == task_id)).all()
+        assert {item.slot for item in stored_inputs} == set(SLOTS)
+        assert manifest == {item.slot: item.path for item in stored_inputs} | {
+            "sync": str(job_input / "sync.json"), "sync_schema_version": 1,
+            "enrollment_mode": "sequential", "expected_persons": 4,
+        }
+        assert json.loads(session.get(Analysis, task_id).input_manifest_json) == manifest
 
 
 def test_preset_creation_and_public_status_mapping(client: TestClient):

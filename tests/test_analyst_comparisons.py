@@ -14,7 +14,7 @@ from app.services.analyst_facts import metrics_for_subject
 from app.services.training_profiles import cleanup_analyst_task, invalidate_memory
 from test_analyst_jobs import (
     job_client, facts, report_body, ScriptedProvider, PausingProvider,
-    all_rows, get_row, report_url, request_report, run_once, make_due,
+    all_rows, get_row, report_url, request_report, run_once, make_due, set_daily_ai_limit,
 )
 
 
@@ -207,7 +207,7 @@ def test_comparison_validation_dedup_and_quota_are_separate_from_session(job_cli
     assert post_comparison(client, unlinked).status_code == 422
     assert post_comparison(client, 'missing').status_code == 404
     _, observation = history(client, facts)
-    client.app.state.settings.analyst_daily_limit = 2
+    set_daily_ai_limit(client, 2)
     alternate = 'roast' if style == 'coach' else 'coach'
     assert post_comparison(client, observation, style=style).status_code == 202
     jobs = comparison_jobs(client)

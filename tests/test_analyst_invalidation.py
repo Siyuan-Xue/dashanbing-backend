@@ -9,6 +9,7 @@ from fastapi import HTTPException
 import pytest
 from sqlmodel import Session, select
 
+from app.admin_models import AdminAttempt, AdminLease
 from app.analyst_models import (
     AnalystConversation,
     AnalystJob,
@@ -411,6 +412,9 @@ class _WaitingProvider:
         self.started = asyncio.Event()
         self.release = asyncio.Event()
         self.late_error = late_error
+        self.report_body = {"summary": "Stale report", "comparison": {
+            "text": "Comparison to the confirmed training baseline", "evidence_ids": ["event-1"],
+        }}
 
     async def _wait(self):
         self.started.set()
@@ -420,7 +424,7 @@ class _WaitingProvider:
 
     async def complete_json(self, messages, *, request_id):
         await self._wait()
-        return GlmJsonResult(data={"summary": "Stale report"}, usage={"total_tokens": 99})
+        return GlmJsonResult(data=self.report_body, usage={"total_tokens": 99})
 
     async def stream(self, messages, *, request_id):
         yield GlmTextDelta(text="Persisted before invalidation ")
@@ -432,12 +436,20 @@ class _WaitingProvider:
 @pytest.mark.parametrize("kind", ["report", "message"])
 @pytest.mark.parametrize("late_error", [False, True])
 @pytest.mark.parametrize("mutation", ["profile_edit", "task_delete"])
-def test_scoped_inflight_revocation_cannot_republish_or_release_quota(scoped_work, kind, late_error, mutation):
-    from app.services.analyst import AnalystSupervisor, limit_requests
+def test_scoped_inflight_revocation_cannot_republish_or_release_quota(scoped_work, tmp_path, kind, late_error, mutation):
+    from app.config import AppSettings
+    from app.services.admin import initialize_settings
+    from app.services.analyst import AnalystSupervisor, limit_requests, _comparison_inputs, validate_comparison_report
 
-    client, _, profile_a, _, work = scoped_work
-    client.app.state.settings = SimpleNamespace(glm_timeout_seconds=5, analyst_daily_limit=6)
+    client, add_task, profile_a, _, work = scoped_work
+    client.app.state.settings = AppSettings(
+        _env_file=None, runtime_root=tmp_path / "worker-runtime",
+        glm_timeout_seconds=5, analyst_daily_limit=6,
+    )
+    initialize_settings(client.app)
     selected_id = work["a"][4 if kind == "report" else 3]
+    if kind == "report":
+        add_task("history", dataset="historical-input", day=1)
     with Session(client.app.state.engine) as session:
         for job in session.exec(select(AnalystJob)).all():
             job.available_at = datetime.now(timezone.utc) + timedelta(days=1)
@@ -445,6 +457,29 @@ def test_scoped_inflight_revocation_cannot_republish_or_release_quota(scoped_wor
         selected = session.get(AnalystJob, selected_id)
         selected.status = "queued"
         selected.available_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+        if kind == "report":
+            # Queue both halves of the job/target pair so success protection
+            # does not reject this deliberately in-flight report fixture.
+            target = session.get(AnalystReport, selected.report_id)
+            target.status = "queued"
+            # A successful comparison needs a real, comparable historical
+            # observation. Otherwise validation would mask the writeback race.
+            previous = session.get(Analysis, "history")
+            previous_facts = load_task_facts(client.app, previous)
+            observation = TrainingObservation(
+                owner_id=1, profile_id=profile_a, source_task_id=previous.id, task_id=previous.id,
+                fingerprint=previous_facts.fingerprint, mode=previous.mode,
+                occurred_at=previous.completed_at, metrics_json=previous_facts.metrics.model_dump_json(),
+            )
+            session.add(observation)
+            session.flush()
+            task = session.get(Analysis, "task-a")
+            facts, memory = _comparison_inputs(session, task, load_task_facts(client.app, task), observation.id)
+            payload = json.loads(selected.payload_json) | {"facts": facts.model_dump(mode="json"), "memory": memory}
+            selected.payload_json = json.dumps(payload)
+            target.subject_id = memory["subject_id"]
+            target.comparison_id = observation.id
+            session.add(target)
         session.add(selected)
         session.commit()
         with pytest.raises(HTTPException) as quota:
@@ -454,13 +489,29 @@ def test_scoped_inflight_revocation_cannot_republish_or_release_quota(scoped_wor
 
     async def run():
         provider = _WaitingProvider(late_error=late_error)
+        if kind == "report":
+            assert validate_comparison_report(provider.report_body, payload["facts"], payload["memory"]).comparison is not None
         client.app.state.glm_client = provider
         supervisor = AnalystSupervisor(client.app)
+        failures = []
+        original_fail = supervisor._fail
+
+        def record_failure(job_id, error):
+            failures.append(getattr(error, "code", type(error).__name__))
+            return original_fail(job_id, error)
+
+        supervisor._fail = record_failure
         running = asyncio.create_task(supervisor.run_once())
         try:
             await asyncio.wait_for(provider.started.wait(), timeout=2)
             with Session(client.app.state.engine) as session:
-                assert session.get(AnalystJob, selected_id).status == "running"
+                active = session.get(AnalystJob, selected_id)
+                assert active.status == "running"
+                assert active.attempts == 1
+                attempt = session.exec(select(AdminAttempt).where(AdminAttempt.job_id == selected_id)).one()
+                assert attempt.kind == "ai" and attempt.owner_id == 1
+                attempt_before = attempt.model_dump()
+                assert session.get(AdminLease, ("ai", selected_id)) is not None
                 if kind == "message":
                     assert session.get(AnalystMessage, work["a"][2]).content == "Persisted before invalidation "
             if mutation == "profile_edit":
@@ -491,13 +542,17 @@ def test_scoped_inflight_revocation_cannot_republish_or_release_quota(scoped_wor
                     assert revoked[index][field] == before["a"][index][field]
         finally:
             provider.release.set()
-            await asyncio.wait_for(running, timeout=2)
+            assert await asyncio.wait_for(running, timeout=2) is True
 
         # Both a successful late response and a retryable exception must leave
         # the revoked state intact, including the previous usage/accounting.
+        assert failures == (["timeout"] if late_error else [])
         assert _snapshot(client, work["a"]) == revoked
         _assert_unchanged(client, work, before, ("b", "preset", "foreign"))
         assert await supervisor.run_once() is False
+        with Session(client.app.state.engine) as session:
+            assert session.exec(select(AdminAttempt).where(AdminAttempt.job_id == selected_id)).one().model_dump() == attempt_before
+            assert session.get(AdminLease, ("ai", selected_id)) is None
 
     asyncio.run(run())
     with Session(client.app.state.engine) as session:
