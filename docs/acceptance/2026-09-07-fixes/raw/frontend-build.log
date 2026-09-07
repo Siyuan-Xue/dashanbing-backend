@@ -1,0 +1,18 @@
+$ pnpm run generate:api && tsc -b && vite build --config vite.config.ts
+$ openapi-typescript ../openapi.json -o src/generated/schema.d.ts
+✨ openapi-typescript 7.13.0
+🚀 ../openapi.json → src/generated/schema.d.ts [53.8ms]
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1946 modules transformed.
+rendering chunks...
+computing gzip size...
+../app/frontend/index.html                   0.73 kB │ gzip:   0.48 kB
+../app/frontend/assets/index-C5EfjWAf.css   99.56 kB │ gzip:  18.49 kB
+../app/frontend/assets/index-BQG3jDEI.js   511.73 kB │ gzip: 160.06 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 955ms

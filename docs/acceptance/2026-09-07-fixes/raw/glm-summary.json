@@ -1,0 +1,45 @@
+{
+  "variants": 40,
+  "states": {
+    "completed": 39,
+    "failed": 1
+  },
+  "wall_seconds": 590.6643083654344,
+  "actual_provider_calls": 62,
+  "outcomes": {
+    "provider_error": 21,
+    "provider_success": 41
+  },
+  "provider_errors": {
+    "rate_limited": 21
+  },
+  "peak_concurrent": 8,
+  "failed": [
+    {
+      "preset": "quick-demo",
+      "attempts": 3,
+      "provider_errors": [
+        null,
+        "rate_limited",
+        "rate_limited"
+      ]
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 85387,
+    "completion_tokens": 118354,
+    "total_tokens": 203741
+  },
+  "all_calls": {
+    "count": 62,
+    "p50_seconds": 37.648468531668186,
+    "p95_seconds": 99.98859634250402,
+    "max_seconds": 118.6297529451549
+  },
+  "successful_calls": {
+    "count": 41,
+    "p50_seconds": 45.811107475310564,
+    "p95_seconds": 100.89977218210697,
+    "max_seconds": 118.6297529451549
+  }
+}

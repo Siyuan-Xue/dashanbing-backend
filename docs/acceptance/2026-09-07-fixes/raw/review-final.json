@@ -1,0 +1,188 @@
+{
+  "captured_at": "2026-09-07T07:20:11.254984+00:00",
+  "source_manifest_sha256": "c50165a398aa9849bf19a6d465a5c4748f827bd0f5f04bdf3a7e9694060f208d",
+  "delta_sha256": {
+    "app/services/analyst.py": "d7611e99e529836ac4ba7e3abcfdf05f889c33a2d075846741ba623b7d56e3d8",
+    "app/services/supervisor.py": "0823b6c3a0253c4afe89e4a4e21b1d77b466924d0db1bd2aa803c9074da683fd",
+    "tests/test_analyst_claim_liveness.py": "3b96778995dd1ef450332fbe6dfa25beed42754f29ffd8cd3cf75a7aeba75ab6",
+    "tests/test_video_claim_liveness.py": "33e062854a4e614df5199561fb06248a7f1d42ce6b304e5b7a61677e8bd9d4a4"
+  },
+  "implementation_test_artifacts": {
+    "cancellation-r1-r2-red.xml": {
+      "sha256": "cc05e6e25b3715dd0dfc509baf295d2101a2050218ae06f7f7f39364f831f055",
+      "counts": {
+        "tests": 4,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 0
+      },
+      "timestamp": [
+        "2026-09-07T15:01:09.429400+08:00"
+      ],
+      "failed_cases": [
+        "test_stop_preserves_cancellation_when_claim_or_cleanup_fails[claim]",
+        "test_stop_preserves_cancellation_when_claim_or_cleanup_fails[mark_interrupted]",
+        "test_canceling_stop_again_waits_for_claim_and_kernel_lease_cleanup[claim]",
+        "test_canceling_stop_again_waits_for_claim_and_kernel_lease_cleanup[cleanup]"
+      ]
+    },
+    "cancellation-r1-r2-green.xml": {
+      "sha256": "5d1299bdc160bcb5d0344abc30918c0fec9182fd716db868fa80d735b9457a19",
+      "counts": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 6
+      },
+      "timestamp": [
+        "2026-09-07T15:01:45.504160+08:00"
+      ],
+      "failed_cases": []
+    },
+    "video-claim-busy-red.xml": {
+      "sha256": "ef7a038d45c7c803fb76da1f67faa81a697f9b9c986f0da0e304247717b933e4",
+      "counts": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 0
+      },
+      "timestamp": [
+        "2026-09-07T15:04:55.605634+08:00"
+      ],
+      "failed_cases": [
+        "test_lifespan_video_worker_survives_real_sqlite_busy_timeout"
+      ]
+    },
+    "video-claim-green.xml": {
+      "sha256": "b365f1781c16892d5a0892530914cd9b72343b16a902132b538ac50506900b09",
+      "counts": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 2
+      },
+      "timestamp": [
+        "2026-09-07T15:06:49.282733+08:00"
+      ],
+      "failed_cases": [
+        "test_lifespan_video_worker_survives_real_sqlite_busy_timeout"
+      ]
+    },
+    "queue-final-regressions.xml": {
+      "sha256": "128f08c1e5ae951e3310f2ce801f179b1d3130ff685c2b5ffe15bf52f141a0de",
+      "counts": {
+        "tests": 175,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 175
+      },
+      "timestamp": [
+        "2026-09-07T15:09:31.815343+08:00"
+      ],
+      "failed_cases": []
+    },
+    "queue-final.xml": {
+      "sha256": "74513584046a433bf51c78ab20dbdb6e0c2791ca515d248e3d0def0a4505d23e",
+      "counts": {
+        "tests": 865,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 863
+      },
+      "timestamp": [
+        "2026-09-07T15:11:16.466999+08:00"
+      ],
+      "failed_cases": [
+        "test_stop_preserves_cancellation_when_claim_or_cleanup_fails[claim]",
+        "test_stop_preserves_cancellation_when_claim_or_cleanup_fails[mark_interrupted]"
+      ]
+    },
+    "cancellation-after-migration-green.xml": {
+      "sha256": "39c32d01f2a70bd9282582c9839d690c7af4d5d8a9a6ded798f9faddaf1d1e4e",
+      "counts": {
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 16
+      },
+      "timestamp": [
+        "2026-09-07T15:16:20.282636+08:00"
+      ],
+      "failed_cases": []
+    },
+    "queue-final-verified.xml": {
+      "sha256": "ca6adf848629f4893e34b5782dfff745cfc0ab6ccda46f6d899c6d904b606a6c",
+      "counts": {
+        "tests": 865,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 865
+      },
+      "timestamp": [
+        "2026-09-07T15:17:27.257024+08:00"
+      ],
+      "failed_cases": []
+    }
+  },
+  "final_log": {
+    "file": "runtime/closeout-fixes/backend/queue-final-verified.log",
+    "sha256": "129e1358fa31fd56a763669f9d8fb3a36bad770fb523c31492dda80d6ce57c33",
+    "result": "865 passed, 24 warnings in 79.39s"
+  },
+  "implementation_final_source_snapshot": {
+    "file": "runtime/closeout-fixes/backend/queue-verified-source-snapshot.json",
+    "sha256": "97f712f8d33895b06754a05fa27e56421273d445d33ef6c4a518226a4c14723e",
+    "entries_checked": 257,
+    "mismatches": []
+  },
+  "independent_probes": {
+    "AI": {
+      "file": "cancellation-fixed-probes.json",
+      "passed": 7,
+      "sha256": "1af4899da62864c53808029289da6ce88362db0be13c3cef439dd4819ad549a0"
+    },
+    "video": {
+      "file": "video-fixed-probes.json",
+      "passed": 8,
+      "sha256": "c155daa5be52c1ec979609ccf0a9b7d0ec37871e3899f3b1f1d3fd682893dfd3"
+    },
+    "Safari_offline": {
+      "file": "offline-safari-checks.json",
+      "passed": 10,
+      "sha256": "f7cfb13e550b92bec2dbe1aac75df164a23dc4d2114517fdbd94815e0c3643fa"
+    }
+  },
+  "parent_reported_remote_observations": {
+    "source": "User message; reviewer did not access remote, production or credentials",
+    "v3_quick_both_modes": {
+      "status": 422,
+      "code": "unsupported_timeline",
+      "seconds_approximately": 19.6
+    },
+    "v3_mixed_both_modes": {
+      "status": 422,
+      "code": "unsupported_timeline",
+      "seconds_approximately": 46
+    },
+    "concurrent_account_limits": {
+      "status": 200,
+      "milliseconds_approximately": 42
+    },
+    "interpretation": "Input compatibility evidence; no performance SLA, no relaxed CFR assertion; other media still running"
+  },
+  "remaining_blocking_code_findings": [],
+  "resolved_original_findings": [
+    "R1",
+    "R2"
+  ],
+  "original_report_sha256": "d4e291ddf51973588a0f47034172644da7ba0e861a621189ddd3693726318b75"
+}

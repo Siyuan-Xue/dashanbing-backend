@@ -1,0 +1,21 @@
+✔ full capture expands all 15 pages into 300 exact viewport cases (1.321667ms)
+✔ dry-run is the default and development smoke stays explicitly bounded (0.539791ms)
+✔ rejects non-fixture origins, ambiguous sizes and outputs outside ignored runtime (0.487083ms)
+✔ redacts credential values, encoded values and bearer/cookie material recursively (0.4255ms)
+✔ records geometry independently of screenshot dimensions without treating long pages as overflow (0.076041ms)
+✔ per-case failures are retained and do not stop subsequent captures or rerun them (0.111167ms)
+✔ evidence path rejects existing and escaping symlink directories (2.557958ms)
+✔ browser evidence distinguishes actual Chrome from Chromium and unknown executables (0.196417ms)
+✔ readiness waits for pending HTTP reads and records a timeout without retrying (0.139417ms)
+✔ public account controls open the mobile menu first and preserve already-open/desktop menus (0.223291ms)
+✔ only endpoint/status-correlated anonymous bootstrap 401 console errors are expected (0.195083ms)
+✔ browser read lifecycle removes cancellation/end/redirect entries without aging out outstanding requests (0.2475ms)
+✔ document replacement archives old-loader reads as unresolved evidence while current/unknown-loader reads still time out (0.171375ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40.739542

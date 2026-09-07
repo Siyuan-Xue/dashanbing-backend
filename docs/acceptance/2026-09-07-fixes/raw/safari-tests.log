@@ -1,0 +1,18 @@
+test_arbitrary_server_error_code_is_not_exposed (tests.test_browser_closeout.DriverErrorTests.test_arbitrary_server_error_code_is_not_exposed) ... ok
+test_http_click_error_preserves_status_and_standard_code_only (tests.test_browser_closeout.DriverErrorTests.test_http_click_error_preserves_status_and_standard_code_only) ... ok
+test_live_listener_is_never_attached_to_or_replaced (tests.test_browser_closeout.DriverPortTests.test_live_listener_is_never_attached_to_or_replaced) ... ok
+test_recently_closed_port_does_not_block_a_new_owned_driver (tests.test_browser_closeout.DriverPortTests.test_recently_closed_port_does_not_block_a_new_owned_driver) ... ok
+test_obscured_control_never_receives_click (tests.test_safari_product_flow.ClickTests.test_obscured_control_never_receives_click) ... ok
+test_offscreen_control_scrolls_before_one_native_click (tests.test_safari_product_flow.ClickTests.test_offscreen_control_scrolls_before_one_native_click) ... ok
+test_successful_command_without_a_trusted_click_is_a_failure (tests.test_safari_product_flow.ClickTests.test_successful_command_without_a_trusted_click_is_a_failure) ... ok
+test_failure_stops_flow_and_never_leaks_exception_text (tests.test_safari_product_flow.StepTests.test_failure_stops_flow_and_never_leaks_exception_text) ... ok
+test_session_failure_preserves_protocol_evidence (tests.test_safari_product_flow.StepTests.test_session_failure_preserves_protocol_evidence) ... ok
+test_step_keeps_safe_protocol_failure_evidence (tests.test_safari_product_flow.StepTests.test_step_keeps_safe_protocol_failure_evidence) ... ok
+test_success_is_once_per_step_and_timing_has_no_pass_threshold (tests.test_safari_product_flow.StepTests.test_success_is_once_per_step_and_timing_has_no_pass_threshold) ... ok
+test_camera_expectation_uses_responsive_layout_on_mac_too (tests.test_safari_product_flow.ViewportTests.test_camera_expectation_uses_responsive_layout_on_mac_too) ... ok
+test_desktop_setup_accounts_for_browser_chrome (tests.test_safari_product_flow.ViewportTests.test_desktop_setup_accounts_for_browser_chrome) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.231s
+
+OK

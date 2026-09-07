@@ -1,0 +1,197 @@
+{
+  "verified_at": "2026-09-07T07:20:01.266383+00:00",
+  "suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "865",
+    "time": "79.357",
+    "timestamp": "2026-09-07T15:17:27.257024+08:00",
+    "hostname": "Miless-Mac-mini.local"
+  },
+  "pytest_elapsed": "79.39s",
+  "exit_code": 0,
+  "warnings": "24 existing Alembic path_separator deprecation warnings",
+  "original_failures_verified": [
+    {
+      "id": "B01",
+      "before_node": "tests.test_analyst_collections::test_collection_queues_full_reports_for_both_styles_once_and_charges_once",
+      "after_node": "tests.test_analyst_collections::test_collection_queues_full_reports_for_both_styles_once_and_charges_once",
+      "status": "passed"
+    },
+    {
+      "id": "B02",
+      "before_node": "tests.test_analyst_comparisons::test_comparison_validation_dedup_and_quota_are_separate_from_session[coach]",
+      "after_node": "tests.test_analyst_comparisons::test_comparison_validation_dedup_and_quota_are_separate_from_session[coach]",
+      "status": "passed"
+    },
+    {
+      "id": "B03",
+      "before_node": "tests.test_analyst_comparisons::test_comparison_validation_dedup_and_quota_are_separate_from_session[roast]",
+      "after_node": "tests.test_analyst_comparisons::test_comparison_validation_dedup_and_quota_are_separate_from_session[roast]",
+      "status": "passed"
+    },
+    {
+      "id": "B04",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-report]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-report]",
+      "status": "passed"
+    },
+    {
+      "id": "B05",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-message]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-message]",
+      "status": "passed"
+    },
+    {
+      "id": "B06",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-report]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-report]",
+      "status": "passed"
+    },
+    {
+      "id": "B07",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-message]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-message]",
+      "status": "passed"
+    },
+    {
+      "id": "B08",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-report]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-report]",
+      "status": "passed"
+    },
+    {
+      "id": "B09",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-message]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-message]",
+      "status": "passed"
+    },
+    {
+      "id": "B10",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-report]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-report]",
+      "status": "passed"
+    },
+    {
+      "id": "B11",
+      "before_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-message]",
+      "after_node": "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-message]",
+      "status": "passed"
+    },
+    {
+      "id": "B12",
+      "before_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-report]",
+      "after_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-report]",
+      "status": "passed"
+    },
+    {
+      "id": "B13",
+      "before_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-message]",
+      "after_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-message]",
+      "status": "passed"
+    },
+    {
+      "id": "B14",
+      "before_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-report]",
+      "after_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-report]",
+      "status": "passed"
+    },
+    {
+      "id": "B15",
+      "before_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-message]",
+      "after_node": "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-message]",
+      "status": "passed"
+    },
+    {
+      "id": "B16",
+      "before_node": "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[0.5-True]",
+      "after_node": "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[0.5-True]",
+      "status": "passed"
+    },
+    {
+      "id": "B17",
+      "before_node": "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[30.0-False]",
+      "after_node": "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[30.0-False]",
+      "status": "passed"
+    },
+    {
+      "id": "B18",
+      "before_node": "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[52.0-False]",
+      "after_node": "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[52.0-False]",
+      "status": "passed"
+    },
+    {
+      "id": "B19",
+      "before_node": "tests.test_analyst_report_regressions::test_generator_reuses_legacy_preset_and_fills_both_styles",
+      "after_node": "tests.test_analyst_report_regressions::test_generator_reuses_legacy_preset_and_fills_both_styles",
+      "status": "passed"
+    },
+    {
+      "id": "B20",
+      "before_node": "tests.test_analyst_report_regressions::test_additive_migration_defaults_language_and_preserves_legacy_rows",
+      "after_node": "tests.test_analyst_report_regressions::test_additive_migration_defaults_language_and_preserves_legacy_rows",
+      "status": "passed"
+    },
+    {
+      "id": "B21",
+      "before_node": "tests.test_app::test_readiness_rejects_admin_password_that_does_not_match_database",
+      "after_node": "tests.test_app::test_readiness_preserves_database_password_when_bootstrap_password_changes",
+      "status": "passed"
+    },
+    {
+      "id": "B22",
+      "before_node": "tests.test_app::test_registration_normalizes_identity_and_returns_a_public_user",
+      "after_node": "tests.test_app::test_registration_normalizes_identity_and_returns_a_public_user",
+      "status": "passed"
+    },
+    {
+      "id": "B23",
+      "before_node": "tests.test_presets::test_preset_rerun_manifest_binds_registration_cameras_and_group_sync",
+      "after_node": "tests.test_presets::test_preset_rerun_manifest_binds_registration_cameras_and_group_sync",
+      "status": "passed"
+    },
+    {
+      "id": "B24",
+      "before_node": "tests.test_readiness::test_real_readiness_names_missing_active_models_and_sync",
+      "after_node": "tests.test_readiness::test_real_readiness_names_missing_active_models_without_global_sync",
+      "status": "passed"
+    },
+    {
+      "id": "B25",
+      "before_node": "tests.test_tasks_api::test_submit_requires_all_slots_and_injects_sync_only_at_submit",
+      "after_node": "tests.test_tasks_api::test_submit_requires_all_slots_and_snapshots_confirmed_task_sync",
+      "status": "passed"
+    }
+  ],
+  "source_files_verified": 257,
+  "changed_since_snapshot": [],
+  "queue_source_sha256": {
+    "app/services/analyst.py": "d7611e99e529836ac4ba7e3abcfdf05f889c33a2d075846741ba623b7d56e3d8",
+    "app/services/supervisor.py": "0823b6c3a0253c4afe89e4a4e21b1d77b466924d0db1bd2aa803c9074da683fd",
+    "tests/test_analyst_claim_liveness.py": "3b96778995dd1ef450332fbe6dfa25beed42754f29ffd8cd3cf75a7aeba75ab6",
+    "tests/test_video_claim_liveness.py": "33e062854a4e614df5199561fb06248a7f1d42ce6b304e5b7a61677e8bd9d4a4"
+  },
+  "original_acceptance_files_unchanged": 37,
+  "owned_files": [
+    "tests/test_analyst_collections.py",
+    "tests/test_analyst_comparisons.py",
+    "tests/test_analyst_invalidation.py",
+    "tests/test_analyst_jobs.py",
+    "tests/test_analyst_pose.py",
+    "tests/test_analyst_report_regressions.py",
+    "tests/test_app.py",
+    "tests/test_presets.py",
+    "tests/test_readiness.py",
+    "tests/test_tasks_api.py",
+    "tests/test_admin_recovery.py",
+    "app/services/analyst.py",
+    "tests/test_analyst_claim_liveness.py",
+    "app/services/supervisor.py",
+    "tests/test_video_claim_liveness.py"
+  ],
+  "remote_actions": "None",
+  "commits_or_pushes_by_this_task": "None",
+  "diff_check": "passed"
+}

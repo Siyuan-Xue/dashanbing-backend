@@ -1,0 +1,58 @@
+{
+  "status": "failed",
+  "platform": "mac",
+  "browser": "real_safari",
+  "emulation": false,
+  "steps": [
+    {
+      "step": "authenticate",
+      "status": "matched",
+      "details": {
+        "http_status": 200
+      },
+      "elapsed_ms": 370.1380001148209
+    },
+    {
+      "step": "open_draft",
+      "status": "matched",
+      "details": {
+        "draft": true,
+        "uploaded": 5,
+        "count": 1,
+        "sequential": true
+      },
+      "elapsed_ms": 442.00170901603997
+    },
+    {
+      "step": "initial_status",
+      "status": "matched",
+      "details": {
+        "status": "unconfirmed"
+      },
+      "elapsed_ms": 7.140500005334616
+    },
+    {
+      "step": "open_sync_1",
+      "status": "failed",
+      "error": "webdriver_command_failed",
+      "elapsed_ms": 9.721040958538651,
+      "diagnostic": {
+        "http_status": 400,
+        "webdriver_error": "element not interactable"
+      }
+    }
+  ],
+  "capabilities": {
+    "browserName": "Safari",
+    "browserVersion": "26.6.2",
+    "platformName": "macOS",
+    "safari:platformVersion": "26.6.2",
+    "safari:useSimulator": false
+  },
+  "error_geometry": {
+    "devicePixelRatio": 2,
+    "width": 800,
+    "height": 652,
+    "scrollWidth": 800
+  }
+}

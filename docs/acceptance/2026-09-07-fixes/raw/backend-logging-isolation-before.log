@@ -1,0 +1,37 @@
+........................................................................ [  8%]
+...................................FF................................... [ 16%]
+........................................................................ [ 24%]
+........................................................................ [ 33%]
+........................................................................ [ 41%]
+........................................................................ [ 49%]
+........................................................................ [ 58%]
+........................................................................ [ 66%]
+........................................................................ [ 74%]
+........................................................................ [ 83%]
+........................................................................ [ 91%]
+........................................................................ [ 99%]
+.                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_stop_preserves_cancellation_when_claim_or_cleanup_fails[claim] ______
+tests/test_analyst_claim_liveness.py:357: in test_stop_preserves_cancellation_when_claim_or_cleanup_fails
+    assert any(record.exc_info for record in caplog.records)
+E   assert False
+E    +  where False = any(<generator object test_stop_preserves_cancellation_when_claim_or_cleanup_fails.<locals>.<genexpr> at 0x12d44a2c0>)
+_ test_stop_preserves_cancellation_when_claim_or_cleanup_fails[mark_interrupted] _
+tests/test_analyst_claim_liveness.py:357: in test_stop_preserves_cancellation_when_claim_or_cleanup_fails
+    assert any(record.exc_info for record in caplog.records)
+E   assert False
+E    +  where False = any(<generator object test_stop_preserves_cancellation_when_claim_or_cleanup_fails.<locals>.<genexpr> at 0x12d2abb80>)
+=============================== warnings summary ===============================
+tests/test_admin_migration.py: 2 warnings
+tests/test_analyst_report_regressions.py: 2 warnings
+tests/test_migrations.py: 15 warnings
+tests/test_training_profiles.py: 5 warnings
+  <workspace>/.venv/lib/python3.12/site-packages/alembic/config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_analyst_claim_liveness.py::test_stop_preserves_cancellation_when_claim_or_cleanup_fails[claim]
+FAILED tests/test_analyst_claim_liveness.py::test_stop_preserves_cancellation_when_claim_or_cleanup_fails[mark_interrupted]
+2 failed, 863 passed, 24 warnings in 78.28s (0:01:18)

@@ -1,0 +1,73 @@
+{
+  "status": "failed",
+  "platform": "ios",
+  "browser": "real_safari",
+  "emulation": false,
+  "steps": [
+    {
+      "step": "authenticate",
+      "status": "matched",
+      "details": {
+        "http_status": 200
+      },
+      "elapsed_ms": 653.9353750413284
+    },
+    {
+      "step": "viewport",
+      "status": "matched",
+      "details": {
+        "width": 402,
+        "height": 714
+      },
+      "elapsed_ms": 44.46045798249543
+    },
+    {
+      "step": "open_draft",
+      "status": "failed",
+      "error": "native_click_not_observed",
+      "elapsed_ms": 20507.612250046805
+    }
+  ],
+  "capabilities": {
+    "browserName": "Safari",
+    "browserVersion": "26.6.1",
+    "platformName": "iOS",
+    "safari:platformVersion": "26.6.1",
+    "safari:deviceUDID": "[device identifier omitted]",
+    "safari:useSimulator": false
+  },
+  "interactions": [
+    {
+      "index": 1,
+      "scroll_actions": 0,
+      "before": {
+        "present": false
+      },
+      "last": {
+        "x": 117,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 323,
+        "scroll_x": 201,
+        "scroll_y": 445,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": false,
+        "events": [
+          "pointerdown",
+          "pointerdown",
+          "mousedown"
+        ]
+      }
+    }
+  ],
+  "error_geometry": {
+    "devicePixelRatio": 3,
+    "width": 402,
+    "height": 714,
+    "scrollWidth": 402
+  }
+}

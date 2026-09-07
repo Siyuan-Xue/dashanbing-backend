@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "tool": "measure_gpu_acceptance",
+  "status": "measured",
+  "evidence_kind": "real",
+  "gpu_measured": false,
+  "base_url": "http://127.0.0.1:8016",
+  "engine_version": "closeout-fixes-v3-d7611e99-0823b6c3",
+  "version_source": "operator_provided",
+  "modes": [
+    "quick",
+    "full"
+  ],
+  "samples_per_case": 1,
+  "started_at": "2026-09-07T07:15:53.181901+00:00",
+  "gpu_model": null,
+  "gpu_metadata_status": "unavailable",
+  "gpu_metadata_reason": "current_api_does_not_expose_hardware",
+  "outcomes": [
+    {
+      "preset": "quick-demo",
+      "mode": "quick",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 19.67798748984933,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "quick-demo",
+      "mode": "full",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 19.62580246478319,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "quick",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 45.96258895471692,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "full",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 46.01685646921396,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "quick",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 70.01758253574371,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "full",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 69.69795341044664,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "quick",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 31.203973799943924,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "full",
+      "sample": 1,
+      "status": "error",
+      "task_id": null,
+      "error": "http_error",
+      "http_events": [
+        {
+          "method": "POST",
+          "phase": "submit",
+          "http_status": 422,
+          "error": "http_error"
+        }
+      ],
+      "wall_seconds": 31.25230809301138,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    }
+  ],
+  "errors": 8,
+  "preflight": [
+    {
+      "method": "GET",
+      "phase": "preflight",
+      "http_status": 200,
+      "error": null
+    },
+    {
+      "method": "GET",
+      "phase": "preflight",
+      "http_status": 200,
+      "error": null
+    }
+  ],
+  "percentile_method": "nearest_rank",
+  "wall_seconds": 333.5362066850066,
+  "queue_seconds": {
+    "count": 0,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "runtime_seconds": {
+    "count": 0,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "cases": [
+    {
+      "preset": "quick-demo",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "quick-demo",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    }
+  ]
+}

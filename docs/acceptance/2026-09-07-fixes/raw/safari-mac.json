@@ -1,0 +1,803 @@
+{
+  "status": "recorded",
+  "platform": "mac",
+  "browser": "real_safari",
+  "emulation": false,
+  "steps": [
+    {
+      "step": "authenticate",
+      "status": "matched",
+      "details": {
+        "http_status": 200
+      },
+      "elapsed_ms": 357.1557920658961
+    },
+    {
+      "step": "viewport",
+      "status": "matched",
+      "details": {
+        "width": 1440,
+        "height": 900
+      },
+      "elapsed_ms": 40.51087494008243
+    },
+    {
+      "step": "open_draft",
+      "status": "matched",
+      "details": {
+        "draft": true,
+        "uploaded": 5,
+        "count": 1,
+        "sequential": true
+      },
+      "elapsed_ms": 408.17983297165483
+    },
+    {
+      "step": "initial_status",
+      "status": "matched",
+      "details": {
+        "status": "unconfirmed"
+      },
+      "elapsed_ms": 4.630415933206677
+    },
+    {
+      "step": "open_sync_1",
+      "status": "matched",
+      "details": {
+        "ready": true,
+        "camera_count": 4,
+        "frame_counts": [
+          50,
+          50,
+          50,
+          50
+        ],
+        "layout": {
+          "tabs": false,
+          "width": 1440,
+          "height": 900,
+          "compact": false
+        }
+      },
+      "elapsed_ms": 582.2627919260412
+    },
+    {
+      "step": "next_frame",
+      "status": "matched",
+      "details": {
+        "source_pts_ms": 40,
+        "frame_index": 1,
+        "camera_matches": true,
+        "actual_time_ms": 40
+      },
+      "elapsed_ms": 302.9251249972731
+    },
+    {
+      "step": "previous_frame",
+      "status": "matched",
+      "details": {
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 298.8023749785498
+    },
+    {
+      "step": "pass_1_select_cam_03",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 1,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 210.45258303638548
+    },
+    {
+      "step": "pass_1_select_cam_01",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 2,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 179.36862504575402
+    },
+    {
+      "step": "pass_1_select_cam_02",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 3,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 210.5600000359118
+    },
+    {
+      "step": "pass_1_select_cam_04",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 4,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 202.88095902651548
+    },
+    {
+      "step": "cancel_unconfirmed",
+      "status": "matched",
+      "details": {
+        "status": "unconfirmed"
+      },
+      "elapsed_ms": 158.78608298953623
+    },
+    {
+      "step": "open_sync_2",
+      "status": "matched",
+      "details": {
+        "ready": true,
+        "camera_count": 4,
+        "frame_counts": [
+          50,
+          50,
+          50,
+          50
+        ],
+        "layout": {
+          "tabs": false,
+          "width": 1440,
+          "height": 900,
+          "compact": false
+        }
+      },
+      "elapsed_ms": 461.7031250381842
+    },
+    {
+      "step": "pass_2_select_cam_03",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 1,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 188.51025006733835
+    },
+    {
+      "step": "pass_2_select_cam_01",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 2,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 196.37349992990494
+    },
+    {
+      "step": "pass_2_select_cam_02",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 3,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 201.68783399276435
+    },
+    {
+      "step": "pass_2_select_cam_04",
+      "status": "matched",
+      "details": {
+        "visible_count": 4,
+        "selected_count": 4,
+        "source_pts_ms": 0,
+        "frame_index": 0,
+        "camera_matches": true,
+        "actual_time_ms": 0
+      },
+      "elapsed_ms": 194.56087506841868
+    },
+    {
+      "step": "confirm_saved",
+      "status": "matched",
+      "details": {
+        "status": "confirmed",
+        "timestamps": {
+          "cam_03": 0,
+          "cam_04": 0,
+          "cam_01": 0,
+          "cam_02": 0
+        }
+      },
+      "elapsed_ms": 446.1910839891061
+    },
+    {
+      "step": "reopen_persisted",
+      "status": "matched",
+      "details": {
+        "status": "confirmed",
+        "timestamps": {
+          "cam_03": 0,
+          "cam_04": 0,
+          "cam_01": 0,
+          "cam_02": 0
+        }
+      },
+      "elapsed_ms": 376.20941700879484
+    }
+  ],
+  "capabilities": {
+    "browserName": "Safari",
+    "browserVersion": "26.6.2",
+    "platformName": "macOS",
+    "safari:platformVersion": "26.6.2",
+    "safari:useSimulator": false
+  },
+  "interactions": [
+    {
+      "index": 1,
+      "scroll_actions": 0,
+      "before": {
+        "present": false
+      },
+      "last": {
+        "x": 501,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 196,
+        "scroll_x": 850,
+        "scroll_y": 480,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1219,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 826,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1219,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 826,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "scroll_actions": 0,
+      "before": {
+        "x": 476,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 476,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "scroll_actions": 0,
+      "before": {
+        "x": 361,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 361,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "scroll_actions": 0,
+      "before": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "scroll_actions": 0,
+      "before": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1134,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 848,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1134,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 848,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1219,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 826,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1219,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 826,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "scroll_actions": 0,
+      "before": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "scroll_actions": 0,
+      "before": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 620,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 425,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1165,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 784,
+        "scroll_x": 720,
+        "scroll_y": 461,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1215,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 848,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1215,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 848,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 16,
+      "scroll_actions": 0,
+      "before": {
+        "present": false
+      },
+      "last": {
+        "x": 501,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 196,
+        "scroll_x": 850,
+        "scroll_y": 480,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    }
+  ]
+}

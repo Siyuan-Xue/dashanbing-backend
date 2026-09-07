@@ -1,0 +1,357 @@
+{
+  "policy": "JSON recursively omits device UDID and normalizes workspace paths; metrics and failures are unchanged; original files remain in ignored runtime directory; published log copies trim line-end whitespace and blank EOF only; original log hashes are retained",
+  "files": [
+    {
+      "source": "runtime/closeout-fixes/frontend/unit-before.log",
+      "published": "raw/frontend-unit-before.log",
+      "source_sha256": "dca6ad2b1247754a2a3a1dd2fddcf7361cad0fe04e9e642f535c02487c340df9",
+      "published_sha256": "dca6ad2b1247754a2a3a1dd2fddcf7361cad0fe04e9e642f535c02487c340df9",
+      "bytes": 1446,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/frontend/unit-full.log",
+      "published": "raw/frontend-unit.log",
+      "source_sha256": "83289cfaf2cae325f2aa97263b8755018f93515eba20c7f5f599a90959627411",
+      "published_sha256": "ddd60ad645bcbceb9b5841e28a2c667a8d0ada55365c1ad75a5ea3e7892f6621",
+      "bytes": 576,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/frontend/e2e-before.log",
+      "published": "raw/frontend-e2e-before.log",
+      "source_sha256": "ad13a34d668c1e377352bcb9e1268c7bedb8b24e630e41f87fad0f760ef874b9",
+      "published_sha256": "61d13a5d9e70ff8a3fccbaa8c85bb0b6f9ed83ae4e8a54e503a8d80007b2e073",
+      "bytes": 11348,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/frontend/e2e-functional.log",
+      "published": "raw/frontend-e2e.log",
+      "source_sha256": "41de65f26446490638825c153230d16824202b2b6a024b0ee53f69d51be48b5a",
+      "published_sha256": "41de65f26446490638825c153230d16824202b2b6a024b0ee53f69d51be48b5a",
+      "bytes": 31546,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/frontend/e2e-full.log",
+      "published": "raw/frontend-extra-visual.log",
+      "source_sha256": "ebe14cde3c357d6b841b1ea464b0db0776059df67c406c7cd6667446a8ed486f",
+      "published_sha256": "1bfe8bb58377ac9e4495a0886e011284788a4ac395a1f42f6e4247286ea87466",
+      "bytes": 598209,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/frontend/build.log",
+      "published": "raw/frontend-build.log",
+      "source_sha256": "42d54961df80f65443bef49fc882f5b976d8dbaaa20406e3fa805bceb3503fb2",
+      "published_sha256": "42d54961df80f65443bef49fc882f5b976d8dbaaa20406e3fa805bceb3503fb2",
+      "bytes": 945,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/frontend/capture-helper.log",
+      "published": "raw/chrome-helper-tests.log",
+      "source_sha256": "fca1ce85661e181ac709837e96ef283e76df804b99cca25bea82b67014e41978",
+      "published_sha256": "fca1ce85661e181ac709837e96ef283e76df804b99cca25bea82b67014e41978",
+      "bytes": 1430,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/root-causes.json",
+      "published": "raw/root-causes.json",
+      "source_sha256": "7ce4a62b1b292d97d73e2efeb3ccdc565cc7610fdd0ed0d62b2c5ee3159f009e",
+      "published_sha256": "7ce4a62b1b292d97d73e2efeb3ccdc565cc7610fdd0ed0d62b2c5ee3159f009e",
+      "bytes": 1646,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/glm-calls-after.jsonl",
+      "published": "raw/glm-calls.jsonl",
+      "source_sha256": "d219ef8a717210b6b80809faf70055b5ee9a44cf37aa5cb8e679681b3b838b7f",
+      "published_sha256": "d219ef8a717210b6b80809faf70055b5ee9a44cf37aa5cb8e679681b3b838b7f",
+      "bytes": 71904,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/glm-verification-summary.json",
+      "published": "raw/glm-summary.json",
+      "source_sha256": "458fe6ddd97a9677ffc479a09086a349135dcaa919bc58b53f98ff7f20420b1e",
+      "published_sha256": "de86f07593d4aa4c94144f295e0d5eb6ac000d32ccf7cc6919c5fa74fcd4e664",
+      "bytes": 892,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/gpu-results-after.json",
+      "published": "raw/gpu-before-claim-fix.json",
+      "source_sha256": "a7ff4baf69be89c703cd73c38394ec4a7f1e3b3b1959f828daecf62e91c4cb7c",
+      "published_sha256": "a44474bd27e374e55a4df2ec5bcb30a6a448f8237404fc77dc5b91d7320f2b29",
+      "bytes": 7858,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/readiness-after.json",
+      "published": "raw/gpu-readiness.json",
+      "source_sha256": "bbc6c0528aa39935d46709f009e93389acd20a8e77236d53118f790e8c5709e9",
+      "published_sha256": "d1d7cf5ef0a107a555923470d3ae3e7795977a18c6c3465aa2feb77ca92d015e",
+      "bytes": 1514,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/chrome-admin-final/summary.json",
+      "published": "raw/chrome-admin.json",
+      "source_sha256": "799b15798fc72ac0be020f21bbe177ef677fd2753e8be1722ad2640e9c7218ee",
+      "published_sha256": "c8190b6bfc6d9d5a382cff3b0338aefc57486e4016cb4eac169d1c53079d93d0",
+      "bytes": 104176,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-mac-final/evidence.json",
+      "published": "raw/safari-mac.json",
+      "source_sha256": "61cfb2c086860225ba6d92e9f26690d471e9b4d7a4d4fb71d53b75e131c42542",
+      "published_sha256": "61cfb2c086860225ba6d92e9f26690d471e9b4d7a4d4fb71d53b75e131c42542",
+      "bytes": 16690,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-mac-scroll-final/evidence.json",
+      "published": "raw/safari-mac-breakpoints.json",
+      "source_sha256": "743ce03569cee1554e8e55c3690a9483a7b193b2bb53eac69a68c24cc22ddae5",
+      "published_sha256": "13bedccfaf524e80a0c9667404daaf94035c9251a9346dba1048d925be7526b4",
+      "bytes": 2759,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-ios-final/evidence.json",
+      "published": "raw/safari-iphone.json",
+      "source_sha256": "1b8535ded7005739b1fa4cedff9ab0b1071b7599f2371c97330cd13b4ca5d034",
+      "published_sha256": "982960ff99c8d6806164b2eec761ba36f4539695111f99e33f6558be5db2f21d",
+      "bytes": 1498,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-mac-repro-001/evidence.json",
+      "published": "raw/safari-mac-before.json",
+      "source_sha256": "07c9759beb54371b32e311dcd2b1114f87cde140820eb61bb820b913a71906a6",
+      "published_sha256": "07c9759beb54371b32e311dcd2b1114f87cde140820eb61bb820b913a71906a6",
+      "bytes": 1238,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-tests-final.txt",
+      "published": "raw/safari-tests.log",
+      "source_sha256": "44eb3de5a1de93e5fa33a90550efce999e4ffb32afdb8ccd36593931bc4bdf18",
+      "published_sha256": "44eb3de5a1de93e5fa33a90550efce999e4ffb32afdb8ccd36593931bc4bdf18",
+      "bytes": 2174,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-helper-self-tests-final.txt",
+      "published": "raw/safari-helper-tests.log",
+      "source_sha256": "c57d97f32909d55b9c435a26a3efecdf5c5c4eda619417a75238af1dcb23947f",
+      "published_sha256": "c57d97f32909d55b9c435a26a3efecdf5c5c4eda619417a75238af1dcb23947f",
+      "bytes": 1819,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/chrome-admin-final/cases/admin-users-admin-390x900-en-dark.viewport.png",
+      "published": "screenshots/admin-390-en-dark.png",
+      "source_sha256": "92c090572e6f8c57eae1234268b5fd152f12e2913d75ba794be1d347e4864cea",
+      "published_sha256": "92c090572e6f8c57eae1234268b5fd152f12e2913d75ba794be1d347e4864cea",
+      "bytes": 69026,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/chrome-admin-final/cases/admin-users-admin-390x900-zh-light.viewport.png",
+      "published": "screenshots/admin-390-zh-light.png",
+      "source_sha256": "3bf7a37f9e8777e38ed3e710a80a2de4a02ee4a99748a6cb7ba22d94cc58cefd",
+      "published_sha256": "3bf7a37f9e8777e38ed3e710a80a2de4a02ee4a99748a6cb7ba22d94cc58cefd",
+      "bytes": 95739,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-mac-final/confirmed.png",
+      "published": "screenshots/safari-mac-confirmed.png",
+      "source_sha256": "9d0180bcc48e6b54314557ba34d0d40524ee302a9ca22bd291e6ce9b345d6f17",
+      "published_sha256": "9d0180bcc48e6b54314557ba34d0d40524ee302a9ca22bd291e6ce9b345d6f17",
+      "bytes": 355595,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/safari-mac-final/preview-1.png",
+      "published": "screenshots/safari-mac-four-cameras.png",
+      "source_sha256": "71b319f673efad8df585a0c1c2b3100111fb4b28ea6eaa08ed29fdef283df0be",
+      "published_sha256": "71b319f673efad8df585a0c1c2b3100111fb4b28ea6eaa08ed29fdef283df0be",
+      "bytes": 571434,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/source-timeline.json",
+      "published": "raw/source-timeline.json",
+      "source_sha256": "2cf8baa67877342acf55aa0daeeec32c5e00d75058203e70bcb608f01bba8176",
+      "published_sha256": "2cf8baa67877342acf55aa0daeeec32c5e00d75058203e70bcb608f01bba8176",
+      "bytes": 5628,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/gpu-v2-transport-probe.json",
+      "published": "raw/gpu-v2-transport-probe.json",
+      "source_sha256": "e8686d5a2cbe619e3576210090c9af09ffb3ff5d945cf50ea59243d5cf445cd3",
+      "published_sha256": "e8686d5a2cbe619e3576210090c9af09ffb3ff5d945cf50ea59243d5cf445cd3",
+      "bytes": 7897,
+      "sanitized": false
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-final-verified.log",
+      "published": "raw/backend-tests.log",
+      "source_sha256": "129e1358fa31fd56a763669f9d8fb3a36bad770fb523c31492dda80d6ce57c33",
+      "published_sha256": "639b13c640d7dc6360a9d22fb0cc2651e8ea75d426dc0c29690161d5cd13b01f",
+      "bytes": 1714,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-final-verified.xml",
+      "published": "raw/backend-tests.xml",
+      "source_sha256": "ca6adf848629f4893e34b5782dfff745cfc0ab6ccda46f6d899c6d904b606a6c",
+      "published_sha256": "ca6adf848629f4893e34b5782dfff745cfc0ab6ccda46f6d899c6d904b606a6c",
+      "bytes": 127741,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-final-regressions.log",
+      "published": "raw/queue-regressions.log",
+      "source_sha256": "250b343a3c05bb5da9542af476a6c08f80c458f7b452f9ef7945199ac452c66c",
+      "published_sha256": "250b343a3c05bb5da9542af476a6c08f80c458f7b452f9ef7945199ac452c66c",
+      "bytes": 261,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-final-regressions.xml",
+      "published": "raw/queue-regressions.xml",
+      "source_sha256": "128f08c1e5ae951e3310f2ce801f179b1d3130ff685c2b5ffe15bf52f141a0de",
+      "published_sha256": "128f08c1e5ae951e3310f2ce801f179b1d3130ff685c2b5ffe15bf52f141a0de",
+      "bytes": 30684,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/claim-liveness-real-timeout-red.log",
+      "published": "raw/claim-blocking-before.log",
+      "source_sha256": "78f9cf09a1a9ed37b2c59323020683ca749f85f9ab641303ab72130cbb3f7aa8",
+      "published_sha256": "b089a5364f00fdb9f4b98eb86f32d4a4fb7d112759965240b579efe1966aed07",
+      "bytes": 26423,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/cancellation-r1-r2-red.xml",
+      "published": "raw/cancellation-before.xml",
+      "source_sha256": "cc05e6e25b3715dd0dfc509baf295d2101a2050218ae06f7f7f39364f831f055",
+      "published_sha256": "c0c2355e1dec3effd77b395a16507ae26dde54750f5dae93af619497d90e158d",
+      "bytes": 8260,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/cancellation-r1-r2-green.xml",
+      "published": "raw/cancellation-after.xml",
+      "source_sha256": "5d1299bdc160bcb5d0344abc30918c0fec9182fd716db868fa80d735b9457a19",
+      "published_sha256": "5d1299bdc160bcb5d0344abc30918c0fec9182fd716db868fa80d735b9457a19",
+      "bytes": 1159,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/video-claim-busy-red.xml",
+      "published": "raw/video-busy-before.xml",
+      "source_sha256": "ef7a038d45c7c803fb76da1f67faa81a697f9b9c986f0da0e304247717b933e4",
+      "published_sha256": "ef7a038d45c7c803fb76da1f67faa81a697f9b9c986f0da0e304247717b933e4",
+      "bytes": 831,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-final.log",
+      "published": "raw/backend-logging-isolation-before.log",
+      "source_sha256": "043a9b6a63d5ee5d36542fa75a26130c4a750b384fd3463da646006e7752614c",
+      "published_sha256": "4e93917ccfbb18c34e9ce08735ca708f3df0415549ea52571ac360793cca8fa1",
+      "bytes": 2937,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-verified-source-snapshot.json",
+      "published": "raw/backend-source-snapshot.json",
+      "source_sha256": "97f712f8d33895b06754a05fa27e56421273d445d33ef6c4a518226a4c14723e",
+      "published_sha256": "97f712f8d33895b06754a05fa27e56421273d445d33ef6c4a518226a4c14723e",
+      "bytes": 28993,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/gpu-final.json",
+      "published": "raw/gpu-final.json",
+      "source_sha256": "3ea6c23fc9013d7edc9f9bfd61675a9d48077866d5f7a8d62f555dfd59cf3103",
+      "published_sha256": "3ea6c23fc9013d7edc9f9bfd61675a9d48077866d5f7a8d62f555dfd59cf3103",
+      "bytes": 7849,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/gpu-submissions.jsonl",
+      "published": "raw/gpu-submissions.jsonl",
+      "source_sha256": "6d1f209bc007110f26912400f05dd5412e7f36bd30444a36ef74617dd93fe41c",
+      "published_sha256": "6d1f209bc007110f26912400f05dd5412e7f36bd30444a36ef74617dd93fe41c",
+      "bytes": 1160,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/concurrent-read.json",
+      "published": "raw/concurrent-read.json",
+      "source_sha256": "3522a740282ed22b53003ead8afa44abee2312b6d39fefb4a17aa19d41808f3e",
+      "published_sha256": "3522a740282ed22b53003ead8afa44abee2312b6d39fefb4a17aa19d41808f3e",
+      "bytes": 178,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/review/final-incremental-evidence.json",
+      "published": "raw/review-final.json",
+      "source_sha256": "cb3443aad39629ff32ea4387df4a1bd2e5d3a9a89d1c48b0fa63a621468ecf7b",
+      "published_sha256": "cb3443aad39629ff32ea4387df4a1bd2e5d3a9a89d1c48b0fa63a621468ecf7b",
+      "bytes": 6041,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/review/cancellation-probes.json",
+      "published": "raw/review-cancellation-before.json",
+      "source_sha256": "e0613fa52a4b136cf493b28921775380ce499a7e2bbfcf14ed289621a61bc613",
+      "published_sha256": "e0613fa52a4b136cf493b28921775380ce499a7e2bbfcf14ed289621a61bc613",
+      "bytes": 853,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/review/cancellation-fixed-probes.json",
+      "published": "raw/review-cancellation-after.json",
+      "source_sha256": "1af4899da62864c53808029289da6ce88362db0be13c3cef439dd4819ad549a0",
+      "published_sha256": "1af4899da62864c53808029289da6ce88362db0be13c3cef439dd4819ad549a0",
+      "bytes": 1897,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/review/video-fixed-probes.json",
+      "published": "raw/review-video.json",
+      "source_sha256": "c155daa5be52c1ec979609ccf0a9b7d0ec37871e3899f3b1f1d3fd682893dfd3",
+      "published_sha256": "c155daa5be52c1ec979609ccf0a9b7d0ec37871e3899f3b1f1d3fd682893dfd3",
+      "bytes": 2196,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/backend/queue-final-verification.json",
+      "published": "raw/backend-verification.json",
+      "source_sha256": "8a99db838960e2f960cf0ace80df24828575fe85b3942efdf5a8997aa6038bbe",
+      "published_sha256": "8a99db838960e2f960cf0ace80df24828575fe85b3942efdf5a8997aa6038bbe",
+      "bytes": 9818,
+      "sanitized": true
+    },
+    {
+      "source": "runtime/closeout-fixes/diagnostics/shutdown.json",
+      "published": "raw/shutdown.json",
+      "source_sha256": "8fec3895735ecd35cce3362974eec336b1243f166249d087d8f1e5642c58a845",
+      "published_sha256": "8fec3895735ecd35cce3362974eec336b1243f166249d087d8f1e5642c58a845",
+      "bytes": 125,
+      "sanitized": false
+    }
+  ]
+}

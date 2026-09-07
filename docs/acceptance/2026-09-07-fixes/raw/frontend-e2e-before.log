@@ -1,0 +1,180 @@
+[WebServer] (node:793) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] $ vite --config vite.config.ts --host 127.0.0.1 --port 53179
+
+[WebServer] (node:822) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 4 tests using 2 workers
+
+(node:837) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:838) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/4] [desktop-chromium] › tests/api-center.spec.ts:19:1 › API docs keep the public header contract and responsive navigation
+[2/4] [desktop-chromium] › tests/public-foundation.spec.ts:189:1 › logout can retry a network failure and clears access to protected pages
+  1) [desktop-chromium] › tests/public-foundation.spec.ts:189:1 › logout can retry a network failure and clears access to protected pages
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: getByRole('alert')
+    Expected substring: "退出失败"
+    Error: strict mode violation: getByRole('alert') resolved to 2 elements:
+        1) <p role="alert" class="account-error">退出失败，请稍后重试</p> aka getByText('退出失败，请稍后重试')
+        2) <p role="alert">暂时无法读取当前配额</p> aka getByText('暂时无法读取当前配额')
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for getByRole('alert')
+        - locator resolved to <p role="alert">暂时无法读取当前配额</p>
+        - unexpected value "暂时无法读取当前配额"
+
+
+      199 |   await avatar.click();
+      200 |   await page.getByRole("button", { name: "退出登录" }).click();
+    > 201 |   await expect(page.getByRole("alert")).toContainText("退出失败");
+          |                                         ^
+      202 |   await expect(avatar).toBeVisible();
+      203 |   await expect(page.getByRole("button", { name: "退出登录" })).toBeFocused();
+      204 |   await page.keyboard.press("Escape");
+        at /Users/milesxue/Documents/ChatGPT/dashanbing-backend/.worktrees/ai-analyst/frontend/tests/public-foundation.spec.ts:201:41
+
+    Error Context: ../runtime/closeout-fixes/frontend/before-artifacts/public-foundation-logout-c-b9906-s-access-to-protected-pages-desktop-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../runtime/closeout-fixes/frontend/before-artifacts/public-foundation-logout-c-b9906-s-access-to-protected-pages-desktop-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../runtime/closeout-fixes/frontend/before-artifacts/public-foundation-logout-c-b9906-s-access-to-protected-pages-desktop-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:882) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[3/4] [mobile-chromium] › tests/api-center.spec.ts:19:1 › API docs keep the public header contract and responsive navigation
+  2) [desktop-chromium] › tests/api-center.spec.ts:19:1 › API docs keep the public header contract and responsive navigation
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByText(/\/api\/v1\/analyses/)
+    Expected: 0
+    Received: 1
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for getByText(/\/api\/v1\/analyses/)
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      25 |   await expect(page.getByText("Authorization: Bearer dsb_live_…", { exact: true })).toBeVisible();
+      26 |   await expect(page.getByText("enrollment_video", { exact: true })).toBeVisible();
+    > 27 |   await expect(page.getByText(/\/api\/v1\/analyses/)).toHaveCount(0);
+         |                                                       ^
+      28 |   const bodyTextContrast = await page.evaluate(() => {
+      29 |     const values = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+      30 |     const luminance = (value: string) => {
+        at /Users/milesxue/Documents/ChatGPT/dashanbing-backend/.worktrees/ai-analyst/frontend/tests/api-center.spec.ts:27:55
+
+    Error Context: ../runtime/closeout-fixes/frontend/before-artifacts/api-center-API-docs-keep-t-b5f2f-t-and-responsive-navigation-desktop-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../runtime/closeout-fixes/frontend/before-artifacts/api-center-API-docs-keep-t-b5f2f-t-and-responsive-navigation-desktop-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../runtime/closeout-fixes/frontend/before-artifacts/api-center-API-docs-keep-t-b5f2f-t-and-responsive-navigation-desktop-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:911) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[4/4] [mobile-chromium] › tests/public-foundation.spec.ts:189:1 › logout can retry a network failure and clears access to protected pages
+  3) [mobile-chromium] › tests/api-center.spec.ts:19:1 › API docs keep the public header contract and responsive navigation
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByText(/\/api\/v1\/analyses/)
+    Expected: 0
+    Received: 1
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for getByText(/\/api\/v1\/analyses/)
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      25 |   await expect(page.getByText("Authorization: Bearer dsb_live_…", { exact: true })).toBeVisible();
+      26 |   await expect(page.getByText("enrollment_video", { exact: true })).toBeVisible();
+    > 27 |   await expect(page.getByText(/\/api\/v1\/analyses/)).toHaveCount(0);
+         |                                                       ^
+      28 |   const bodyTextContrast = await page.evaluate(() => {
+      29 |     const values = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+      30 |     const luminance = (value: string) => {
+        at /Users/milesxue/Documents/ChatGPT/dashanbing-backend/.worktrees/ai-analyst/frontend/tests/api-center.spec.ts:27:55
+
+    Error Context: ../runtime/closeout-fixes/frontend/before-artifacts/api-center-API-docs-keep-t-b5f2f-t-and-responsive-navigation-mobile-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../runtime/closeout-fixes/frontend/before-artifacts/api-center-API-docs-keep-t-b5f2f-t-and-responsive-navigation-mobile-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../runtime/closeout-fixes/frontend/before-artifacts/api-center-API-docs-keep-t-b5f2f-t-and-responsive-navigation-mobile-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  4) [mobile-chromium] › tests/public-foundation.spec.ts:189:1 › logout can retry a network failure and clears access to protected pages
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: getByRole('alert')
+    Expected substring: "退出失败"
+    Error: strict mode violation: getByRole('alert') resolved to 2 elements:
+        1) <p role="alert" class="account-error">退出失败，请稍后重试</p> aka getByText('退出失败，请稍后重试')
+        2) <p role="alert">暂时无法读取当前配额</p> aka getByText('暂时无法读取当前配额')
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for getByRole('alert')
+
+
+      199 |   await avatar.click();
+      200 |   await page.getByRole("button", { name: "退出登录" }).click();
+    > 201 |   await expect(page.getByRole("alert")).toContainText("退出失败");
+          |                                         ^
+      202 |   await expect(avatar).toBeVisible();
+      203 |   await expect(page.getByRole("button", { name: "退出登录" })).toBeFocused();
+      204 |   await page.keyboard.press("Escape");
+        at /Users/milesxue/Documents/ChatGPT/dashanbing-backend/.worktrees/ai-analyst/frontend/tests/public-foundation.spec.ts:201:41
+
+    Error Context: ../runtime/closeout-fixes/frontend/before-artifacts/public-foundation-logout-c-b9906-s-access-to-protected-pages-mobile-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../runtime/closeout-fixes/frontend/before-artifacts/public-foundation-logout-c-b9906-s-access-to-protected-pages-mobile-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../runtime/closeout-fixes/frontend/before-artifacts/public-foundation-logout-c-b9906-s-access-to-protected-pages-mobile-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  4 failed
+    [desktop-chromium] › tests/api-center.spec.ts:19:1 › API docs keep the public header contract and responsive navigation
+    [desktop-chromium] › tests/public-foundation.spec.ts:189:1 › logout can retry a network failure and clears access to protected pages
+    [mobile-chromium] › tests/api-center.spec.ts:19:1 › API docs keep the public header contract and responsive navigation
+    [mobile-chromium] › tests/public-foundation.spec.ts:189:1 › logout can retry a network failure and clears access to protected pages

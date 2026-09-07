@@ -1,0 +1,33 @@
+$ vitest run src/ApiCenter.test.tsx
+
+ RUN  v5.0.0 /Users/milesxue/Documents/ChatGPT/dashanbing-backend/.worktrees/ai-analyst/frontend
+
+ ❯ src/ApiCenter.test.tsx (18 tests | 1 failed) 1835ms
+   ❯ API center (17)
+     × publishes an accurate public task API guide in the dedicated shell 198ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/ApiCenter.test.tsx > API center > publishes an accurate public task API guide in the dedicated shell
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <code>
+  POST /api/v1/analyses/upload
+</code> instead
+ ❯ src/ApiCenter.test.tsx:61:59
+     59|     expect(screen.getByText("运行前执行：python3 -m pip install requests")).…
+     60|     expect([...document.querySelectorAll(".api-code")].some(block => b…
+     61|     expect(screen.queryByText(/\/api\/v1\/analyses/)).not.toBeInTheDoc…
+       |                                                           ^
+     62|     expect(screen.queryByText("客户端")).not.toBeInTheDocument();
+     63|     expect(screen.queryByText("生态")).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 17 passed (18)
+   Start at  14:03:37
+   Duration  3.33s (tests 57%, environment 19%, transform 16%, import 5%, setup 3%)
+
+[ELIFECYCLE] Test failed. See above for more details.

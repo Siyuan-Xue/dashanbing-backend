@@ -1,0 +1,17 @@
+test_capture_paths_do_not_include_secret_controls (__main__.self_test.<locals>.ContractTests.test_capture_paths_do_not_include_secret_controls) ... ok
+test_capture_requires_fixture_and_physical_ios_ack (__main__.self_test.<locals>.ContractTests.test_capture_requires_fixture_and_physical_ios_ack) ... ok
+test_cookie_and_redacted_errors (__main__.self_test.<locals>.ContractTests.test_cookie_and_redacted_errors) ... ok
+test_credentials_must_be_private_marked_fixture (__main__.self_test.<locals>.ContractTests.test_credentials_must_be_private_marked_fixture) ... ok
+test_explicit_rfc1918_requires_isolated_fixture (__main__.self_test.<locals>.ContractTests.test_explicit_rfc1918_requires_isolated_fixture) ... ok
+test_failed_credential_read_does_not_claim_navigation (__main__.self_test.<locals>.ContractTests.test_failed_credential_read_does_not_claim_navigation) ... ok
+test_ios_lan_does_not_require_usb_forwarding (__main__.self_test.<locals>.ContractTests.test_ios_lan_does_not_require_usb_forwarding) ... ok
+test_lan_plan_is_network_and_credential_free (__main__.self_test.<locals>.ContractTests.test_lan_plan_is_network_and_credential_free) ... ok
+test_only_fixture_loopback_origin_is_accepted (__main__.self_test.<locals>.ContractTests.test_only_fixture_loopback_origin_is_accepted) ... ok
+test_preflight_never_navigates_or_reads_credentials (__main__.self_test.<locals>.ContractTests.test_preflight_never_navigates_or_reads_credentials) ... ok
+test_public_and_non_rfc1918_origins_remain_refused (__main__.self_test.<locals>.ContractTests.test_public_and_non_rfc1918_origins_remain_refused) ... ok
+test_real_platform_capabilities (__main__.self_test.<locals>.ContractTests.test_real_platform_capabilities) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.012s
+
+OK

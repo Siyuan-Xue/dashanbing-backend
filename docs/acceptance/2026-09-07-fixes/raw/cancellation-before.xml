@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="8.032" timestamp="2026-09-07T15:01:09.429400+08:00" hostname="Miless-Mac-mini.local"><testcase classname="tests.test_analyst_claim_liveness" name="test_stop_preserves_cancellation_when_claim_or_cleanup_fails[claim]" time="6.322"><failure message="AssertionError: stop did not terminate after a canceled claim/cleanup failed&#10;assert False&#10; +  where False = &lt;built-in method done of _asyncio.Task object at 0x10b6dfb80&gt;()&#10; +    where &lt;built-in method done of _asyncio.Task object at 0x10b6dfb80&gt; = &lt;Task pending name='Task-7' coro=&lt;AnalystSupervisor.stop() running at /Users/milesxue/Documents/ChatGPT/dashanbing-bac.../cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()]&gt; cb=[Task.task_wakeup()]&gt;&gt;.done">tests/test_analyst_claim_liveness.py:338: in test_stop_preserves_cancellation_when_claim_or_cleanup_fails
+    asyncio.run(scenario())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_claim_liveness.py:322: in scenario
+    assert stopping.done(), 'stop did not terminate after a canceled claim/cleanup failed'
+E   AssertionError: stop did not terminate after a canceled claim/cleanup failed
+E   assert False
+E    +  where False = &lt;built-in method done of _asyncio.Task object at 0x10b6dfb80&gt;()
+E    +    where &lt;built-in method done of _asyncio.Task object at 0x10b6dfb80&gt; = &lt;Task pending name='Task-7' coro=&lt;AnalystSupervisor.stop() running at /Users/milesxue/Documents/ChatGPT/dashanbing-bac.../cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()]&gt; cb=[Task.task_wakeup()]&gt;&gt;.done</failure></testcase><testcase classname="tests.test_analyst_claim_liveness" name="test_stop_preserves_cancellation_when_claim_or_cleanup_fails[mark_interrupted]" time="1.082"><failure message="AssertionError: stop did not terminate after a canceled claim/cleanup failed&#10;assert False&#10; +  where False = &lt;built-in method done of _asyncio.Task object at 0x10ba10e80&gt;()&#10; +    where &lt;built-in method done of _asyncio.Task object at 0x10ba10e80&gt; = &lt;Task pending name='Task-20' coro=&lt;AnalystSupervisor.stop() running at /Users/milesxue/Documents/ChatGPT/dashanbing-ba.../cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()]&gt; cb=[Task.task_wakeup()]&gt;&gt;.done">tests/test_analyst_claim_liveness.py:338: in test_stop_preserves_cancellation_when_claim_or_cleanup_fails
+    asyncio.run(scenario())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_claim_liveness.py:322: in scenario
+    assert stopping.done(), 'stop did not terminate after a canceled claim/cleanup failed'
+E   AssertionError: stop did not terminate after a canceled claim/cleanup failed
+E   assert False
+E    +  where False = &lt;built-in method done of _asyncio.Task object at 0x10ba10e80&gt;()
+E    +    where &lt;built-in method done of _asyncio.Task object at 0x10ba10e80&gt; = &lt;Task pending name='Task-20' coro=&lt;AnalystSupervisor.stop() running at /Users/milesxue/Documents/ChatGPT/dashanbing-ba.../cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()]&gt; cb=[Task.task_wakeup()]&gt;&gt;.done</failure></testcase><testcase classname="tests.test_analyst_claim_liveness" name="test_canceling_stop_again_waits_for_claim_and_kernel_lease_cleanup[claim]" time="0.083"><failure message="AssertionError: stop returned before lease cleanup finished&#10;assert (not True)&#10; +  where True = &lt;built-in method done of _asyncio.Task object at 0x10ba137c0&gt;()&#10; +    where &lt;built-in method done of _asyncio.Task object at 0x10ba137c0&gt; = &lt;Task finished name='Task-33' coro=&lt;AnalystSupervisor.stop() done, defined at <workspace>/app/services/analyst.py:467&gt; result=None&gt;.done">tests/test_analyst_claim_liveness.py:440: in test_canceling_stop_again_waits_for_claim_and_kernel_lease_cleanup
+    asyncio.run(scenario())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_claim_liveness.py:425: in scenario
+    assert not stopping.done() and not worker.done(), 'stop returned before lease cleanup finished'
+E   AssertionError: stop returned before lease cleanup finished
+E   assert (not True)
+E    +  where True = &lt;built-in method done of _asyncio.Task object at 0x10ba137c0&gt;()
+E    +    where &lt;built-in method done of _asyncio.Task object at 0x10ba137c0&gt; = &lt;Task finished name='Task-33' coro=&lt;AnalystSupervisor.stop() done, defined at <workspace>/app/services/analyst.py:467&gt; result=None&gt;.done</failure></testcase><testcase classname="tests.test_analyst_claim_liveness" name="test_canceling_stop_again_waits_for_claim_and_kernel_lease_cleanup[cleanup]" time="0.075"><failure message="AssertionError: stop returned before lease cleanup finished&#10;assert (not True)&#10; +  where True = &lt;built-in method done of _asyncio.Task object at 0x10bb4d3c0&gt;()&#10; +    where &lt;built-in method done of _asyncio.Task object at 0x10bb4d3c0&gt; = &lt;Task finished name='Task-44' coro=&lt;AnalystSupervisor.stop() done, defined at <workspace>/app/services/analyst.py:467&gt; result=None&gt;.done">tests/test_analyst_claim_liveness.py:440: in test_canceling_stop_again_waits_for_claim_and_kernel_lease_cleanup
+    asyncio.run(scenario())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_claim_liveness.py:425: in scenario
+    assert not stopping.done() and not worker.done(), 'stop returned before lease cleanup finished'
+E   AssertionError: stop returned before lease cleanup finished
+E   assert (not True)
+E    +  where True = &lt;built-in method done of _asyncio.Task object at 0x10bb4d3c0&gt;()
+E    +    where &lt;built-in method done of _asyncio.Task object at 0x10bb4d3c0&gt; = &lt;Task finished name='Task-44' coro=&lt;AnalystSupervisor.stop() done, defined at <workspace>/app/services/analyst.py:467&gt; result=None&gt;.done</failure></testcase></testsuite></testsuites>

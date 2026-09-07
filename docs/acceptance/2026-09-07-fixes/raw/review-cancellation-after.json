@@ -1,0 +1,78 @@
+{
+  "python": "3.12.13",
+  "source_sha256": "d7611e99e529836ac4ba7e3abcfdf05f889c33a2d075846741ba623b7d56e3d8",
+  "method": "Current exact method AST, event-controlled memory stubs; no application imports/DB/filesystem writes/network requests",
+  "results": [
+    {
+      "case": "cancel_then_claim_error",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "lease_live": false,
+      "cleanup": []
+    },
+    {
+      "case": "cancel_then_cleanup_error",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ]
+    },
+    {
+      "case": "1_cancellations_during_claim",
+      "stop_waited_for_cleanup": true,
+      "worker_cancelled": true,
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ]
+    },
+    {
+      "case": "2_cancellations_during_claim",
+      "stop_waited_for_cleanup": true,
+      "worker_cancelled": true,
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ]
+    },
+    {
+      "case": "2_cancellations_during_cleanup",
+      "stop_waited_for_cleanup": true,
+      "worker_cancelled": true,
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ]
+    },
+    {
+      "case": "4_cancellations_during_claim",
+      "stop_waited_for_cleanup": true,
+      "worker_cancelled": true,
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ]
+    },
+    {
+      "case": "4_cancellations_during_cleanup",
+      "stop_waited_for_cleanup": true,
+      "worker_cancelled": true,
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ]
+    }
+  ],
+  "passed": 7,
+  "exit_code": 0
+}

@@ -1,0 +1,31 @@
+{
+  "python": "3.12.13",
+  "method": "exact AST of current __init__, run_once, _loop, stop; controlled claim/cleanup stubs; no application imports, DB, filesystem writes, or network requests",
+  "results": [
+    {
+      "case": "1_cancellation_requests",
+      "lease_live": false,
+      "cleanup": [
+        "mark_interrupted",
+        "release_lease"
+      ],
+      "worker_cancelled": true
+    },
+    {
+      "case": "2_cancellation_requests",
+      "lease_live": true,
+      "cleanup": [],
+      "worker_cancelled": true
+    },
+    {
+      "case": "single_cancel_then_claim_error",
+      "worker_done": false,
+      "stop_done": false,
+      "worker_cancelling": 1,
+      "claim_calls": 2,
+      "resumed_claiming_after_stop": true
+    }
+  ],
+  "exit_code": 0,
+  "source_sha256": "510cae8e0b929f81378c9e5da563d5a77edee4154c60474a4ddcf0af52ba0c87"
+}

@@ -1,0 +1,87 @@
+{
+  "python": "3.12.13",
+  "source_sha256": "0823b6c3a0253c4afe89e4a4e21b1d77b466924d0db1bd2aa803c9074da683fd",
+  "method": "Exact current supervisor method AST, event-controlled claim/worker/release stubs and OperationalError stand-in; no application configuration imports, DB, files, or network requests",
+  "passed": 8,
+  "results": [
+    {
+      "case": "claim_error_then_successful_video",
+      "claims": 2,
+      "runs": 1,
+      "lease_live": false,
+      "video_mutex_live": false,
+      "worker_exited_after_stop_flag": true
+    },
+    {
+      "case": "claim_error",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 0,
+      "lease_live": false,
+      "video_mutex_live": false
+    },
+    {
+      "case": "cleanup_error",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 1,
+      "lease_live": false,
+      "video_mutex_live": false
+    },
+    {
+      "case": "1_cancellations_during_claim",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 1,
+      "lease_live": false,
+      "video_mutex_live": false
+    },
+    {
+      "case": "2_cancellations_during_claim",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 1,
+      "lease_live": false,
+      "video_mutex_live": false
+    },
+    {
+      "case": "2_cancellations_during_cleanup",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 1,
+      "lease_live": false,
+      "video_mutex_live": false
+    },
+    {
+      "case": "4_cancellations_during_claim",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 1,
+      "lease_live": false,
+      "video_mutex_live": false
+    },
+    {
+      "case": "4_cancellations_during_cleanup",
+      "stop_done": true,
+      "worker_cancelled": true,
+      "claims": 1,
+      "runs": 0,
+      "release_calls": 1,
+      "lease_live": false,
+      "video_mutex_live": false
+    }
+  ],
+  "exit_code": 0
+}

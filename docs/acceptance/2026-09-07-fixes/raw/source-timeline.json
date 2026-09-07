@@ -1,0 +1,297 @@
+[
+  {
+    "preset": "quick-demo",
+    "camera": 1,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 2879,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 2877,
+        "delta_ms": 34.0,
+        "at_ms": 48016.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "quick-demo",
+    "camera": 2,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 2942,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 2941,
+        "delta_ms": 66.0,
+        "at_ms": 49050.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "quick-demo",
+    "camera": 3,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 2910,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 2909,
+        "delta_ms": 66.0,
+        "at_ms": 48550.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "quick-demo",
+    "camera": 4,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 2972,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 2971,
+        "delta_ms": 33.0,
+        "at_ms": 49583.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "mixed-actions",
+    "camera": 1,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 6743,
+    "bad_intervals": 2,
+    "first_bad": [
+      {
+        "frame": 6741,
+        "delta_ms": 34.0,
+        "at_ms": 112332.0
+      },
+      {
+        "frame": 6742,
+        "delta_ms": 33.0,
+        "at_ms": 112366.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "mixed-actions",
+    "camera": 2,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 6807,
+    "bad_intervals": 2,
+    "first_bad": [
+      {
+        "frame": 6805,
+        "delta_ms": 33.0,
+        "at_ms": 113400.0
+      },
+      {
+        "frame": 6806,
+        "delta_ms": 33.0,
+        "at_ms": 113433.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "mixed-actions",
+    "camera": 3,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 6773,
+    "bad_intervals": 0,
+    "first_bad": [],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "mixed-actions",
+    "camera": 4,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 6836,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 6835,
+        "delta_ms": 33.0,
+        "at_ms": 113900.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "verified-outcome",
+    "camera": 1,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 10032,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 10031,
+        "delta_ms": 34.0,
+        "at_ms": 167199.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "verified-outcome",
+    "camera": 2,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 10095,
+    "bad_intervals": 2,
+    "first_bad": [
+      {
+        "frame": 10093,
+        "delta_ms": 34.0,
+        "at_ms": 168249.0
+      },
+      {
+        "frame": 10094,
+        "delta_ms": 33.0,
+        "at_ms": 168283.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "verified-outcome",
+    "camera": 3,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 10062,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 10061,
+        "delta_ms": 67.0,
+        "at_ms": 167699.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "verified-outcome",
+    "camera": 4,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 10125,
+    "bad_intervals": 0,
+    "first_bad": [],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "layup-demo",
+    "camera": 1,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 4426,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 4425,
+        "delta_ms": 67.0,
+        "at_ms": 74633.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "layup-demo",
+    "camera": 2,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 4489,
+    "bad_intervals": 0,
+    "first_bad": [],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "layup-demo",
+    "camera": 3,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 4458,
+    "bad_intervals": 1,
+    "first_bad": [
+      {
+        "frame": 4457,
+        "delta_ms": 67.0,
+        "at_ms": 75183.0
+      }
+    ],
+    "delta_median_ms": 17.0
+  },
+  {
+    "preset": "layup-demo",
+    "camera": 4,
+    "stream": {
+      "r_frame_rate": "60/1",
+      "avg_frame_rate": "60/1",
+      "time_base": "1/1000"
+    },
+    "frames": 4500,
+    "bad_intervals": 0,
+    "first_bad": [],
+    "delta_median_ms": 17.0
+  }
+]

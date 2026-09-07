@@ -1,0 +1,271 @@
+[WebServer] (node:10900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] $ vite --config vite.config.ts --host 127.0.0.1 --port 53179
+
+[WebServer] (node:10913) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 242 tests using 2 workers
+
+(node:10922) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:10921) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 zh light
+[2/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 zh dark
+[3/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 en light
+[4/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 en dark
+[5/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 zh light
+[6/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 zh dark
+[7/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 en light
+[8/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 en dark
+[9/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 zh light
+[10/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 zh dark
+[11/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 en light
+[12/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 en dark
+[13/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 zh light
+[14/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 zh dark
+[15/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 en light
+[16/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 en dark
+[17/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 zh light
+[18/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 zh dark
+[19/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 en light
+[20/242] [desktop-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 en dark
+[21/242] [desktop-chromium] › tests/analyst.integration.spec.ts:145:1 › evidence seeks active camera and chat streams then restores
+[22/242] [desktop-chromium] › tests/analyst.integration.spec.ts:161:1 › homepage adds analyst capability without querying analyst API
+[23/242] [desktop-chromium] › tests/analyst.integration.spec.ts:170:1 › completed player and tone switches use the loaded collection without generation requests
+[24/242] [desktop-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 768px
+[25/242] [desktop-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 800px
+[26/242] [desktop-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 900px
+[27/242] [desktop-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 1024px
+[28/242] [desktop-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 320x568
+[29/242] [desktop-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 390x664
+[30/242] [desktop-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 1440x768
+[31/242] [desktop-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 1920x700
+[32/242] [desktop-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 320 en light
+[33/242] [desktop-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 390 zh dark
+[34/242] [desktop-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 768 en light
+[35/242] [desktop-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 1440 zh light
+[36/242] [desktop-chromium] › tests/analyst.integration.spec.ts:432:3 › comparison starts empty with unbound profiles and never auto-generates
+[37/242] [desktop-chromium] › tests/analyst.integration.spec.ts:432:3 › comparison starts empty with bound profiles without history and never auto-generates
+[38/242] [desktop-chromium] › tests/analyst.integration.spec.ts:432:3 › comparison starts empty with bound profiles with eligible history and never auto-generates
+[39/242] [desktop-chromium] › tests/api-center.spec.ts:21:1 › API docs keep the public header contract and responsive navigation
+[40/242] [desktop-chromium] › tests/api-center.spec.ts:58:1 › API management never offers a fake copy action and reveals create secret once
+[41/242] [desktop-chromium] › tests/api-center.spec.ts:89:1 › restores focus to a live API-key target after state-changing success
+[42/242] [desktop-chromium] › tests/api-center.spec.ts:129:1 › defers fifth-key secret dismissal focus until delayed refresh settles
+[43/242] [desktop-chromium] › tests/api-center.spec.ts:155:1 › mobile API-key cards retain table headers and expose visible field labels
+[44/242] [desktop-chromium] › tests/api-center.spec.ts:167:1 › mobile API navigation expands inline and leaves keyboard focus free to reach the article
+[45/242] [desktop-chromium] › tests/api-center.spec.ts:186:1 › child hash links survive reload, back and forward with headings below the public header
+[46/242] [desktop-chromium] › tests/api-center.spec.ts:209:1 › scrolling selects nested headings without rewriting history and keeps the TOC selection visible
+[47/242] [desktop-chromium] › tests/api-center.spec.ts:223:1 › locale changes preserve the top of the docs page and its introduction
+[48/242] [desktop-chromium] › tests/api-center.spec.ts:232:1 › locale changes keep focus and align the current chapter instead of the stale hash
+[49/242] [desktop-chromium] › tests/api-center.spec.ts:258:1 › API dialogs preserve expiry focus and prevent background scrolling until dismissal
+[50/242] [desktop-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 320px
+[51/242] [desktop-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 768px
+[52/242] [desktop-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1024px
+[53/242] [desktop-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1279px
+[54/242] [desktop-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1280px
+[55/242] [desktop-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1920px
+[56/242] [desktop-chromium] › tests/api-center.spec.ts:309:3 › English dark API navigation and empty-key creation remain usable at 390px
+[57/242] [desktop-chromium] › tests/api-center.spec.ts:309:3 › English dark API navigation and empty-key creation remain usable at 1440px
+[58/242] [desktop-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace zh light
+[59/242] [desktop-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace zh dark
+[60/242] [desktop-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace en light
+[61/242] [desktop-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace en dark
+[62/242] [desktop-chromium] › tests/draft-upload.spec.ts:95:1 › reopened uploads wait for validation and preserve completed inputs
+[63/242] [desktop-chromium] › tests/draft-upload.spec.ts:106:1 › creating another task does not reuse the previous draft
+[64/242] [desktop-chromium] › tests/draft-upload.spec.ts:118:34 › restored draft layout at 320px
+[65/242] [desktop-chromium] › tests/draft-upload.spec.ts:118:34 › restored draft layout at 1440px
+[66/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 zh light
+[67/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 zh dark
+[68/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 en light
+[69/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 en dark
+[70/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 zh light
+[71/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 zh dark
+[72/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 en light
+[73/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 en dark
+[74/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 zh light
+[75/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 zh dark
+[76/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 en light
+[77/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 en dark
+[78/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 zh light
+[79/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 zh dark
+[80/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 en light
+[81/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 en dark
+[82/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 zh light
+[83/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 zh dark
+[84/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 en light
+[85/242] [desktop-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 en dark
+[86/242] [desktop-chromium] › tests/public-foundation.spec.ts:31:1 › public home keeps the approved navigation and story
+[87/242] [desktop-chromium] › tests/public-foundation.spec.ts:41:1 › theme and locale choices survive real clicks and reloads
+[88/242] [desktop-chromium] › tests/public-foundation.spec.ts:62:1 › public navigation changes routes without a document request
+[89/242] [desktop-chromium] › tests/public-foundation.spec.ts:73:1 › protected routing redirects back after a mocked cookie-auth login
+[90/242] [desktop-chromium] › tests/public-foundation.spec.ts:99:1 › registration permits the backend's 50-code-point astral username maximum
+[91/242] [desktop-chromium] › tests/public-foundation.spec.ts:125:1 › mobile header actions remain usable without horizontal overflow
+[92/242] [desktop-chromium] › tests/public-foundation.spec.ts:145:2 › mobile navigation closes on Escape and on route changes
+[93/242] [desktop-chromium] › tests/public-foundation.spec.ts:172:1 › account dropdown supports keyboard, outside dismissal and route changes
+[94/242] [desktop-chromium] › tests/public-foundation.spec.ts:196:1 › logout can retry a network failure and clears access to protected pages
+[95/242] [desktop-chromium] › tests/public-foundation.spec.ts:228:1 › account details wrap at 320px and remain usable in a short window
+[96/242] [desktop-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols zh light
+[97/242] [desktop-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols en light
+[98/242] [desktop-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols zh dark
+[99/242] [desktop-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols en dark
+[100/242] [desktop-chromium] › tests/workspace.spec.ts:43:1 › workspace shell has the fixed desktop rail and a usable phone drawer
+[101/242] [desktop-chromium] › tests/workspace.spec.ts:146:1 › task list filters through the real query contract and detail switches media
+[102/242] [desktop-chromium] › tests/workspace.spec.ts:172:1 › staged browser upload recovers one failed slot and gates submission
+[103/242] [desktop-chromium] › tests/workspace.spec.ts:232:1 › settings preferences remain functional inside the mobile-safe shell
+[104/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 320px
+[105/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 390px
+[106/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 767px
+[107/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 768px
+[108/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1024px
+[109/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1279px
+[110/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1280px
+[111/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1440px
+[112/242] [desktop-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1920px
+[113/242] [desktop-chromium] › tests/workspace.spec.ts:314:1 › long result tabs retain overview height and scroll locally
+[114/242] [desktop-chromium] › tests/workspace.spec.ts:344:1 › resizing across the drawer breakpoint restores usable navigation and document scrolling
+[115/242] [desktop-chromium] › tests/workspace.spec.ts:364:1 › settings shows content directly and keeps preference controls usable
+[116/242] [desktop-chromium] › tests/workspace.spec.ts:375:1 › filter reset clears options on confirm while preserving search and page size
+[117/242] [desktop-chromium] › tests/workspace.spec.ts:398:1 › all five result videos autoplay and preserve manual pause on task and example pages
+[118/242] [desktop-chromium] › tests/workspace.spec.ts:430:1 › detail toolbars align on desktop and fit long titles on mobile
+[119/242] [desktop-chromium] › tests/workspace.spec.ts:450:1 › settings logout retains focus on failure and returns home on retry
+[120/242] [desktop-chromium] › tests/workspace.spec.ts:491:40 › workspace navigation marks only the current destination with an accent border light
+[121/242] [desktop-chromium] › tests/workspace.spec.ts:491:40 › workspace navigation marks only the current destination with an accent border dark
+(node:12568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[122/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 zh light
+[123/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 zh dark
+[124/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 en light
+[125/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 320 en dark
+[126/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 zh light
+[127/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 zh dark
+[128/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 en light
+[129/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 390 en dark
+[130/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 zh light
+[131/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 zh dark
+[132/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 en light
+[133/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 768 en dark
+[134/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 zh light
+[135/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 zh dark
+[136/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 en light
+[137/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1440 en dark
+[138/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 zh light
+[139/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 zh dark
+[140/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 en light
+[141/242] [mobile-chromium] › tests/analyst.integration.spec.ts:109:3 › analyst layout 1920 en dark
+[142/242] [mobile-chromium] › tests/analyst.integration.spec.ts:145:1 › evidence seeks active camera and chat streams then restores
+(node:12719) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[143/242] [mobile-chromium] › tests/analyst.integration.spec.ts:161:1 › homepage adds analyst capability without querying analyst API
+[144/242] [mobile-chromium] › tests/analyst.integration.spec.ts:170:1 › completed player and tone switches use the loaded collection without generation requests
+[145/242] [mobile-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 768px
+[146/242] [mobile-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 800px
+[147/242] [mobile-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 900px
+[148/242] [mobile-chromium] › tests/analyst.integration.spec.ts:189:39 › expanded tablet sidebar preserves the analyst toolbar at 1024px
+[149/242] [mobile-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 320x568
+[150/242] [mobile-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 390x664
+[151/242] [mobile-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 1440x768
+[152/242] [mobile-chromium] › tests/analyst.integration.spec.ts:207:73 › AI illustration matches the video frame and centers headings 1920x700
+[153/242] [mobile-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 320 en light
+[154/242] [mobile-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 390 zh dark
+[155/242] [mobile-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 768 en light
+[156/242] [mobile-chromium] › tests/analyst.integration.spec.ts:267:3 › profile binding and independent comparisons 1440 zh light
+[157/242] [mobile-chromium] › tests/analyst.integration.spec.ts:432:3 › comparison starts empty with unbound profiles and never auto-generates
+[158/242] [mobile-chromium] › tests/analyst.integration.spec.ts:432:3 › comparison starts empty with bound profiles without history and never auto-generates
+[159/242] [mobile-chromium] › tests/analyst.integration.spec.ts:432:3 › comparison starts empty with bound profiles with eligible history and never auto-generates
+[160/242] [mobile-chromium] › tests/api-center.spec.ts:21:1 › API docs keep the public header contract and responsive navigation
+[161/242] [mobile-chromium] › tests/api-center.spec.ts:58:1 › API management never offers a fake copy action and reveals create secret once
+[162/242] [mobile-chromium] › tests/api-center.spec.ts:89:1 › restores focus to a live API-key target after state-changing success
+[163/242] [mobile-chromium] › tests/api-center.spec.ts:129:1 › defers fifth-key secret dismissal focus until delayed refresh settles
+[164/242] [mobile-chromium] › tests/api-center.spec.ts:155:1 › mobile API-key cards retain table headers and expose visible field labels
+[165/242] [mobile-chromium] › tests/api-center.spec.ts:167:1 › mobile API navigation expands inline and leaves keyboard focus free to reach the article
+[166/242] [mobile-chromium] › tests/api-center.spec.ts:186:1 › child hash links survive reload, back and forward with headings below the public header
+[167/242] [mobile-chromium] › tests/api-center.spec.ts:209:1 › scrolling selects nested headings without rewriting history and keeps the TOC selection visible
+[168/242] [mobile-chromium] › tests/api-center.spec.ts:223:1 › locale changes preserve the top of the docs page and its introduction
+[169/242] [mobile-chromium] › tests/api-center.spec.ts:232:1 › locale changes keep focus and align the current chapter instead of the stale hash
+[170/242] [mobile-chromium] › tests/api-center.spec.ts:258:1 › API dialogs preserve expiry focus and prevent background scrolling until dismissal
+[171/242] [mobile-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 320px
+[172/242] [mobile-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 768px
+[173/242] [mobile-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1024px
+[174/242] [mobile-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1279px
+[175/242] [mobile-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1280px
+[176/242] [mobile-chromium] › tests/api-center.spec.ts:282:3 › API layout contains content and uses the correct TOC at 1920px
+[177/242] [mobile-chromium] › tests/api-center.spec.ts:309:3 › English dark API navigation and empty-key creation remain usable at 390px
+[178/242] [mobile-chromium] › tests/api-center.spec.ts:309:3 › English dark API navigation and empty-key creation remain usable at 1440px
+[179/242] [mobile-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace zh light
+[180/242] [mobile-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace zh dark
+[181/242] [mobile-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace en light
+[182/242] [mobile-chromium] › tests/draft-upload.spec.ts:50:3 › draft uploads resume and replace en dark
+[183/242] [mobile-chromium] › tests/draft-upload.spec.ts:95:1 › reopened uploads wait for validation and preserve completed inputs
+[184/242] [mobile-chromium] › tests/draft-upload.spec.ts:106:1 › creating another task does not reuse the previous draft
+[185/242] [mobile-chromium] › tests/draft-upload.spec.ts:118:34 › restored draft layout at 320px
+[186/242] [mobile-chromium] › tests/draft-upload.spec.ts:118:34 › restored draft layout at 1440px
+[187/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 zh light
+[188/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 zh dark
+[189/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 en light
+[190/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 320 en dark
+[191/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 zh light
+[192/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 zh dark
+[193/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 en light
+[194/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 390 en dark
+[195/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 zh light
+[196/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 zh dark
+[197/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 en light
+[198/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 768 en dark
+[199/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 zh light
+[200/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 zh dark
+[201/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 en light
+[202/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1440 en dark
+[203/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 zh light
+[204/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 zh dark
+[205/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 en light
+[206/242] [mobile-chromium] › tests/profiles-task-layout.spec.ts:7:3 › profiles and task table 1920 en dark
+[207/242] [mobile-chromium] › tests/public-foundation.spec.ts:31:1 › public home keeps the approved navigation and story
+[208/242] [mobile-chromium] › tests/public-foundation.spec.ts:41:1 › theme and locale choices survive real clicks and reloads
+[209/242] [mobile-chromium] › tests/public-foundation.spec.ts:62:1 › public navigation changes routes without a document request
+[210/242] [mobile-chromium] › tests/public-foundation.spec.ts:73:1 › protected routing redirects back after a mocked cookie-auth login
+[211/242] [mobile-chromium] › tests/public-foundation.spec.ts:99:1 › registration permits the backend's 50-code-point astral username maximum
+[212/242] [mobile-chromium] › tests/public-foundation.spec.ts:125:1 › mobile header actions remain usable without horizontal overflow
+[213/242] [mobile-chromium] › tests/public-foundation.spec.ts:145:2 › mobile navigation closes on Escape and on route changes
+[214/242] [mobile-chromium] › tests/public-foundation.spec.ts:172:1 › account dropdown supports keyboard, outside dismissal and route changes
+[215/242] [mobile-chromium] › tests/public-foundation.spec.ts:196:1 › logout can retry a network failure and clears access to protected pages
+[216/242] [mobile-chromium] › tests/public-foundation.spec.ts:228:1 › account details wrap at 320px and remain usable in a short window
+[217/242] [mobile-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols zh light
+[218/242] [mobile-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols en light
+[219/242] [mobile-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols zh dark
+[220/242] [mobile-chromium] › tests/task-status.spec.ts:8:3 › task status colors and centered symbols en dark
+[221/242] [mobile-chromium] › tests/workspace.spec.ts:43:1 › workspace shell has the fixed desktop rail and a usable phone drawer
+[222/242] [mobile-chromium] › tests/workspace.spec.ts:146:1 › task list filters through the real query contract and detail switches media
+[223/242] [mobile-chromium] › tests/workspace.spec.ts:172:1 › staged browser upload recovers one failed slot and gates submission
+[224/242] [mobile-chromium] › tests/workspace.spec.ts:232:1 › settings preferences remain functional inside the mobile-safe shell
+[225/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 320px
+[226/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 390px
+[227/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 767px
+[228/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 768px
+[229/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1024px
+[230/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1279px
+[231/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1280px
+[232/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1440px
+[233/242] [mobile-chromium] › tests/workspace.spec.ts:248:3 › workspace panels and footer remain usable at 1920px
+[234/242] [mobile-chromium] › tests/workspace.spec.ts:314:1 › long result tabs retain overview height and scroll locally
+[235/242] [mobile-chromium] › tests/workspace.spec.ts:344:1 › resizing across the drawer breakpoint restores usable navigation and document scrolling
+[236/242] [mobile-chromium] › tests/workspace.spec.ts:364:1 › settings shows content directly and keeps preference controls usable
+[237/242] [mobile-chromium] › tests/workspace.spec.ts:375:1 › filter reset clears options on confirm while preserving search and page size
+[238/242] [mobile-chromium] › tests/workspace.spec.ts:398:1 › all five result videos autoplay and preserve manual pause on task and example pages
+[239/242] [mobile-chromium] › tests/workspace.spec.ts:430:1 › detail toolbars align on desktop and fit long titles on mobile
+[240/242] [mobile-chromium] › tests/workspace.spec.ts:450:1 › settings logout retains focus on failure and returns home on retry
+[241/242] [mobile-chromium] › tests/workspace.spec.ts:491:40 › workspace navigation marks only the current destination with an accent border light
+[242/242] [mobile-chromium] › tests/workspace.spec.ts:491:40 › workspace navigation marks only the current destination with an accent border dark
+  61 skipped
+  181 passed (1.8m)

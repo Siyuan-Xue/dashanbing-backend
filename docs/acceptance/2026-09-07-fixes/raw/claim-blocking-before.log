@@ -1,0 +1,382 @@
+F
+=================================== FAILURES ===================================
+_ test_failed_preset_rolls_back_with_real_lifespan_and_eight_empty_ai_workers __
+tests/test_analyst_claim_liveness.py:163: in test_failed_preset_rolls_back_with_real_lifespan_and_eight_empty_ai_workers
+    assert result.returncode == 0, result.stdout + result.stderr
+E   AssertionError: {"timeline": [{"event": "request_holds_writer", "seconds": 0.114, "thread": "AnyIO worker thread"}, {"event": "claim_begin", "seconds": 0.585, "thread": "MainThread"}, {"event": "request_raised", "seconds": 0.585, "thread": "AnyIO worker thread"}, {"event": "busy_timeout", "seconds": 5.765, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 5.77, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 10.962, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 10.966, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 16.16, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 16.162, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 21.351, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 21.353, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 26.539, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 26.542, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 31.734, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 31.737, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 36.921, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 36.925, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 42.11, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 42.113, "thread": "MainThread"}, {"event": "busy_timeout", "seconds": 47.295, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.297, "thread": "MainThread"}, {"event": "request_rollback", "seconds": 47.297, "thread": "AnyIO worker thread"}, {"event": "claim_begin", "seconds": 47.307, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.31, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.312, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.313, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.316, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.318, "thread": "MainThread"}, {"event": "claim_begin", "seconds": 47.321, "thread": "asyncio_0"}], "busy_timeouts": 9}
+E     <workspace>/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+E       from starlette.testclient import TestClient as TestClient  # noqa
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Analyst queue failure
+E     Traceback (most recent call last):
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlite3.OperationalError: database is locked
+E
+E     The above exception was the direct cause of the following exception:
+E
+E     Traceback (most recent call last):
+E       File "<workspace>/app/services/analyst.py", line 477, in _loop
+E         worked = await self.run_once()
+E                  ^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/app/services/analyst.py", line 488, in run_once
+E         job_id = claim_ai(self.app)
+E                  ^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 65, in observed_claim
+E         result = claim_ai(app)
+E                  ^^^^^^^^^^^^^
+E       File "<workspace>/app/services/admin_scheduling.py", line 234, in claim_ai
+E         session.connection().exec_driver_sql('BEGIN IMMEDIATE')
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1781, in exec_driver_sql
+E         ret = self._execute_context(
+E               ^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+E         return self._exec_single_context(
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+E         self._handle_dbapi_exception(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+E         raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+E         self.dialect.do_execute(
+E       File "<workspace>/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+E         cursor.execute(statement, parameters)
+E     sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+E     [SQL: BEGIN IMMEDIATE]
+E     (Background on this error at: https://sqlalche.me/e/20/e3q8)
+E     Traceback (most recent call last):
+E       File "<string>", line 1, in <module>
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 150, in _request_rollback_probe
+E         asyncio.run(scenario())
+E       File "/Users/milesxue/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py", line 195, in run
+E         return runner.run(main)
+E                ^^^^^^^^^^^^^^^^
+E       File "/Users/milesxue/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py", line 118, in run
+E         return self._loop.run_until_complete(task)
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       File "/Users/milesxue/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+E         return future.result()
+E                ^^^^^^^^^^^^^^^
+E       File "<workspace>/tests/test_analyst_claim_liveness.py", line 147, in scenario
+E         assert names.index('request_rollback') < names.index('busy_timeout'), (
+E                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     AssertionError: Empty AI claims prevented request rollback until SQLite busy-timeout
+E
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['<workspace>/.venv/bin/python', ...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Empty AI claims prevented request rollback until SQLite busy-timeout\n').returncode
+=========================== short test summary info ============================
+FAILED tests/test_analyst_claim_liveness.py::test_failed_preset_rolls_back_with_real_lifespan_and_eight_empty_ai_workers
+1 failed, 1 deselected in 48.32s

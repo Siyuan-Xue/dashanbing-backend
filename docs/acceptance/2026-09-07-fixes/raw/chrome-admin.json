@@ -1,0 +1,3269 @@
+{
+  "schema_version": 1,
+  "scope": "local_fixture_ui_measurements",
+  "started_at": "2026-09-07T06:28:41.883Z",
+  "base_url": "http://127.0.0.1:8013",
+  "evidence_dir": "<workspace>/runtime/closeout-fixes/chrome-admin-final",
+  "status": "recorded_without_detected_findings",
+  "browser": {
+    "name": "Google Chrome",
+    "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "executable_version": "Google Chrome 152.0.7977.83",
+    "launch_channel": "explicit executable",
+    "version": "152.0.7977.83",
+    "fallback": false
+  },
+  "cases": [
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-320x900-zh-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:42.753Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 27.5150000000001,
+      "main_heading_visible_elapsed_ms": 70.68091600000002,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 388.77975000000015,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13854.22",
+            "loader_id": "9C2A1C1824E21512BB8323A2317AB515",
+            "frame_id": "2C9075115D1D7B380B098892160E663E",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 1388.083833,
+            "browser_timestamp": 760518.925482,
+            "response_status": null,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "ED4EF179D48EE9F58C54AE5907CA1DF2",
+            "superseded_at_ms": 1407.376458,
+            "age_ms": 467.4261670000001
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-320x900-zh-light.viewport.png",
+        "width": 320,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-320x900-zh-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-320x900-zh-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-320x900-zh-light.events.json",
+      "elapsed_ms": 1067.7644169999999
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-320x900-zh-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:43.822Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 24.607250000000022,
+      "main_heading_visible_elapsed_ms": 57.74966600000016,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 388.17308300000013,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13870.22",
+            "loader_id": "6DD1EA6BCE7CD43C5BF3C80E5EBBEEFA",
+            "frame_id": "2E0B7D0B741BE03A82F3634DBD4BE48E",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 2243.0425,
+            "browser_timestamp": 760519.780639,
+            "response_status": null,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "03FDA0F49BAACADE378CC98851215BCC",
+            "superseded_at_ms": 2258.251958,
+            "age_ms": 450.853791
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-320x900-zh-dark.viewport.png",
+        "width": 320,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-320x900-zh-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-320x900-zh-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-320x900-zh-dark.events.json",
+      "elapsed_ms": 822.6467090000001
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-320x900-en-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:44.645Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 43.48545800000011,
+      "main_heading_visible_elapsed_ms": 56.54012499999999,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 414.85112500000014,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-320x900-en-light.viewport.png",
+        "width": 320,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-320x900-en-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-320x900-en-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-320x900-en-light.events.json",
+      "elapsed_ms": 874.2130829999996
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-320x900-en-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:45.520Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 41.748749999999745,
+      "main_heading_visible_elapsed_ms": 54.459292000000005,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 417.5537499999996,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13890.22",
+            "loader_id": "C6B48FA916EDAF43CE076E4D0B6B54EF",
+            "frame_id": "D8CCEB7F4FC20FE6A697670072598565",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 3940.1155,
+            "browser_timestamp": 760521.477671,
+            "response_status": null,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "84E8646B9B4B9F46D433CCBC99BFC92B",
+            "superseded_at_ms": 3971.652458,
+            "age_ms": 475.3198330000005
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-320x900-en-dark.viewport.png",
+        "width": 320,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-320x900-en-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-320x900-en-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-320x900-en-dark.events.json",
+      "elapsed_ms": 836.3583339999996
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-390x900-zh-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:46.357Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 25.519665999999233,
+      "main_heading_visible_elapsed_ms": 38.14920799999982,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 416.2624999999998,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13897.22",
+            "loader_id": "3BB0E17CA1F50CBFDB3C91B6F6C8625A",
+            "frame_id": "0CE2EAB564C4A899C90E6A75F26B4A1E",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 4776.197583,
+            "browser_timestamp": 760522.313905,
+            "response_status": null,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "56C46D1B84161C648E15125859B6DA0C",
+            "superseded_at_ms": 4791.055333,
+            "age_ms": 457.28087499999947
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-390x900-zh-light.viewport.png",
+        "width": 390,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-390x900-zh-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-390x900-zh-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-390x900-zh-light.events.json",
+      "elapsed_ms": 819.5247079999999
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-390x900-zh-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:47.178Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 27.654583999999886,
+      "main_heading_visible_elapsed_ms": 40.0170420000004,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 392.02149999999983,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-390x900-zh-dark.viewport.png",
+        "width": 390,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-390x900-zh-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-390x900-zh-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-390x900-zh-dark.events.json",
+      "elapsed_ms": 797.4122909999996
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-390x900-en-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:47.976Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 40.29150000000027,
+      "main_heading_visible_elapsed_ms": 53.51604099999986,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 415.10070799999994,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-390x900-en-light.viewport.png",
+        "width": 390,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-390x900-en-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-390x900-en-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-390x900-en-light.events.json",
+      "elapsed_ms": 835.6252910000003
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-390x900-en-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:48.812Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 40.57979200000045,
+      "main_heading_visible_elapsed_ms": 52.454375000000255,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 415.169167,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-390x900-en-dark.viewport.png",
+        "width": 390,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-390x900-en-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-390x900-en-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-390x900-en-dark.events.json",
+      "elapsed_ms": 845.336542
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-768x900-zh-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:49.658Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 26.09691699999985,
+      "main_heading_visible_elapsed_ms": 57.38795900000059,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 390.2010419999997,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13921.21",
+            "loader_id": "405E1961E45426226F67B4FF0540D32F",
+            "frame_id": "04B8D357605BE339654352C227CAE5B1",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 8093.612583,
+            "browser_timestamp": 760525.631382,
+            "response_status": null,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "0FAA918C77EED6C416680F0756C11242",
+            "superseded_at_ms": 8108.902166,
+            "age_ms": 450.5494170000002
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-768x900-zh-light.viewport.png",
+        "width": 768,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-768x900-zh-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-768x900-zh-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-768x900-zh-light.events.json",
+      "elapsed_ms": 840.0137500000001
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-768x900-zh-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:50.498Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 47.47387499999968,
+      "main_heading_visible_elapsed_ms": 59.49695799999972,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 389.2457080000004,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-768x900-zh-dark.viewport.png",
+        "width": 768,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-768x900-zh-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-768x900-zh-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-768x900-zh-dark.events.json",
+      "elapsed_ms": 833.3993750000009
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-768x900-en-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:51.333Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 35.96833400000105,
+      "main_heading_visible_elapsed_ms": 47.591583999999784,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 415.08545799999956,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-768x900-en-light.viewport.png",
+        "width": 768,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-768x900-en-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-768x900-en-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-768x900-en-light.events.json",
+      "elapsed_ms": 854.5354160000006
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-768x900-en-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:52.188Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 41.7554999999993,
+      "main_heading_visible_elapsed_ms": 54.35479099999975,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 416.7531249999993,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-768x900-en-dark.viewport.png",
+        "width": 768,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-768x900-en-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-768x900-en-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-768x900-en-dark.events.json",
+      "elapsed_ms": 861.1282920000012
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-1440x900-zh-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:53.049Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 30.814374999999927,
+      "main_heading_visible_elapsed_ms": 43.511375000000044,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 388.42229099999895,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13947.21",
+            "loader_id": "5A29D68730E9AD1F85489AFDFA572683",
+            "frame_id": "1AD3E159CB706CAC4BAB58971384CEBA",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 11467.979375,
+            "browser_timestamp": 760529.005552,
+            "response_status": 200,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "D06021766A9DC445C28C32B7C1210CB3",
+            "superseded_at_ms": 11487.868166,
+            "age_ms": 435.09979099999873
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-1440x900-zh-light.viewport.png",
+        "width": 1440,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-1440x900-zh-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-1440x900-zh-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-1440x900-zh-light.events.json",
+      "elapsed_ms": 823.9520840000005
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-1440x900-zh-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:53.874Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 24.50212499999907,
+      "main_heading_visible_elapsed_ms": 36.8269169999985,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 389.6235829999987,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": [
+          {
+            "request_id": "13955.21",
+            "loader_id": "5028360584C05A645C615ED8600B580A",
+            "frame_id": "D22FBEBB3EC7108391FE014B637508A7",
+            "url": "http://127.0.0.1:8013/api/v1/admin/overview",
+            "started_ms": 12294.204666,
+            "browser_timestamp": 760529.831997,
+            "response_status": null,
+            "terminal": null,
+            "classification": "superseded_main_document_unresolved",
+            "replacement_loader_id": "5DAA12B650D0C02B9D24BCAA71F2FDA1",
+            "superseded_at_ms": 12308.491541,
+            "age_ms": 430.0355840000011
+          }
+        ]
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-1440x900-zh-dark.viewport.png",
+        "width": 1440,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-1440x900-zh-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-1440x900-zh-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-1440x900-zh-dark.events.json",
+      "elapsed_ms": 807.0645420000001
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-1440x900-en-light",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:54.682Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 42.69158300000163,
+      "main_heading_visible_elapsed_ms": 55.82800000000134,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 387.28549999999996,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-1440x900-en-light.viewport.png",
+        "width": 1440,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-1440x900-en-light.geometry.json",
+      "timings_file": "cases/admin-users-admin-1440x900-en-light.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-1440x900-en-light.events.json",
+      "elapsed_ms": 823.4709169999987
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "admin-users-admin-1440x900-en-dark",
+      "page": "admin-users",
+      "role": "admin",
+      "path": "/admin/users",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "findings": [],
+      "started_at": "2026-09-07T06:28:55.506Z",
+      "authentication": {
+        "role": "admin",
+        "http_status": 200,
+        "landed_path": "/admin/overview"
+      },
+      "navigation_response_status": 200,
+      "domcontentloaded_elapsed_ms": 42.37029099999927,
+      "main_heading_visible_elapsed_ms": 54.63224999999875,
+      "readiness": {
+        "complete": true,
+        "elapsed_ms": 386.32137499999953,
+        "pending_count": 0,
+        "evidence_source": "CDP.Network + Page.frameNavigated",
+        "scope": "current_main_document_api_reads",
+        "pending_reads": [],
+        "superseded_document_reads": []
+      },
+      "settle_window_ms": 350,
+      "final_path": "/admin/users",
+      "screenshot": {
+        "file": "cases/admin-users-admin-1440x900-en-dark.viewport.png",
+        "width": 1440,
+        "height": 900,
+        "mode": "viewport"
+      },
+      "geometry_file": "cases/admin-users-admin-1440x900-en-dark.geometry.json",
+      "timings_file": "cases/admin-users-admin-1440x900-en-dark.timings.json",
+      "expected_bootstrap_401": {
+        "responses": 1,
+        "console_messages": 1
+      },
+      "rendered_states": [],
+      "events_file": "cases/admin-users-admin-1440x900-en-dark.events.json",
+      "elapsed_ms": 821.787542
+    }
+  ],
+  "boundaries": [
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-320x900-zh-light",
+      "role": "user",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 403.60149999999885,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.973708000001352,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 229.39987499999916,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-320x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-320x900-zh-light.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 58.18675000000076,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-320x900-zh-light",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 465.64537500000006,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 61.121000000001004,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.536667000000307,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 209.42462499999965,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-320x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-320x900-zh-light.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 50.2791670000006,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-320x900-zh-dark",
+      "role": "user",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 410.2074999999968,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 7.424250000000029,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 212.54420799999934,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-320x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-320x900-zh-dark.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 48.9465420000015,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-320x900-zh-dark",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 447.111958999998,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 60.75537500000064,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.102582999999868,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 221.94870900000024,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-320x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-320x900-zh-dark.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 57.93775000000096,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-320x900-en-light",
+      "role": "user",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 386.9613339999996,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 7.869417000001704,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 219.65958300000057,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-320x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-320x900-en-light.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 47.857208000001265,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-320x900-en-light",
+      "role": "admin",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 459.9692499999983,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 70.06341700000121,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.984583999997994,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 217.62545899999895,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-320x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-320x900-en-light.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 50.87412499999846,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-320x900-en-dark",
+      "role": "user",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 385.4227499999979,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.671958999999333,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 246.11395899999843,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-320x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-320x900-en-dark.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 57.9461659999979,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-320x900-en-dark",
+      "role": "admin",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 320,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 447.06345800000054,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 59.35616700000173,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.299041999998735,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 275.7941659999997,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-320x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-320x900-en-dark.account.viewport.png",
+            "width": 320,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 56.55762499999764,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-390x900-zh-light",
+      "role": "user",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 386.72770799999853,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.9551249999967695,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 223.29087499999878,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-390x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-390x900-zh-light.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 45.9542500000025,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-390x900-zh-light",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 477.69329199999993,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 64.50824999999895,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.086041999998997,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 258.2500409999993,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-390x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-390x900-zh-light.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 52.7768329999999,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-390x900-zh-dark",
+      "role": "user",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 404.5711659999979,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 7.039874999998574,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 239.98525000000154,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-390x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-390x900-zh-dark.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 44.900416000000405,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-390x900-zh-dark",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 447.12895899999785,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 57.52704200000153,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.624792000002344,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 227.78833299999678,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-390x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-390x900-zh-dark.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 54.731292000000394,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-390x900-en-light",
+      "role": "user",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 389.96741699999984,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.858124999998836,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 213.7853750000031,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-390x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-390x900-en-light.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 42.69225000000006,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-390x900-en-light",
+      "role": "admin",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 459.6631249999991,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 76.56950000000143,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.223834000000352,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 204.26012499999706,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-390x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-390x900-en-light.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 47.13475000000108,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-390x900-en-dark",
+      "role": "user",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 384.7852920000005,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 7.595792000000074,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 203.84445799999958,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-390x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-390x900-en-dark.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 46.604458000001614,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-390x900-en-dark",
+      "role": "admin",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 390,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 450.3179170000003,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 62.58479200000147,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.2135419999976875,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 212.20104100000026,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-390x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-390x900-en-dark.account.viewport.png",
+            "width": 390,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 46.804709,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-768x900-zh-light",
+      "role": "user",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 385.64558300000135,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.602249999999913,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 196.02912500000093,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-768x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-768x900-zh-light.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 58.48441599999933,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-768x900-zh-light",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 465.8747089999997,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 59.939250000003085,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.403791999997338,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 240.66833400000178,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-768x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-768x900-zh-light.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 56.04699999999866,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-768x900-zh-dark",
+      "role": "user",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 411.1081250000061,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.651292000002286,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 201.3020419999957,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-768x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-768x900-zh-dark.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 43.766333999999915,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-768x900-zh-dark",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 462.8665409999958,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 57.39562500000466,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.749792000002344,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 187.87470899999607,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-768x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-768x900-zh-dark.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 43.03266699999949,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-768x900-en-light",
+      "role": "user",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 404.2019169999985,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 7.8851250000006985,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 218.3287909999999,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-768x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-768x900-en-light.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 48.08233399999881,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-768x900-en-light",
+      "role": "admin",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 454.7552080000023,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 72.317375000006,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 4.603125000001455,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 173.72987499999726,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-768x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-768x900-en-light.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 53.04449999999633,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-768x900-en-dark",
+      "role": "user",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 386.5364999999947,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 7.394040999999561,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 180.7528749999983,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-768x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-768x900-en-dark.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 52.25600000000122,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-768x900-en-dark",
+      "role": "admin",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 768,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 446.31916600000113,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 76.04262500000186,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.961333000006562,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 213.5642499999958,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-768x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-768x900-en-dark.account.viewport.png",
+            "width": 768,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 49.60608299999876,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-1440x900-zh-light",
+      "role": "user",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 404.9064999999973,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.999084000002767,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 208.4233749999985,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-1440x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-1440x900-zh-light.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 42.15820800000074,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-1440x900-zh-light",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 482.24295800000255,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 61.35991699999431,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 4.524375000000873,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 203.43658400000277,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-1440x900-zh-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-1440x900-zh-light.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 39.33183299999655,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-1440x900-zh-dark",
+      "role": "user",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 403.5539159999971,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 8.08612500000163,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 207.31262499999866,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-1440x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-1440x900-zh-dark.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 42.48129200000403,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-1440x900-zh-dark",
+      "role": "admin",
+      "locale": "zh",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 447.83349999999336,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 62.900667000001704,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.456500000000233,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 216.9236660000024,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-1440x900-zh-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-1440x900-zh-dark.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 42.74262499999895,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-1440x900-en-light",
+      "role": "user",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 386.9284159999952,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 9.023750000000291,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 233.09758399999555,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-1440x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-1440x900-en-light.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 49.246957999996084,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-1440x900-en-light",
+      "role": "admin",
+      "locale": "en",
+      "theme": "light",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 447.7532500000016,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 70.93633400000544,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.858083999999508,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 213.75816699999996,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-1440x900-en-light.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-1440x900-en-light.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 53.557709000000614,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-user-1440x900-en-dark",
+      "role": "user",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "user",
+          "http_status": 200,
+          "landed_path": "/workspace/new"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 403.1788329999981,
+          "attempted_path": "/admin/users",
+          "landed_path": "/admin/users",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 6.188874999999825,
+          "path": "http://127.0.0.1:8013/api/v1/admin/overview",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 199.7821660000045,
+          "links": [
+            "/workspace/new"
+          ],
+          "geometry_file": "boundaries/boundary-user-1440x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-user-1440x900-en-dark.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 52.43262500000128,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "browser": {
+        "name": "Google Chrome",
+        "executable_path": "/Users/milesxue/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "executable_version": "Google Chrome 152.0.7977.83",
+        "launch_channel": "explicit executable",
+        "version": "152.0.7977.83",
+        "fallback": false
+      },
+      "id": "boundary-admin-1440x900-en-dark",
+      "role": "admin",
+      "locale": "en",
+      "theme": "dark",
+      "requested_geometry": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": "recorded",
+      "checks": [
+        {
+          "name": "login_role_destination",
+          "outcome": "matched",
+          "role": "admin",
+          "http_status": 200,
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "direct_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 458.2704169999997,
+          "attempted_path": "/workspace/tasks",
+          "landed_path": "/admin/overview",
+          "forbidden_request_count": 0
+        },
+        {
+          "name": "api_keys_route_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 107.26849999999831,
+          "attempted_path": "/api/keys",
+          "landed_path": "/admin/overview"
+        },
+        {
+          "name": "server_role_boundary",
+          "outcome": "matched",
+          "elapsed_ms": 5.0057500000039,
+          "path": "http://127.0.0.1:8013/api/v1/tasks?[query omitted]",
+          "http_status": 403
+        },
+        {
+          "name": "header_account_scope",
+          "outcome": "matched",
+          "elapsed_ms": 183.87958299999445,
+          "links": [
+            "/admin"
+          ],
+          "geometry_file": "boundaries/boundary-admin-1440x900-en-dark.account.geometry.json",
+          "screenshot": {
+            "file": "boundaries/boundary-admin-1440x900-en-dark.account.viewport.png",
+            "width": 1440,
+            "height": 900
+          }
+        },
+        {
+          "name": "logout",
+          "outcome": "matched",
+          "elapsed_ms": 53.22099999999773,
+          "logout_status": 204,
+          "me_status": 401,
+          "landed_path": "/"
+        }
+      ],
+      "findings": []
+    }
+  ],
+  "counts": {
+    "planned_pages": 16,
+    "recorded_pages": 16,
+    "failed_cases": 0,
+    "cases_with_findings": 0,
+    "boundary_groups": 32
+  },
+  "completed_at": "2026-09-07T06:29:29.117Z"
+}

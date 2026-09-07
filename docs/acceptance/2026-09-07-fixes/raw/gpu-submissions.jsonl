@@ -1,0 +1,8 @@
+{"case": {"preset_id": "quick-demo", "mode": "quick"}, "http_status": 422, "seconds": 19.677353762090206, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "quick-demo", "mode": "full"}, "http_status": 422, "seconds": 19.62537131085992, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "mixed-actions", "mode": "quick"}, "http_status": 422, "seconds": 45.962161622941494, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "mixed-actions", "mode": "full"}, "http_status": 422, "seconds": 46.015967555344105, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "verified-outcome", "mode": "quick"}, "http_status": 422, "seconds": 70.01714823767543, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "verified-outcome", "mode": "full"}, "http_status": 422, "seconds": 69.69752531126142, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "layup-demo", "mode": "quick"}, "http_status": 422, "seconds": 31.20354750007391, "error_code": "unsupported_timeline"}
+{"case": {"preset_id": "layup-demo", "mode": "full"}, "http_status": 422, "seconds": 31.2518896125257, "error_code": "unsupported_timeline"}

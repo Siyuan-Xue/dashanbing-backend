@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="6.587" timestamp="2026-09-07T15:04:55.605634+08:00" hostname="Miless-Mac-mini.local"><testcase classname="tests.test_video_claim_liveness" name="test_lifespan_video_worker_survives_real_sqlite_busy_timeout" time="6.257"><failure message="AssertionError: SQLite busy exception permanently terminated the video supervisor&#10;assert not True">tests/test_video_claim_liveness.py:87: in test_lifespan_video_worker_survives_real_sqlite_busy_timeout
+    assert not died, 'SQLite busy exception permanently terminated the video supervisor'
+E   AssertionError: SQLite busy exception permanently terminated the video supervisor
+E   assert not True</failure></testcase></testsuite></testsuites>

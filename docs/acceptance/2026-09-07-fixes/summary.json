@@ -1,0 +1,64 @@
+{
+  "code_baseline": "a95121d93128077f3a6b5a2ca3c64808687f72be",
+  "full_acceptance_passed": false,
+  "backend": {
+    "passed": 865,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 24
+  },
+  "frontend_unit": {
+    "passed": 264,
+    "failed": 0
+  },
+  "functional_e2e": {
+    "passed": 181,
+    "failed": 0,
+    "skipped": 61
+  },
+  "extra_historical_visual": {
+    "passed": 162,
+    "differences_unreviewed": 148
+  },
+  "chrome_admin": {
+    "pages": 16,
+    "boundary_groups": 32,
+    "findings": 0
+  },
+  "mac_safari": {
+    "steps": 19,
+    "passed": 19,
+    "native_clicks": 16
+  },
+  "iphone_safari": {
+    "status": "incomplete",
+    "failed_step": "open_draft",
+    "reason": "native_click_not_observed"
+  },
+  "gpu": {
+    "strict_probe_ready": true,
+    "cases": 8,
+    "successful_submissions": 0,
+    "http_422_unsupported_timeline": 8,
+    "video_throughput_measured": false,
+    "source_cameras": 16,
+    "cameras_with_timestamp_gaps": 12,
+    "test_http_observation_seconds": 180,
+    "wall_seconds": 333.5362066850066
+  },
+  "glm": {
+    "variants": 40,
+    "completed": 39,
+    "failed": 1,
+    "actual_calls": 62,
+    "provider_successes": 41,
+    "rate_limited_calls": 21,
+    "max_concurrent": 8,
+    "tokens": 203741,
+    "wall_seconds": 590.6643083654344
+  },
+  "policy": "Functional bugs repaired; timing observations broadened without performance optimization logic; original failures retained",
+  "production_deployed": false,
+  "production_data_migrated": false,
+  "production_backup_run": false
+}

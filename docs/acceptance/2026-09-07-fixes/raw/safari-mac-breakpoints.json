@@ -1,0 +1,146 @@
+{
+  "operation": "scroll_and_breakpoint_regression_on_saved_draft",
+  "emulation": false,
+  "before": {
+    "x": 715,
+    "present": true,
+    "enabled": true,
+    "hit": false,
+    "y": 868,
+    "scroll_x": 400,
+    "scroll_y": 326,
+    "delta_y": 778
+  },
+  "open": {
+    "ready": true,
+    "camera_count": 4,
+    "frame_counts": [
+      50,
+      50,
+      50,
+      50
+    ],
+    "layout": {
+      "tabs": false,
+      "width": 800,
+      "height": 652,
+      "compact": false
+    }
+  },
+  "interactions": [
+    {
+      "index": 1,
+      "scroll_actions": 0,
+      "before": {
+        "present": false
+      },
+      "last": {
+        "x": 125,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 352,
+        "scroll_x": 400,
+        "scroll_y": 395,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "scroll_actions": 1,
+      "before": {
+        "x": 715,
+        "present": true,
+        "enabled": true,
+        "hit": false,
+        "y": 868,
+        "scroll_x": 400,
+        "scroll_y": 326,
+        "delta_y": 778
+      },
+      "last": {
+        "x": 715,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 326,
+        "scroll_x": 400,
+        "scroll_y": 326,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "scroll_actions": 0,
+      "before": {
+        "x": 1134,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 848,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "last": {
+        "x": 1134,
+        "present": true,
+        "enabled": true,
+        "hit": true,
+        "y": 848,
+        "scroll_x": 720,
+        "scroll_y": 450,
+        "delta_y": 0
+      },
+      "method": "webdriver_element_click",
+      "native_input": {
+        "clicked": true,
+        "events": [
+          "pointerdown",
+          "mousedown",
+          "pointerup",
+          "mouseup",
+          "click"
+        ]
+      }
+    }
+  ],
+  "breakpoints": [
+    {
+      "tabs": true,
+      "width": 640,
+      "compact": true,
+      "cameras": 2
+    },
+    {
+      "tabs": false,
+      "width": 641,
+      "compact": false,
+      "cameras": 4
+    }
+  ],
+  "saved_config_unchanged": true,
+  "status": "matched"
+}

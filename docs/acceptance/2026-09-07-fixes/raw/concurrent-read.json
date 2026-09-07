@@ -1,0 +1,7 @@
+{
+  "path": "/api/v1/account/limits",
+  "http_status": 200,
+  "seconds": 0.04213032126426697,
+  "error": null,
+  "condition": "separate read during isolated preset measurement"
+}

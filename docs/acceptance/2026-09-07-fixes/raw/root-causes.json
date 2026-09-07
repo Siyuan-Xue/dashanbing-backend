@@ -1,0 +1,50 @@
+{
+  "gpu": {
+    "before": "config_loaded_before_setup=true, configured_models_match=false",
+    "reason": "product_runner imported identity.enrollment_validation before configure_runtime; identity package imports cached src.config",
+    "repair": "defer identity imports until task and model paths are configured",
+    "isolated_fresh_process_regression": "failed before patch, passed after patch",
+    "real_gpu_probe_after": {
+      "ready": true,
+      "failed_checks": []
+    }
+  },
+  "glm": {
+    "official_request_id_range": [
+      6,
+      64
+    ],
+    "official_source": "https://docs.bigmodel.cn/api-reference/模型-api/对话补全",
+    "probe_samples": [
+      {
+        "request_id_length": 71,
+        "http_status": 400,
+        "error": "upstream_error"
+      },
+      {
+        "request_id_length": 39,
+        "outcome": "provider_success"
+      }
+    ],
+    "repair": "send the existing 64-character preset job digest directly, without the preset- prefix",
+    "provider_key_changed": false,
+    "provider_parameters_changed": false
+  },
+  "frontend": {
+    "unit": {
+      "passed": 264,
+      "failed": 0
+    },
+    "functional_e2e": {
+      "passed": 181,
+      "skipped": 61,
+      "failed": 0
+    },
+    "historical_visual_matrix": {
+      "passed": 162,
+      "failed": 148,
+      "note": "Additional visual project; historical baselines were created in 0656887 and predate current icons, preview and API contract; retained without rewriting screenshots or relaxing image assertions"
+    },
+    "admin_css_root_cause": ".task-filters label specificity overrode .admin-search display:flex; labels became a grid"
+  }
+}
