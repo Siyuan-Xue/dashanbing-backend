@@ -4,21 +4,22 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.config import AppSettings
 from app.main import create_app
-from app.models import Analysis, User
+from app.models import Analysis
+from business_fixture import login_business_user, register_business_user
 
 
 @pytest.fixture
 def analyst_client(tmp_path):
     settings = AppSettings(database_url=f"sqlite:///{tmp_path / 'app.db'}", runtime_root=tmp_path / 'runtime', sample_root=tmp_path / 'samples', admin_username='admin', admin_password='correct-password', jwt_secret_key='test-secret-with-at-least-thirty-two-characters', worker_enabled=False, auto_create_schema=True, min_free_storage_gb=0)
     with TestClient(create_app(settings=settings)) as client:
-        assert client.post('/api/v1/login/access-token', data={'username':'admin','password':'correct-password'}).status_code == 200
+        owner = register_business_user(client)
+        login_business_user(client)
         with Session(client.app.state.engine) as session:
-            owner = session.exec(select(User)).first()
-            task = Analysis(title='训练', owner_id=owner.id, input_manifest_json='{}', status='completed')
+            task = Analysis(title='训练', owner_id=owner['id'], input_manifest_json='{}', status='completed')
             session.add(task); session.commit(); session.refresh(task)
             client.task_id = task.id
         out = client.app.state.storage.analysis_root(client.task_id) / 'output'

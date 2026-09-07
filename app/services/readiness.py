@@ -123,14 +123,7 @@ class ReadinessService:
                 "5 个本地 ONNX 文件已找到" if expected_buffalo.issubset(buffalo_names) else "buffalo_l 不完整",
             )
         )
-        sync_ready = self._valid_sync_file(self.settings.sync_config)
-        checks.append(
-            ReadinessCheck(
-                "sync_config",
-                sync_ready,
-                "现场同步配置有效" if sync_ready else "现场同步配置缺失或格式无效",
-            )
-        )
+        # New uploads confirm per-task synchronization; a global file is not a runtime prerequisite.
         sample_ready = True
         sample_inputs = self.settings.sample_root / "test_data_v3"
         for preset in PRESETS:

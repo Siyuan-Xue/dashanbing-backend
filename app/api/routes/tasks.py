@@ -41,6 +41,9 @@ from app.services.storage import (
     UploadTooLarge,
     VideoProbeUnavailable,
 )
+from app.services.task_sync import (
+    preserve_execution_config, prepare_preset_config, registration_manifest, require_submission_config, sync_error,
+)
 from app.services.tasks import (
     DRAFT_STATUSES,
     RUNNING_STATUSES,
@@ -123,6 +126,8 @@ def create_task(
         submitted_at=None,
         created_via="tasks_api",
         analyst_locale=payload.analyst_locale,
+        enrollment_mode=payload.enrollment_mode,
+        expected_persons=payload.expected_persons,
     )
     _commit(session, task)
     return task_public(task, session)
@@ -163,12 +168,15 @@ def create_task_from_preset(
         submitted_at=now,
         created_via="tasks_preset",
         analyst_locale=payload.analyst_locale,
+        enrollment_mode=manifest['enrollment_mode'],
+        expected_persons=manifest['expected_persons'],
     )
     session.add(task)
     session.flush()
     add_task_inputs_from_manifest(session, task.id, manifest, now=now)
     record_submission(session, task, kind="initial", submitted_at=now)
-    request.app.state.storage.prepare_preset(task.id, manifest)
+    session.flush()
+    prepare_preset_config(task, task_inputs(task.id, session), manifest, request.app.state.storage)
     _commit(session, task)
     return task_public(task, session)
 
@@ -234,6 +242,11 @@ def update_task(
     task.mode = payload.mode
     if payload.analyst_locale is not None:
         task.analyst_locale = payload.analyst_locale
+    for field in ('enrollment_mode', 'expected_persons'):
+        if field in payload.model_fields_set:
+            if field == 'enrollment_mode' and payload.enrollment_mode is None:
+                raise sync_error('registration_config_required', 'Enrollment mode cannot be null.')
+            setattr(task, field, getattr(payload, field))
     _commit(session, task)
     return task_public(task, session)
 
@@ -365,10 +378,11 @@ def submit_task(
     missing = [slot for slot in TASK_SLOTS if slot not in by_slot]
     if missing:
         raise HTTPException(status_code=409, detail=f"Missing valid task inputs: {', '.join(missing)}")
+    sync_config = require_submission_config(task, items)
     enforce_daily_submission_quota(session, current_user.id)
-    manifest = {slot: by_slot[slot].path for slot in TASK_SLOTS}
+    manifest = {slot: by_slot[slot].path for slot in TASK_SLOTS} | registration_manifest(task)
     try:
-        completed_manifest = request.app.state.storage.prepare_task_submission(task.id, manifest)
+        completed_manifest = request.app.state.storage.prepare_task_submission(task.id, manifest, sync_config=sync_config)
     except OSError as error:
         raise HTTPException(status_code=503, detail="Submission sync configuration is unavailable") from error
     now = utc_now()
@@ -510,6 +524,8 @@ def retry_task(
             detail="Pending storage cleanup must finish before retry",
         )
     manifest = valid_manifest(task, session)
+    if manifest is not None:
+        manifest = preserve_execution_config(task, manifest)
     if manifest is None or "sync" not in manifest:
         raise HTTPException(status_code=409, detail="Original task inputs are expired or incomplete")
     enforce_unfinished_quota(session, current_user.id)
@@ -549,3 +565,39 @@ def delete_task(
     session.commit()
     drain_storage_deletions(request.app.state.engine, request.app.state.storage)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{task_id}/return-to-input", response_model=TaskPublic)
+def return_task_to_input(
+    task_id: str, request: Request, session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> TaskPublic:
+    begin_write(session)
+    task = task_or_404(task_id, current_user.id, session)
+    root = request.app.state.storage.analysis_root(task.id)
+    if (task.status not in {"failed", "interrupted"}
+            or (root / "output" / "report.json").exists()
+            or has_pending_storage_deletion(session, task.id)):
+        raise sync_error("registration_correction_unavailable", "Only failed tasks without a completed report or pending cleanup can return to input.", 409)
+    items = task_inputs(task.id, session)
+    if not items or any(item.validation_state != "valid" or not Path(item.path).is_file() for item in items):
+        raise sync_error("input_missing", "The original inputs are no longer available.")
+    enforce_unfinished_quota(session, current_user.id, include_new_draft=True)
+    # Keep the previous execution recipe even as the draft is corrected.
+    from uuid import uuid4
+    history = root / "input" / "submission-history" / uuid4().hex
+    history.mkdir(parents=True, exist_ok=True)
+    (history / "input_manifest.json").write_text(task.input_manifest_json, encoding="utf-8")
+    sync_path = root / "input" / "sync.json"
+    if sync_path.is_file():
+        (history / "sync.json").write_bytes(sync_path.read_bytes())
+    task.status = "draft"
+    task.progress = 0
+    task.stage_message = "Draft"
+    task.submitted_at = None
+    task.started_at = None
+    task.completed_at = None
+    task.error_code = None
+    task.error_message = None
+    _commit(session, task)
+    return task_public(task, session)

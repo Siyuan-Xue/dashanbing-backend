@@ -31,7 +31,11 @@ from app.services.storage import (
     UploadTooLarge,
     VideoProbeUnavailable,
 )
+from app.services.task_sync import confirm_sync, prepare_preset_config, registration_manifest, require_submission_config, sync_error
+from app.sync_schemas import SyncInput
+from pydantic import ValidationError
 from app.services.tasks import (
+    task_inputs,
     add_task_inputs_from_manifest,
     begin_write,
     delete_task_inputs,
@@ -84,6 +88,10 @@ def upload_analysis(
     request: Request,
     title: str = Form(min_length=1, max_length=120),
     mode: Literal["quick", "full"] = Form(),
+    enrollment_mode: Literal["sequential", "lineup"] = Form(),
+    expected_persons: int = Form(ge=1, le=6),
+    analyst_locale: Literal["zh", "en"] = Form(),
+    sync: str = Form(max_length=8192),
     enrollment_video: UploadFile = File(),
     cam_01: UploadFile = File(),
     cam_02: UploadFile = File(),
@@ -92,6 +100,10 @@ def upload_analysis(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> Analysis:
+    try:
+        sync_payload = SyncInput.model_validate_json(sync)
+    except ValidationError:
+        raise sync_error("sync_invalid", "Supply synchronization as a valid JSON object.") from None
     try:
         request.app.state.readiness.require_ready()
     except RuntimeError as error:
@@ -108,7 +120,11 @@ def upload_analysis(
         input_manifest_json="{}",
         owner_id=current_user.id,
         submitted_at=None,
-        created_via="legacy_upload",
+        created_via="upload_v1",
+        enrollment_mode=enrollment_mode,
+        expected_persons=expected_persons,
+        analyst_locale=analyst_locale,
+        status="draft",
     )
     storage = request.app.state.storage
     try:
@@ -141,6 +157,13 @@ def upload_analysis(
                 "cam_04": cam_04.filename or "cam_04.mkv",
             },
         )
+        session.flush()
+        items = task_inputs(analysis.id, session)
+        confirm_sync(analysis, items, sync_payload, bind_uploaded_versions=True)
+        config = require_submission_config(analysis, items)
+        manifest = storage.prepare_task_submission(analysis.id, manifest | registration_manifest(analysis), sync_config=config)
+        analysis.input_manifest_json = json.dumps(manifest, ensure_ascii=False)
+        analysis.status = "queued"
         record_submission(session, analysis, kind="initial")
         return _commit(session, analysis)
     except InvalidVideoUpload as error:
@@ -189,13 +212,17 @@ def rerun_preset(
         input_manifest_json=json.dumps(manifest, ensure_ascii=False),
         owner_id=current_user.id,
         submitted_at=datetime.now(timezone.utc),
-        created_via="legacy_preset",
+        created_via="preset_v1",
+        analyst_locale=payload.analyst_locale,
+        enrollment_mode=manifest['enrollment_mode'],
+        expected_persons=manifest['expected_persons'],
     )
     session.add(analysis)
     session.flush()
     add_task_inputs_from_manifest(session, analysis.id, manifest)
     record_submission(session, analysis, kind="initial", submitted_at=analysis.submitted_at)
-    request.app.state.storage.prepare_preset(analysis.id, manifest)
+    session.flush()
+    prepare_preset_config(analysis, task_inputs(analysis.id, session), manifest, request.app.state.storage)
     return _commit(session, analysis)
 
 

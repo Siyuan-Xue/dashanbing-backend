@@ -52,9 +52,15 @@ class AnalysisSupervisor:
 
     def _mark_interrupted(self) -> None:
         with Session(self.app.state.engine) as session:
+            session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            from app.admin_models import AdminLease
+            from app.services.admin_scheduling import recover_dead_leases
+            recover_dead_leases(session)
             analyses = session.exec(select(Analysis)).all()
             changed = False
             for analysis in analyses:
+                if session.get(AdminLease, ("video", analysis.id)):
+                    continue
                 inputs = list(
                     session.exec(
                         select(TaskInput).where(TaskInput.task_id == analysis.id)
@@ -84,8 +90,7 @@ class AnalysisSupervisor:
                     analysis.updated_at = datetime.now(timezone.utc)
                     session.add(analysis)
                     changed = True
-            if changed:
-                session.commit()
+            session.commit()
 
     async def _loop(self) -> None:
         while not self._stop.is_set():
@@ -108,15 +113,14 @@ class AnalysisSupervisor:
     def _next_queued_id(self) -> str | None:
         if not getattr(self.app.state, "gpu_queue_ready", True):
             return None
-        with Session(self.app.state.engine) as session:
-            analysis = session.exec(
-                select(Analysis)
-                .where(Analysis.status == AnalysisStatus.queued)
-                .order_by(Analysis.created_at)
-            ).first()
-            return analysis.id if analysis else None
+        from app.services.admin_scheduling import claim_video
+        return claim_video(self.app)
 
     async def _run_one(self, analysis_id: str) -> None:
         from app.services.worker import run_analysis
 
-        await run_analysis(self.app, analysis_id)
+        from app.services.admin_scheduling import release_lease
+        try:
+            await run_analysis(self.app, analysis_id)
+        finally:
+            release_lease(self.app.state.engine, "video", analysis_id)

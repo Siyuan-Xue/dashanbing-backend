@@ -1,0 +1,8 @@
+import { adminApi } from "../lib/adminApi";
+import { useAdminCopy } from "../lib/adminCopy";
+import { useAdminLoadable } from "../lib/adminLoadable";
+import { AdminPanel, AdminTable, useAdminFormat } from "../components/AdminShared";
+import { AdminResources } from "../components/AdminResources";
+import { AdminPerformanceSummary } from "../components/AdminPerformanceSummary";
+import { AdminRepairBudget } from "../components/AdminRepairBudget";
+export function AdminOverviewPage() { const t = useAdminCopy(); const format = useAdminFormat(); const data = useAdminLoadable(adminApi.overview); const value = data.value; return <AdminPanel section="overview" {...data}>{value && <><dl className="admin-metrics"><div><dt>{t("activeUsers")}</dt><dd>{format.number(value.users.active)} / {format.number(value.users.total)}</dd></div><div><dt>{t("videoSubmissions")}</dt><dd>{format.number(value.usage.video_submissions)}</dd></div><div><dt>{t("aiAttempts")}</dt><dd>{format.number(value.usage.ai_attempts)}</dd></div><div><dt>{t("aiTokens")}</dt><dd>{format.number(value.usage.ai_tokens)}</dd></div></dl><h2>{t("queues")}</h2><AdminTable label={t("queues")} headings={[t("kind"), t("queued"), t("running"), t("failed"), t("completed")]}>{(["video", "ai", "preset"] as const).map(kind => <tr key={kind}><td>{t(kind)}</td>{(["queued", "running", "failed", "completed"] as const).map(status => <td key={status}>{format.number(value.queues[kind][status])}</td>)}</tr>)}</AdminTable><AdminPerformanceSummary timings={value.timings} errors={value.errors}/><AdminResources value={value.resources}/><AdminRepairBudget value={value.repair_budget}/></>}</AdminPanel>; }

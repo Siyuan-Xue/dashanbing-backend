@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_authenticated_identity, validate_admin_origin
 from app.database import get_session
 from app.models import Token, User, UserPublic, UserRegistration
 from app.security import DUMMY_PASSWORD_HASH, create_access_token, hash_password, normalize_identity, verify_password
@@ -27,6 +27,7 @@ def register(payload: UserRegistration, session: Session = Depends(get_session))
         username=payload.username,
         email=payload.email,
         hashed_password=hash_password(payload.password),
+        role="user",
     )
     session.add(user)
     try:
@@ -65,6 +66,8 @@ def login(
         user.username,
         timedelta(minutes=settings.access_token_minutes),
         secret_key=settings.jwt_secret_key,
+        role=user.role,
+        session_version=user.session_version,
     )
     response.set_cookie(
         "access_token",
@@ -79,10 +82,18 @@ def login(
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(response: Response) -> None:
+def logout(request: Request, response: Response, session: Session = Depends(get_session),
+           current_user: User = Depends(get_authenticated_identity)) -> None:
+    if current_user.role == "admin":
+        validate_admin_origin(request)
+    session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+    session.refresh(current_user)
+    current_user.session_version += 1
+    session.add(current_user)
+    session.commit()
     response.delete_cookie("access_token", path="/", httponly=True, samesite="lax")
 
 
 @router.get("/users/me", response_model=UserPublic)
-def me(current_user: User = Depends(get_current_user)) -> User:
+def me(current_user: User = Depends(get_authenticated_identity)) -> User:
     return current_user

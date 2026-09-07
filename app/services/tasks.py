@@ -122,11 +122,17 @@ def add_task_inputs_from_manifest(
 
 
 def task_public(task: Analysis, session: Session) -> TaskPublic:
+    from app.services.task_sync import sync_status
+
+    inputs = task_inputs(task.id, session)
     return TaskPublic(
         id=task.id,
         title=task.title,
         mode=task.mode,
         analyst_locale=task.analyst_locale,
+        enrollment_mode=task.enrollment_mode,
+        expected_persons=task.expected_persons,
+        sync_status=sync_status(task, inputs),
         source_type=task.source_type,
         preset_id=task.preset_id,
         status=public_status(task.status),
@@ -141,7 +147,7 @@ def task_public(task: Analysis, session: Session) -> TaskPublic:
         updated_at=task.updated_at,
         started_at=task.started_at,
         completed_at=task.completed_at,
-        inputs=[TaskInputPublic.model_validate(item) for item in task_inputs(task.id, session)],
+        inputs=[TaskInputPublic.model_validate(item) for item in inputs],
     )
 
 
@@ -192,11 +198,15 @@ def enforce_unfinished_quota(
     *,
     include_new_draft: bool = False,
 ) -> None:
-    tasks = _owner_tasks(session, owner_id)
-    if include_new_draft and sum(task.status in DRAFT_STATUSES for task in tasks) >= MAX_DRAFTS:
-        raise HTTPException(status_code=429, detail="Draft task quota exceeded (maximum 3 drafts)")
-    if sum(task.status in UNFINISHED_STATUSES for task in tasks) >= MAX_UNFINISHED:
-        raise HTTPException(status_code=429, detail="Unfinished task quota exceeded (maximum 5)")
+    from app.services.admin import effective_quotas
+    quotas = effective_quotas(session, owner_id)
+    from app.admin_models import AdminJobControl
+    repair_ids = select(AdminJobControl.job_id).where(AdminJobControl.kind == "video", AdminJobControl.repair.is_(True))
+    tasks = session.exec(select(Analysis).where(Analysis.owner_id == owner_id, Analysis.id.not_in(repair_ids))).all()
+    if include_new_draft and sum(task.status in DRAFT_STATUSES for task in tasks) >= quotas["drafts"]:
+        raise HTTPException(status_code=429, detail="Draft task quota exceeded")
+    if sum(task.status in UNFINISHED_STATUSES for task in tasks) >= quotas["unfinished"]:
+        raise HTTPException(status_code=429, detail="Unfinished task quota exceeded")
 
 
 def _utc_day_bounds(now: datetime | None = None) -> tuple[datetime, datetime]:
@@ -209,10 +219,11 @@ def enforce_daily_submission_quota(
     session: Session,
     owner_id: int,
 ) -> None:
-    if count_daily_submissions(session, owner_id) >= MAX_DAILY_SUBMISSIONS:
+    from app.services.admin import effective_quotas
+    if count_daily_submissions(session, owner_id) >= effective_quotas(session, owner_id)["daily_video"]:
         raise HTTPException(
             status_code=429,
-            detail="Daily submission quota exceeded (maximum 20 per UTC day)",
+            detail="Daily submission quota exceeded (UTC day)",
         )
 
 
@@ -222,6 +233,7 @@ def count_daily_submissions(
     *,
     now: datetime | None = None,
 ) -> int:
+    from app.admin_models import AdminJobControl
     start, end = _utc_day_bounds(now)
     event_count = session.exec(
         select(func.count())
@@ -243,6 +255,8 @@ def count_daily_submissions(
             Analysis.submitted_at >= start,
             Analysis.submitted_at < end,
             Analysis.id.not_in(ledger_task_ids),
+            Analysis.id.not_in(select(AdminJobControl.job_id).where(
+                AdminJobControl.kind == 'video', AdminJobControl.repair.is_(True))),
         )
     ).one()
     return event_count + unledgered_count
@@ -255,6 +269,11 @@ def record_submission(
     kind: str,
     submitted_at: datetime | None = None,
 ) -> datetime:
+    from app.admin_models import AdminJobControl
+    control = session.get(AdminJobControl, ("video", task.id))
+    if control:
+        control.repair = False
+        session.add(control)
     timestamp = submitted_at or utc_now()
     task.submitted_at = timestamp
     session.add(

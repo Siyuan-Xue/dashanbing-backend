@@ -16,6 +16,9 @@ if str(RESEARCH_ROOT) not in sys.path:
     sys.path.insert(0, str(RESEARCH_ROOT))
 
 from src.utils.files import link_or_copy_file
+from src.identity.enrollment_validation import (
+    RegistrationError, validate_registration_config, validate_gallery_samples,
+)
 
 
 STAGE_MESSAGES = {
@@ -128,6 +131,8 @@ def _install_original_review_videos(group_root: Path, viz_target: Path) -> None:
 
 
 def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
+    if (output_root / "report.json").exists():
+        raise RuntimeError("completed_report_exists: Existing report must not be overwritten")
     if output_root.exists():
         shutil.rmtree(output_root)
     output_root.mkdir(parents=True)
@@ -171,8 +176,15 @@ def _copy_product_outputs(group_root: Path, output_root: Path) -> None:
 
 
 def run_product_task(task_root: Path, manifest_path: Path, mode: str, model_root: Path) -> None:
+    if (task_root / "output" / "report.json").exists():
+        raise RuntimeError("completed_report_exists: Existing report must not be overwritten")
     configure_runtime(task_root, model_root)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    legacy = not any(key in manifest for key in ("enrollment_mode", "expected_persons", "sync_schema_version"))
+    enrollment_mode = manifest.get("enrollment_mode", "sequential")
+    expected_persons = manifest.get("expected_persons")
+    if not legacy:
+        validate_registration_config(enrollment_mode, expected_persons)
     required = ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04", "sync")
     missing = [name for name in required if not Path(manifest.get(name, "")).is_file()]
     if missing:
@@ -189,12 +201,12 @@ def run_product_task(task_root: Path, manifest_path: Path, mode: str, model_root
         0,
         {"cam_02": Path(manifest["enrollment_video"])},
         engine_output,
-        expected_persons=None,
-        enroll_mode="sequential",
+        expected_persons=expected_persons,
+        enroll_mode=enrollment_mode,
+        allow_legacy_count=legacy,
     )
     student_ids = list(enrollment.get("student_ids") or [])
-    if not 1 <= len(student_ids) <= 6:
-        raise RuntimeError(f"Registration requires 1–6 people; detected {len(student_ids)}")
+    validate_gallery_samples(task_root / "data" / "enrollment" / enrollment["session_id"], student_ids, expected_persons)
 
     sync_data = task_root / "data" / "product-input"
     (sync_data / "sync").mkdir(parents=True, exist_ok=True)
@@ -233,7 +245,15 @@ def main() -> None:
         return
     if args.task_root is None or args.manifest is None:
         parser.error("--task-root and --manifest are required for a task")
-    run_product_task(args.task_root.resolve(), args.manifest.resolve(), args.mode, args.model_root.resolve())
+    try:
+        run_product_task(args.task_root.resolve(), args.manifest.resolve(), args.mode, args.model_root.resolve())
+    except RegistrationError as error:
+        # Safe structured diagnostics; never pass source paths to the product response.
+        diagnostic = args.task_root / "logs" / "registration_error.json"
+        diagnostic.parent.mkdir(parents=True, exist_ok=True)
+        diagnostic.write_text(json.dumps(error.as_dict()), encoding="utf-8")
+        print("PRODUCT_ERROR " + json.dumps(error.as_dict()), flush=True)
+        raise SystemExit(2) from None
 
 
 if __name__ == "__main__":

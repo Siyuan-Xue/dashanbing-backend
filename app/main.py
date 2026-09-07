@@ -12,7 +12,7 @@ from app.api.deps import get_current_user
 from app.config import AppSettings, get_settings
 from app.database import create_database_engine, create_tables
 from app.models import User
-from app.security import hash_password, normalize_identity, verify_password
+from app.security import hash_password, normalize_identity
 from app.services.identities import ensure_user_identities
 from app.services.deletions import drain_storage_deletions
 from app.services.presets import PresetCatalog
@@ -22,32 +22,21 @@ from app.services.storage import AnalysisStorage
 
 def _bootstrap_admin(app: FastAPI) -> bool:
     settings = app.state.settings
-    if not app.state.readiness.configured_credentials_ready():
-        return False
     with Session(app.state.engine) as session:
-        existing = session.exec(select(User)).first()
-        configured_username = normalize_identity(settings.admin_username)
-        if existing is None:
-            existing = User(
-                username=configured_username,
-                hashed_password=hash_password(settings.admin_password),
-            )
-            session.add(existing)
-            session.flush()
-            ensure_user_identities(session, existing)
-            session.commit()
+        session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+        existing = session.exec(select(User.id)).first()
+        if existing is not None:
+            # Existing identities are authoritative; explicit migration promotes an admin.
             return True
-        try:
-            valid = normalize_identity(existing.username) == configured_username and verify_password(
-                settings.admin_password,
-                existing.hashed_password,
-            )
-            if valid:
-                ensure_user_identities(session, existing)
-                session.commit()
-            return valid
-        except Exception:
+        if not app.state.readiness.configured_credentials_ready():
             return False
+        admin = User(username=normalize_identity(settings.admin_username),
+                     hashed_password=hash_password(settings.admin_password), role="admin")
+        session.add(admin)
+        session.flush()
+        ensure_user_identities(session, admin)
+        session.commit()
+        return True
 
 
 def create_app(
@@ -67,6 +56,8 @@ def create_app(
         application.state.storage.root.mkdir(parents=True, exist_ok=True)
         if application.state.settings.auto_create_schema:
             create_tables(application.state.engine)
+        from app.services.admin import initialize_settings
+        initialize_settings(application)
         drain_storage_deletions(application.state.engine, application.state.storage)
         credentials_ready = _bootstrap_admin(application)
         application.state.readiness.set_database_credentials_ready(credentials_ready)

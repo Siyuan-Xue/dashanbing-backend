@@ -8,17 +8,19 @@ import App from "./App";
 import { ResultWorkspace } from "./components/ResultWorkspace";
 import { LocaleProvider } from "./providers/LocaleProvider";
 import { taskStageMessageLabel } from "./workspace/labels";
-import type { ProductResult, Task } from "./workspace/types";
+import type { ProductResult, Task, TaskSlot } from "./workspace/types";
+import { confirmedRegistration, incompleteRegistration, legacySyncFixture, submissionFixtureError } from "./test/legacyTaskSyncFixture";
 import "./styles.css";
 
 const currentUser = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
 const slots = ["enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04"] as const;
 
-const task = (overrides: Record<string, unknown> = {}) => ({
+const task = (overrides: Record<string, unknown> = {}): Task => ({
   id: "task-1",
   title: "周三投篮训练",
   mode: "quick",
   analyst_locale: "zh",
+  ...incompleteRegistration,
   source_type: "upload",
   preset_id: null,
   status: "draft",
@@ -358,16 +360,29 @@ describe("workspace shell and staged creation", () => {
   });
 
   test("renders the scoped shell and recovers a failed slot before enabling explicit submit", async () => {
-    const uploaded = new Map<string, { slot: string; original_filename: string; byte_size: number; validation_state: string; created_at: string; updated_at: string }>();
+    const uploaded = new Map<TaskSlot, Task["inputs"][number]>();
     let camOneAttempts = 0;
     let created = false;
+    const sync = legacySyncFixture("task-1");
+    let currentTask = task();
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
     const fetchMock = installBaseFetch((url, init) => {
+      const syncResponse = sync.response(url, init?.method, init?.body ? JSON.parse(String(init.body)) : undefined);
+      if (syncResponse) { currentTask = { ...currentTask, sync_status: sync.status }; return syncResponse; }
       if (url.pathname === "/api/v1/tasks" && init?.method === "POST") {
         created = true;
-        return json(task(), { status: 201 });
+        currentTask = task(JSON.parse(String(init.body)));
+        return json(currentTask, { status: 201 });
+      }
+      if (url.pathname === "/api/v1/tasks/task-1") {
+        if (init?.method === "PATCH") currentTask = { ...currentTask, ...JSON.parse(String(init.body)) };
+        return json(currentTask);
       }
       if (url.pathname === "/api/v1/tasks/task-1/submit") {
-        return json(task({ status: "queued", inputs: [...uploaded.values()] }));
+        const invalid = submissionFixtureError({ ...currentTask, inputs: [...uploaded.values()] });
+        if (invalid) return json({ detail: invalid }, { status: 422 });
+        currentTask = { ...currentTask, status: "queued" };
+        return json({ ...currentTask, inputs: [...uploaded.values()] });
       }
     });
 
@@ -383,7 +398,7 @@ describe("workspace shell and staged creation", () => {
       addEventListener(event: string, listener: () => void) { this.listeners.set(event, listener); }
       setRequestHeader() {}
       send(body: FormData) {
-        const slot = this.url.split("/").at(-1)!;
+        const slot = this.url.split("/").at(-1)! as TaskSlot;
         const file = body.get("file") as File;
         this.progress?.({ lengthComputable: true, loaded: file.size / 2, total: file.size } as ProgressEvent);
         queueMicrotask(() => {
@@ -392,8 +407,10 @@ describe("workspace shell and staged creation", () => {
             this.responseText = JSON.stringify({ detail: "Invalid video" });
           } else {
             uploaded.set(slot, { slot, original_filename: file.name, byte_size: file.size, validation_state: "valid", created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z" });
+            sync.replaceInput(slot);
+            currentTask = { ...currentTask, sync_status: sync.status, inputs: [...uploaded.values()] };
             this.status = 200;
-            this.responseText = JSON.stringify(task({ inputs: [...uploaded.values()] }));
+            this.responseText = JSON.stringify({ ...currentTask, inputs: [...uploaded.values()] });
           }
           this.listeners.get("load")?.();
         });
@@ -430,6 +447,14 @@ describe("workspace shell and staged creation", () => {
     await user.upload(screen.getByLabelText("机位 2"), new File(["cam2"], "cam2.mp4", { type: "video/mp4" }));
     await user.upload(screen.getByLabelText("机位 3"), new File(["cam3"], "cam3.mp4", { type: "video/mp4" }));
     await user.upload(screen.getByLabelText("机位 4"), new File(["cam4"], "cam4.mp4", { type: "video/mp4" }));
+    expect(submit).toBeDisabled();
+    await user.selectOptions(screen.getByLabelText("注册人数"), "2");
+    await user.click(screen.getByRole("button", { name: "同步视频" }));
+    const dialog = await screen.findByRole("dialog", { name: "同步四个机位" });
+    for (const select of within(dialog).getAllByRole("button", { name: "选定当前帧" })) {
+      await waitFor(() => expect(select).toBeEnabled()); await user.click(select);
+    }
+    await user.click(within(dialog).getByRole("button", { name: "确认同步" }));
     await waitFor(() => expect(submit).toBeEnabled());
     expect(created).toBe(true);
 
@@ -759,7 +784,7 @@ describe("task and example result workspaces", () => {
   test("reuses the result workspace for presets and executes the selected preset", async () => {
     const fetchMock = installBaseFetch((url, init) => {
       if (url.pathname === "/api/v1/presets/quick-demo/result") return json({ ...productResult, media: { phases: "/api/v1/presets/quick-demo/media/phases" } });
-      if (url.pathname === "/api/v1/tasks/from-preset" && init?.method === "POST") return json(task({ id: "preset-task", preset_id: "quick-demo", status: "queued" }), { status: 201 });
+      if (url.pathname === "/api/v1/tasks/from-preset" && init?.method === "POST") return json(task({ ...confirmedRegistration, id: "preset-task", source_type: "preset", preset_id: "quick-demo", status: "queued", submitted_at: "2026-09-07T01:00:00Z" }), { status: 201 });
     });
     const user = userEvent.setup();
     renderAt("/workspace/examples/quick-demo");

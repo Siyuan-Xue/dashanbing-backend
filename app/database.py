@@ -26,6 +26,7 @@ def create_database_engine(database_url: str) -> Engine:
 
 def create_tables(engine: Engine) -> None:
     """Create all SQLModel tables registered by the application."""
+    from app import admin_models  # noqa: F401
     SQLModel.metadata.create_all(engine)
 
 

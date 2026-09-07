@@ -14,6 +14,8 @@ class User(SQLModel, table=True):
     email: str | None = Field(default=None, index=True, unique=True, max_length=255)
     hashed_password: str
     is_active: bool = Field(default=True, nullable=False)
+    role: str = Field(default="user", nullable=False, max_length=16)
+    session_version: int = Field(default=0, nullable=False, ge=0)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
 
 
@@ -47,6 +49,7 @@ class UserPublic(SQLModel):
     username: str
     email: str | None
     is_active: bool
+    role: Literal["user", "admin"] = "user"
 
 
 class Token(SQLModel):
@@ -115,7 +118,7 @@ class ApiKeyCreated(ApiKeyPublic):
 
 class UsageQuota(SQLModel):
     used: int = Field(ge=0)
-    limit: int = Field(gt=0)
+    limit: int = Field(ge=0)
 
 
 class RetentionDescriptions(SQLModel):
@@ -138,6 +141,9 @@ class Analysis(SQLModel, table=True):
     title: str = Field(min_length=1, max_length=120)
     mode: str = Field(default="full", max_length=16)
     analyst_locale: str = Field(default="zh", max_length=2)
+    enrollment_mode: str = Field(default="sequential", max_length=16, nullable=False)
+    expected_persons: int | None = Field(default=None, ge=1, le=6)
+    sync_config_json: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
     source_type: str = Field(default="upload", max_length=16)
     preset_id: str | None = Field(default=None, max_length=64)
     status: str = Field(default="queued", index=True, max_length=32)
@@ -194,6 +200,9 @@ class AnalysisPublic(SQLModel):
     id: str
     title: str
     mode: str
+    analyst_locale: Literal["zh", "en"] = "zh"
+    enrollment_mode: Literal["sequential", "lineup"] = "sequential"
+    expected_persons: int | None = None
     source_type: str
     preset_id: str | None
     status: str
@@ -246,12 +255,16 @@ class TaskCreate(SQLModel):
     title: str = Field(min_length=1, max_length=120)
     mode: TaskMode = "full"
     analyst_locale: Literal["zh", "en"] = "zh"
+    enrollment_mode: Literal["sequential", "lineup"] = "sequential"
+    expected_persons: int | None = Field(default=None, ge=1, le=6)
 
 
 class TaskUpdate(SQLModel):
     title: str = Field(min_length=1, max_length=120)
     mode: TaskMode
     analyst_locale: Literal["zh", "en"] | None = None
+    enrollment_mode: Literal["sequential", "lineup"] | None = None
+    expected_persons: int | None = Field(default=None, ge=1, le=6)
 
     @field_validator("title", mode="before")
     @classmethod
@@ -291,6 +304,9 @@ class TaskPublic(SQLModel):
     title: str
     mode: TaskMode
     analyst_locale: Literal["zh", "en"] = "zh"
+    enrollment_mode: Literal["sequential", "lineup"] = "sequential"
+    expected_persons: int | None = None
+    sync_status: Literal["unconfirmed", "confirmed", "stale", "legacy"] = "unconfirmed"
     source_type: str
     preset_id: str | None
     status: TaskPublicStatus

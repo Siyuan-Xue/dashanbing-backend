@@ -6,6 +6,10 @@ export type ApiKey = components["schemas"]["ApiKeyPublic"];
 export type CreatedApiKey = components["schemas"]["ApiKeyCreated"];
 export type ApiKeyCreate = components["schemas"]["ApiKeyCreate"];
 export type AccountUsage = components["schemas"]["AccountUsage"];
+export type AccountLimits = {
+  quotas: { drafts: number; unfinished: number; daily_video: number; daily_ai: number };
+  application: { max_upload_size_gb: number; draft_ttl_hours: number; enrollment_retention_days: number; raw_retention_days: number; result_retention_days: number; analyst_daily_limit: number };
+};
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "include", ...init });
@@ -25,6 +29,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const apiCenterApi = {
   keys: () => request<ApiKey[]>("/api/v1/api-keys"),
   usage: () => request<AccountUsage>("/api/v1/account/usage"),
+  limits: () => request<AccountLimits>("/api/v1/account/limits"),
   createKey: (payload: ApiKeyCreate) => request<CreatedApiKey>("/api/v1/api-keys", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
   }),

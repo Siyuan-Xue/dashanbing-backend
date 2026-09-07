@@ -45,6 +45,7 @@ from src.cameras.registry import (  # noqa: E402
 )
 from src.cameras.temporal import run_temporal_alignment  # noqa: E402
 from src.config import data_path  # noqa: E402
+from src.identity.enrollment_validation import validate_registration_config, validate_gallery_samples
 from src.identity.enrollment import EnrollmentGallery  # noqa: E402
 from src.identity.lineup_enroll import enroll_lineup_from_video  # noqa: E402
 from src.identity.sequential_enroll import enroll_sequential_from_video  # noqa: E402
@@ -79,15 +80,17 @@ def run_enroll_group(
     *,
     id_prefix: str = "stu",
     expected_persons: int | None = 6,
-    enroll_mode: str = "auto",
+    enroll_mode: str = "sequential",
+    allow_legacy_count: bool = False,
 ) -> dict:
     """group0: build multi-student gallery from enrollment camera.
 
     enroll_mode:
       - sequential: one-by-one walk-ups (v2)
       - lineup: everyone faces camera together (v3 group0)
-      - auto: use lineup when expected_persons<=4 else sequential
     """
+    if not (allow_legacy_count and enroll_mode == 'sequential' and expected_persons is None):
+        validate_registration_config(enroll_mode, expected_persons)
     t0 = time.perf_counter()
     group_name = f"group_{group_id:02d}"
     group_dir = out_root / group_name
@@ -109,8 +112,6 @@ def run_enroll_group(
 
     preview = group_dir / "enroll_preview"
     mode = enroll_mode
-    if mode == "auto":
-        mode = "lineup" if expected_persons is not None and int(expected_persons) <= 4 else "sequential"
     print(f"  [{group_name}] enroll mode={mode} from {enroll_cam} (expected={expected_persons or 'auto 1-6'})")
     if mode == "lineup":
         student_ids = enroll_lineup_from_video(
@@ -128,9 +129,9 @@ def run_enroll_group(
             preview_dir=preview,
             max_persons=6,
             expected_persons=expected_persons,
+            allow_legacy_count=allow_legacy_count,
         )
-    if not student_ids:
-        raise RuntimeError(f"No students enrolled from {prepared[enroll_cam]}")
+    validate_gallery_samples(data_path('enrollment', session_id), student_ids, expected_persons)
 
     for sid in student_ids:
         register_student(sid, f"Student {sid}", class_id="v2_testset")
@@ -144,6 +145,8 @@ def run_enroll_group(
         "enroll_camera": enroll_cam,
         "student_ids": student_ids,
         "n_students": len(student_ids),
+        "enrollment_mode": mode,
+        "expected_persons": expected_persons,
         "preview_dir": str(preview),
     }
     shared.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -211,7 +214,9 @@ def process_action_group(
         gallery_session_id = man["session_id"]
         student_ids = list(man["student_ids"])
 
+    validate_gallery_samples(data_path('enrollment', gallery_session_id), student_ids, len(student_ids))
     student_ids = _copy_gallery(gallery_session_id, session_id)
+    validate_gallery_samples(data_path('enrollment', session_id), student_ids, len(student_ids))
     primary = student_ids[0]
     for sid in student_ids:
         register_student(sid, f"Student {sid}", class_id="v2_testset")
@@ -430,9 +435,11 @@ def main():
     parser.add_argument(
         "--expected-persons",
         type=int,
-        default=None,
+        default=6,
+        choices=range(1, 7),
         help="Enrollment target headcount (default: 6; use 4 for v3 A–D)",
     )
+    parser.add_argument("--enroll-mode", choices=["sequential", "lineup"], default="sequential")
     args = parser.parse_args()
 
     groups = discover_groups(args.data_dir)
@@ -444,9 +451,6 @@ def main():
         groups = {g: v for g, v in groups.items() if g in wanted}
 
     expected_persons = args.expected_persons
-    if expected_persons is None:
-        # Heuristic: v3 dataset → 4 persons (A–D); else v2 default 6
-        expected_persons = 4 if "v3" in str(args.data_dir) else 6
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     fast, shot_ball_only, skip_viz, mode_label = resolve_run_mode(args)
@@ -518,6 +522,7 @@ def main():
             man = run_enroll_group(
                 gid, groups[gid], args.out_dir,
                 expected_persons=expected_persons,
+                enroll_mode=args.enroll_mode,
             )
             gallery_session_id = man["session_id"]
             student_ids = man["student_ids"]

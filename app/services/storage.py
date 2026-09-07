@@ -170,9 +170,6 @@ class AnalysisStorage:
                     raise InvalidVideoUpload(_invalid_video_message(UPLOAD_TITLES[field]))
                 self.video_probe(destination, UPLOAD_TITLES[field])
                 manifest[field] = str(destination)
-            sync_destination = root / "input" / "sync.json"
-            shutil.copy2(self.settings.sync_config, sync_destination)
-            manifest["sync"] = str(sync_destination)
             self.write_manifest(root, manifest)
             return manifest
 
@@ -318,20 +315,20 @@ class AnalysisStorage:
             for artifact in (*temporary_files, *marker_files):
                 artifact.unlink(missing_ok=True)
 
-    def prepare_task_submission(self, analysis_id: str, manifest: dict[str, str]) -> dict[str, str]:
+    def prepare_task_submission(self, analysis_id: str, manifest: dict, *, sync_config: dict) -> dict:
         root = self.prepare(analysis_id)
         sync_destination = root / "input" / "sync.json"
         sync_temporary = root / "input" / ".sync.json.tmp"
-        shutil.copy2(self.settings.sync_config, sync_temporary)
+        sync_temporary.write_text(json.dumps(sync_config, ensure_ascii=False, allow_nan=False), encoding="utf-8")
         sync_temporary.replace(sync_destination)
         completed = dict(manifest)
         completed["sync"] = str(sync_destination)
+        completed["sync_schema_version"] = 1
         self.write_manifest(root, completed)
         return completed
 
-    def prepare_preset(self, analysis_id: str, manifest: dict[str, str]) -> None:
-        root = self.prepare(analysis_id)
-        self.write_manifest(root, manifest)
+    def prepare_preset(self, analysis_id: str, manifest: dict, *, sync_config: dict) -> dict:
+        return self.prepare_task_submission(analysis_id, manifest, sync_config=sync_config)
 
     @staticmethod
     def write_manifest(root: Path, manifest: dict[str, str]) -> None:

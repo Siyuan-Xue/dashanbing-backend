@@ -44,6 +44,11 @@ class AppSettings(BaseSettings):
     analyst_worker_enabled: bool = True
     analyst_concurrency: int = Field(default=8, ge=1, le=8)
     analyst_daily_limit: int = Field(default=100, ge=1)
+    analyst_concurrency_cap: int = Field(default=8, ge=1, le=8)
+    admin_max_drafts: int = Field(default=30, ge=0)
+    admin_max_unfinished: int = Field(default=50, ge=0)
+    admin_max_daily_video: int = Field(default=200, ge=0)
+    admin_max_daily_ai: int = Field(default=1000, ge=0)
 
 
 def get_settings() -> AppSettings:

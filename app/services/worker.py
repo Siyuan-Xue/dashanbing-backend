@@ -3,6 +3,7 @@ import json
 import os
 import signal
 import shutil
+import stat
 import sys
 from contextlib import suppress
 from datetime import datetime, timezone
@@ -37,6 +38,67 @@ STAGE_MESSAGES = {
     AnalysisStatus.exporting: "导出分析结果",
     AnalysisStatus.visualizing: "生成复核视频",
 }
+
+
+REGISTRATION_DIAGNOSTIC_LIMIT = 4096
+REGISTRATION_MESSAGES = {
+    "registration_count_mismatch": "注册人数与设置不一致，请检查人数设置和注册视频",
+    "registration_quality_failed": "注册样本质量未通过，请检查注册视频后重试",
+    "registration_config_required": "请先选择登记方式，并设置 1 至 6 人的预计人数",
+}
+
+
+class RegistrationFailure(RuntimeError):
+    """Only normalized registration metadata can reach the public task error."""
+
+    def __init__(self, code: str, expected_persons: int | None, detected_persons: int | None):
+        self.code = code
+        self.stage = "registration"
+        self.expected_persons = expected_persons
+        self.detected_persons = detected_persons
+        message = REGISTRATION_MESSAGES[code]
+        if code == "registration_count_mismatch":
+            counts = []
+            if expected_persons is not None:
+                counts.append(f"预期 {expected_persons} 人")
+            if detected_persons is not None:
+                counts.append(f"检测到 {detected_persons} 人")
+            if counts:
+                message = "，".join(counts) + "，" + message
+        super().__init__(message)
+
+
+def _registration_failure(task_root: Path, expected_persons: int | None) -> RegistrationFailure | None:
+    """Read a bounded regular diagnostic file, never a raw log or symlink target."""
+    path = task_root / "logs" / "registration_error.json"
+    try:
+        flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+        fd = os.open(path, flags)
+        try:
+            info = os.fstat(fd)
+            if not stat.S_ISREG(info.st_mode) or info.st_size > REGISTRATION_DIAGNOSTIC_LIMIT:
+                return None
+            raw = os.read(fd, REGISTRATION_DIAGNOSTIC_LIMIT + 1)
+        finally:
+            os.close(fd)
+        if len(raw) > REGISTRATION_DIAGNOSTIC_LIMIT:
+            return None
+        payload = json.loads(raw)
+        if not isinstance(payload, dict):
+            return None
+        code = payload.get("code")
+        if not isinstance(code, str) or code not in REGISTRATION_MESSAGES:
+            return None
+        expected = payload.get("expected_persons")
+        if type(expected) is not int or not 1 <= expected <= 6:
+            expected = expected_persons if type(expected_persons) is int and 1 <= expected_persons <= 6 else None
+        detected = payload.get("detected_persons")
+        if type(detected) is not int or not 0 <= detected <= 2**31 - 1:
+            detected = None
+        # Raw messages, internal student IDs, paths, and unknown fields stay private.
+        return RegistrationFailure(code, expected, detected)
+    except (OSError, ValueError, UnicodeError):
+        return None
 
 
 def _now() -> datetime:
@@ -93,7 +155,10 @@ def _advance_missing_stages(session: Session, analysis: Analysis) -> None:
         analysis.status = transition_status(analysis.status, stage).value
 
 
-def _fail(app: FastAPI, analysis_id: str, code: str, message: str) -> None:
+def _fail(
+    app: FastAPI, analysis_id: str, code: str, message: str,
+    *, stage: AnalysisStatus | None = None,
+) -> None:
     with Session(app.state.engine) as session:
         session.connection().exec_driver_sql("BEGIN IMMEDIATE")
         analysis = session.get(Analysis, analysis_id)
@@ -107,7 +172,9 @@ def _fail(app: FastAPI, analysis_id: str, code: str, message: str) -> None:
             analysis.stage_message = "已取消"
         else:
             analysis.status = transition_status(current, AnalysisStatus.failed).value
-            analysis.stage_message = "分析失败"
+            analysis.stage_message = "注册失败" if stage == AnalysisStatus.registering else "分析失败"
+            if stage == AnalysisStatus.registering:
+                analysis.progress = STAGE_PROGRESS[AnalysisStatus.registering]
             analysis.error_code = code
             analysis.error_message = message[-4000:]
         analysis.updated_at = _now()
@@ -224,6 +291,8 @@ async def _run_subprocess(app: FastAPI, analysis: Analysis) -> None:
     settings = app.state.settings
     task_root = app.state.storage.analysis_root(analysis.id)
     manifest = task_root / "input_manifest.json"
+    # A failed spawn or a later unrelated failure must not reuse a prior attempt's code.
+    (task_root / "logs" / "registration_error.json").unlink(missing_ok=True)
     environment = os.environ.copy()
     environment["PYTHONUNBUFFERED"] = "1"
     process = await asyncio.create_subprocess_exec(
@@ -243,6 +312,7 @@ async def _run_subprocess(app: FastAPI, analysis: Analysis) -> None:
         env=environment,
         cwd=Path(__file__).resolve().parents[2],
         start_new_session=True,
+        pass_fds=tuple(getattr(app.state, "video_worker_lock_fds", ())),
     )
     output_task = asyncio.create_task(
         _consume_output(app, analysis.id, process, task_root / "logs" / "engine.log")
@@ -265,6 +335,9 @@ async def _run_subprocess(app: FastAPI, analysis: Analysis) -> None:
             _fail(app, analysis.id, "CANCELED", "用户取消任务")
             return
         if process.returncode != 0:
+            registration_failure = _registration_failure(task_root, analysis.expected_persons)
+            if registration_failure is not None:
+                raise registration_failure
             raise RuntimeError("\n".join(recent[-10:]) or f"Engine exited with {process.returncode}")
         output = task_root / "output"
         for filename in ("report.json", "summary.json", "media_manifest.json"):
@@ -299,9 +372,12 @@ async def run_analysis(app: FastAPI, analysis_id: str) -> None:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         with log_path.open("a", encoding="utf-8") as log:
             log.write(f"{type(error).__name__}: {error}\n")
-        _fail(
-            app,
-            analysis_id,
-            "ENGINE_FAILED",
-            "科研引擎执行失败，详情已写入本地任务日志。",
-        )
+        if isinstance(error, RegistrationFailure):
+            _fail(app, analysis_id, error.code, str(error), stage=AnalysisStatus.registering)
+        else:
+            _fail(
+                app,
+                analysis_id,
+                "ENGINE_FAILED",
+                "科研引擎执行失败，详情已写入本地任务日志。",
+            )

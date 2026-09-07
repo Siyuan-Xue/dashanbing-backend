@@ -12,6 +12,7 @@ from sqlmodel import Session
 from app.config import AppSettings
 from app.main import create_app
 from app.models import Analysis, ApiKey, ApiKeyCreated, SubmissionEvent
+from business_fixture import login_business_user, register_business_user
 
 
 @pytest.fixture
@@ -34,11 +35,8 @@ def client(tmp_path: Path):
         result_retention_days=181,
     )
     with TestClient(create_app(settings=settings), raise_server_exceptions=False) as test_client:
-        login = test_client.post(
-            "/api/v1/login/access-token",
-            data={"username": "admin", "password": "correct-password"},
-        )
-        assert login.status_code == 200
+        test_client.owner_id = register_business_user(test_client)["id"]
+        login_business_user(test_client)
         yield test_client
 
 
@@ -134,7 +132,7 @@ def test_invalid_expired_and_revoked_keys_are_rejected(client: TestClient):
 
 def test_api_key_listing_and_revocation_are_owner_scoped(client: TestClient):
     """Catches one tenant viewing or revoking another tenant's credentials."""
-    admin_key = _create_key(client, "Admin key")
+    owner_key = _create_key(client, "Owner key")
     _, other_token = _register_and_token(client, "othercoach")
     other_headers = {"Authorization": f"Bearer {other_token}"}
     other_key = _create_key(client, "Other key", headers=other_headers)
@@ -142,13 +140,13 @@ def test_api_key_listing_and_revocation_are_owner_scoped(client: TestClient):
     listed = client.get("/api/v1/api-keys", headers=other_headers)
     assert [item["id"] for item in listed.json()] == [other_key["id"]]
     assert client.delete(
-        f"/api/v1/api-keys/{admin_key['id']}", headers=other_headers
+        f"/api/v1/api-keys/{owner_key['id']}", headers=other_headers
     ).status_code == 404
 
     client.cookies.clear()
     assert client.get(
         "/api/v1/users/me",
-        headers={"Authorization": f"Bearer {admin_key['secret']}"},
+        headers={"Authorization": f"Bearer {owner_key['secret']}"},
     ).status_code == 200
 
 
@@ -364,27 +362,27 @@ def test_account_usage_uses_owner_scoped_server_side_counts(client: TestClient):
     with Session(client.app.state.engine) as session:
         session.add(
             Analysis(
-                id="admin-draft",
+                id="owner-draft",
                 title="Draft",
                 status="draft",
                 input_manifest_json="{}",
-                owner_id=1,
+                owner_id=client.owner_id,
             )
         )
         session.add(
             Analysis(
-                id="admin-queued",
+                id="owner-queued",
                 title="Queued",
                 status="queued",
                 input_manifest_json="{}",
-                owner_id=1,
+                owner_id=client.owner_id,
                 submitted_at=now,
             )
         )
         session.add(
             SubmissionEvent(
-                task_id="deleted-admin-task",
-                owner_id=1,
+                task_id="deleted-owner-task",
+                owner_id=client.owner_id,
                 kind="retry",
                 submitted_at=now,
             )

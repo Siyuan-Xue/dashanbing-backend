@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 from app.config import get_settings
-from app import models  # noqa: F401
+from app import models, admin_models  # noqa: F401
 
 
 config = context.config

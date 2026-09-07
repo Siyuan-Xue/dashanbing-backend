@@ -50,6 +50,8 @@ def main() -> None:
     if "--mode" not in flags:
         # full → skip_viz=False unless user passes --skip-viz
         injected += ["--mode", "full"]
+    if "--enroll-mode" not in flags:
+        injected += ["--enroll-mode", "lineup"]
     if "--expected-persons" not in flags:
         injected += ["--expected-persons", "4"]
     if "--groups" not in flags:

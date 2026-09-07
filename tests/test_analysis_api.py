@@ -6,6 +6,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+from business_fixture import (
+    PRESET_SYNC,
+    install_mock_video_probe,
+    login_business_user,
+    register_business_user,
+    upload_form,
+)
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -54,11 +61,11 @@ def _build_sample_root(root: Path) -> None:
     for name in ("0-2.mkv", "4-1.mkv", "4-2.mkv", "4-3.mkv", "4-4.mkv"):
         (inputs / name).write_bytes(b"original-" + name.encode())
     (inputs / "sync").mkdir()
-    (inputs / "sync" / "group_04.json").write_text("{}", encoding="utf-8")
+    _write_json(inputs / "sync" / "group_04.json", PRESET_SYNC)
 
 
 @pytest.fixture
-def client(tmp_path: Path):
+def client(tmp_path: Path, monkeypatch):
     sample_root = tmp_path / "samples"
     _build_sample_root(sample_root)
     sync = tmp_path / "sync.json"
@@ -78,17 +85,13 @@ def client(tmp_path: Path):
     )
     with TestClient(create_app(settings=settings), raise_server_exceptions=False) as test_client:
         test_client.app.state.readiness.require_ready = lambda: None
-        test_client.app.state.storage.video_probe = lambda _path, _title: None
+        install_mock_video_probe(test_client, monkeypatch)
+        test_client.owner_id = register_business_user(test_client)["id"]
         yield test_client
 
 
 def _login(client: TestClient) -> None:
-    response = client.post(
-        "/api/v1/login/access-token",
-        data={"username": "admin", "password": "correct-password"},
-    )
-    assert response.status_code == 200
-    assert response.cookies.get("access_token")
+    login_business_user(client)
 
 
 def _register_and_login(client: TestClient, username: str, email: str) -> str:
@@ -229,7 +232,7 @@ def test_upload_creates_isolated_queued_job_and_supports_cancel_retry_delete(cli
     }
     created = client.post(
         "/api/v1/analyses/upload",
-        data={"title": "训练一", "mode": "quick"},
+        data=upload_form("训练一"),
         files=files,
     )
     assert created.status_code == 201
@@ -263,7 +266,7 @@ def test_non_video_upload_is_rejected_before_queueing(client: TestClient):
     analyses_root = Path(client.app.state.settings.runtime_root) / "analyses"
     response = client.post(
         "/api/v1/analyses/upload",
-        data={"title": "格式检测", "mode": "quick"},
+        data=upload_form("格式检测"),
         files={
             "enrollment_video": ("enroll.mkv", b"%PDF-1.6 fake document", "video/x-matroska"),
             "cam_01": ("one.mkv", _mkv(b"one"), "video/x-matroska"),
@@ -300,7 +303,7 @@ def test_upload_storage_errors_use_specific_http_statuses(
     monkeypatch.setattr(client.app.state.storage, "save_uploads", fail_upload)
     response = client.post(
         "/api/v1/analyses/upload",
-        data={"title": "错误映射", "mode": "quick"},
+        data=upload_form("错误映射"),
         files={
             name: (f"{name}.mkv", _mkv(b"video"), "video/x-matroska")
             for name in ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04")
@@ -316,7 +319,7 @@ def test_running_cancel_request_is_idempotent_until_worker_stops(client: TestCli
         title="running",
         status="perception",
         input_manifest_json="{}",
-        owner_id=1,
+        owner_id=client.owner_id,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -342,7 +345,7 @@ def test_retry_rejects_expired_input_manifest(client: TestClient):
                 for name in ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04", "sync")
             }
         ),
-        owner_id=1,
+        owner_id=client.owner_id,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -362,7 +365,7 @@ def test_retry_transaction_wins_race_with_retention_cleanup(client: TestClient, 
         title="retry-race",
         status="failed",
         input_manifest_json="{}",
-        owner_id=1,
+        owner_id=client.owner_id,
         completed_at=now - timedelta(days=40),
     )
     root = client.app.state.storage.prepare(analysis.id)
@@ -446,7 +449,7 @@ def test_completed_analysis_media_uses_manifest_and_supports_range(client: TestC
         status="completed",
         progress=100,
         input_manifest_json="{}",
-        owner_id=1,
+        owner_id=client.owner_id,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -500,7 +503,7 @@ def test_completed_analysis_camera_media_uses_original_inputs_not_annotated(
         status="completed",
         progress=100,
         input_manifest_json="{}",
-        owner_id=1,
+        owner_id=client.owner_id,
     )
     with Session(client.app.state.engine) as session:
         session.add(analysis)
@@ -564,10 +567,11 @@ def test_real_upload_is_blocked_before_saving_when_runtime_is_not_ready(tmp_path
         auto_create_schema=True,
     )
     with TestClient(create_app(settings=settings)) as blocked_client:
+        register_business_user(blocked_client)
         _login(blocked_client)
         response = blocked_client.post(
             "/api/v1/analyses/upload",
-            data={"title": "should not save", "mode": "full"},
+            data=upload_form("should not save", "full"),
             files={
                 name: (f"{name}.mkv", b"video", "video/x-matroska")
                 for name in ("enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04")
@@ -591,6 +595,7 @@ def test_disabled_worker_rejects_new_analysis(tmp_path: Path):
     )
 
     with TestClient(create_app(settings=settings)) as disabled_client:
+        register_business_user(disabled_client)
         _login(disabled_client)
         response = disabled_client.post(
             "/api/v1/analyses/preset",

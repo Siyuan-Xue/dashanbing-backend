@@ -10,7 +10,9 @@ export const apiChapters = [
   { id: "workflow", title: { zh: "创建与上传", en: "Create and upload" }, children: [
     { id: "create", title: { zh: "创建草稿", en: "Create a draft" } },
     { id: "upload", title: { zh: "上传输入", en: "Upload inputs" } },
+    { id: "video-sync", title: { zh: "确认视频同步", en: "Confirm video synchronization" } },
     { id: "submit", title: { zh: "提交任务", en: "Submit a task" } },
+    { id: "single-upload", title: { zh: "一次上传接口", en: "Single-request upload" } },
   ] },
   { id: "polling", title: { zh: "轮询与结果", en: "Polling and results" }, children: [
     { id: "poll-status", title: { zh: "轮询任务状态", en: "Poll task status" } },

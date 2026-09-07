@@ -17,7 +17,7 @@ def _unauthorized() -> HTTPException:
     )
 
 
-def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
+def get_authenticated_identity(request: Request, session: Session = Depends(get_session)) -> User:
     authorization = request.headers.get("Authorization")
     if authorization is not None:
         token = _bearer_token(authorization)
@@ -34,7 +34,7 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
             token,
             request.app.state.settings.jwt_secret_key,
             algorithms=[JWT_ALGORITHM],
-            options={"require": ["sub", "exp"]},
+            options={"require": ["sub", "exp", "role", "version"]},
         )
     except jwt.PyJWTError as error:
         raise _unauthorized() from error
@@ -42,7 +42,9 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
     if not isinstance(username, str):
         raise _unauthorized()
     user = session.exec(select(User).where(User.username == username)).first()
-    if user is None or not user.is_active:
+    if (user is None or not user.is_active or user.role not in {"user", "admin"}
+            or payload.get("role") != user.role or type(payload.get("version")) is not int
+            or payload["version"] != user.session_version):
         raise _unauthorized()
     return user
 
@@ -65,7 +67,7 @@ def _get_api_key_user(request: Request, session: Session, secret: str) -> User:
         session.rollback()
         raise _unauthorized()
     user = session.get(User, api_key.owner_id)
-    if user is None or not user.is_active:
+    if user is None or not user.is_active or user.role != "user":
         session.rollback()
         raise _unauthorized()
     if api_key.last_used_at is None or _aware(api_key.last_used_at) < now:
@@ -77,3 +79,30 @@ def _get_api_key_user(request: Request, session: Session, secret: str) -> User:
 
 def _aware(value: datetime) -> datetime:
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+
+
+def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
+    user = get_authenticated_identity(request, session)
+    if user.role != "user":
+        raise HTTPException(403, "Business user access required")
+    return user
+
+
+def validate_admin_origin(request: Request) -> None:
+    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+        origin = request.headers.get("origin")
+        if origin != str(request.base_url).rstrip("/"):
+            raise HTTPException(403, "Same-origin request required")
+
+
+def get_admin_user(request: Request, session: Session = Depends(get_session)) -> User:
+    authorization = request.headers.get("Authorization")
+    if authorization:
+        token = _bearer_token(authorization)
+        if token and token.startswith(API_KEY_PREFIX):
+            raise HTTPException(403, "Administrator session required")
+    user = get_authenticated_identity(request, session)
+    if user.role != "admin":
+        raise HTTPException(403, "Administrator access required")
+    validate_admin_origin(request)
+    return user

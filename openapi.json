@@ -143,6 +143,25 @@
         }
       }
     },
+    "/api/v1/account/limits": {
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Account Limits",
+        "operationId": "account_limits_api_v1_account_limits_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/api-keys": {
       "get": {
         "tags": [
@@ -1356,6 +1375,48 @@
         }
       }
     },
+    "/api/v1/tasks/{task_id}/return-to-input": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Return Task To Input",
+        "operationId": "return_task_to_input_api_v1_tasks__task_id__return_to_input_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{task_id}/analyst/report": {
       "get": {
         "tags": [
@@ -2316,6 +2377,795 @@
           }
         }
       }
+    },
+    "/api/v1/admin/overview": {
+      "get": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Overview",
+        "operationId": "overview_api_v1_admin_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/settings": {
+      "get": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Settings",
+        "operationId": "settings_api_v1_admin_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Change Settings",
+        "operationId": "change_settings_api_v1_admin_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Users",
+        "operationId": "users_api_v1_admin_users_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Is Active"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{user_id}": {
+      "patch": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Change User",
+        "operationId": "change_user_api_v1_admin_users__user_id__patch",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{user_id}/force-logout": {
+      "post": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Force Logout",
+        "operationId": "force_logout_api_v1_admin_users__user_id__force_logout_post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForceLogout"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jobs": {
+      "get": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Jobs",
+        "operationId": "jobs_api_v1_admin_jobs_get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "video",
+                    "ai",
+                    "preset"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 30
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jobs/actions": {
+      "post": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Job Action",
+        "operationId": "job_action_api_v1_admin_jobs_actions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/audit": {
+      "get": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Audit",
+        "operationId": "audit_api_v1_admin_audit_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/deployment": {
+      "get": {
+        "tags": [
+          "administrator"
+        ],
+        "summary": "Deployment",
+        "operationId": "deployment_api_v1_admin_deployment_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/sync": {
+      "get": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Get Sync",
+        "operationId": "get_sync_api_v1_tasks__task_id__sync_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Put Sync",
+        "operationId": "put_sync_api_v1_tasks__task_id__sync_put",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/sync/preview": {
+      "post": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Prepare Preview",
+        "operationId": "prepare_preview_api_v1_tasks__task_id__sync_preview_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Preview Status",
+        "operationId": "preview_status_api_v1_tasks__task_id__sync_preview_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/sync/preview/{camera}": {
+      "get": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Preview Video",
+        "operationId": "preview_video_api_v1_tasks__task_id__sync_preview__camera__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "camera",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ],
+              "type": "string",
+              "title": "Camera"
+            }
+          },
+          {
+            "name": "source_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "video/mp4": {}
+            }
+          },
+          "206": {
+            "description": "Partial video content"
+          },
+          "416": {
+            "description": "Unsatisfiable byte range"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/sync/frames/{camera}": {
+      "get": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Preview Frame",
+        "operationId": "preview_frame_api_v1_tasks__task_id__sync_frames__camera__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "camera",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ],
+              "type": "string",
+              "title": "Camera"
+            }
+          },
+          {
+            "name": "time_ms",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "title": "Time Ms"
+            }
+          },
+          {
+            "name": "source_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FramePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2361,6 +3211,35 @@
           "mode": {
             "type": "string",
             "title": "Mode"
+          },
+          "analyst_locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Analyst Locale",
+            "default": "zh"
+          },
+          "enrollment_mode": {
+            "type": "string",
+            "enum": [
+              "sequential",
+              "lineup"
+            ],
+            "title": "Enrollment Mode",
+            "default": "sequential"
+          },
+          "expected_persons": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Persons"
           },
           "source_type": {
             "type": "string",
@@ -3055,6 +3934,33 @@
             ],
             "title": "Mode"
           },
+          "enrollment_mode": {
+            "type": "string",
+            "enum": [
+              "sequential",
+              "lineup"
+            ],
+            "title": "Enrollment Mode"
+          },
+          "expected_persons": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Expected Persons"
+          },
+          "analyst_locale": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ],
+            "title": "Analyst Locale"
+          },
+          "sync": {
+            "type": "string",
+            "maxLength": 8192,
+            "title": "Sync"
+          },
           "enrollment_video": {
             "type": "string",
             "contentMediaType": "application/octet-stream",
@@ -3085,6 +3991,10 @@
         "required": [
           "title",
           "mode",
+          "enrollment_mode",
+          "expected_persons",
+          "analyst_locale",
+          "sync",
           "enrollment_video",
           "cam_01",
           "cam_02",
@@ -3347,6 +4257,71 @@
         ],
         "title": "EvidenceComment"
       },
+      "ForceLogout": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ForceLogout"
+      },
+      "FramePublic": {
+        "properties": {
+          "camera": {
+            "type": "string",
+            "enum": [
+              "cam_01",
+              "cam_02",
+              "cam_03",
+              "cam_04"
+            ],
+            "title": "Camera"
+          },
+          "source_version": {
+            "type": "string",
+            "title": "Source Version"
+          },
+          "requested_time_ms": {
+            "type": "number",
+            "title": "Requested Time Ms"
+          },
+          "actual_time_ms": {
+            "type": "number",
+            "title": "Actual Time Ms"
+          },
+          "source_pts_ms": {
+            "type": "number",
+            "title": "Source Pts Ms"
+          },
+          "frame_index": {
+            "type": "integer",
+            "title": "Frame Index"
+          },
+          "image_data_url": {
+            "type": "string",
+            "title": "Image Data Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "camera",
+          "source_version",
+          "requested_time_ms",
+          "actual_time_ms",
+          "source_pts_ms",
+          "frame_index",
+          "image_data_url"
+        ],
+        "title": "FramePublic"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -3359,6 +4334,188 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "JobAction": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "video",
+              "ai",
+              "preset"
+            ],
+            "title": "Kind"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Ids"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "hold",
+              "release",
+              "priority",
+              "retry",
+              "backfill"
+            ],
+            "title": "Action"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": -100.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason",
+          "kind",
+          "ids",
+          "action"
+        ],
+        "title": "JobAction"
+      },
+      "JobMetadata": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "video",
+              "ai",
+              "preset"
+            ],
+            "title": "Kind"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "held": {
+            "type": "boolean",
+            "title": "Held"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "admin_retries": {
+            "type": "integer",
+            "title": "Admin Retries"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "created_at",
+          "updated_at",
+          "attempts",
+          "held",
+          "priority",
+          "admin_retries",
+          "allowed_actions"
+        ],
+        "title": "JobMetadata"
+      },
+      "JobPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobMetadata"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "JobPage"
       },
       "MessageAccepted": {
         "properties": {
@@ -3654,6 +4811,116 @@
         ],
         "title": "PresetRerunRequest"
       },
+      "PreviewCamera": {
+        "properties": {
+          "source_version": {
+            "type": "string",
+            "title": "Source Version"
+          },
+          "duration_ms": {
+            "type": "number",
+            "title": "Duration Ms"
+          },
+          "fps": {
+            "type": "number",
+            "title": "Fps"
+          },
+          "frame_count": {
+            "type": "integer",
+            "title": "Frame Count"
+          },
+          "source_start_pts_ms": {
+            "type": "number",
+            "title": "Source Start Pts Ms"
+          },
+          "frame_timestamps_ms": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Frame Timestamps Ms"
+          },
+          "video_url": {
+            "type": "string",
+            "title": "Video Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_version",
+          "duration_ms",
+          "fps",
+          "frame_count",
+          "source_start_pts_ms",
+          "frame_timestamps_ms",
+          "video_url"
+        ],
+        "title": "PreviewCamera"
+      },
+      "PreviewStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "unprepared",
+              "preparing",
+              "ready",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "source_versions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ]
+            },
+            "type": "object",
+            "title": "Source Versions"
+          },
+          "cameras": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PreviewCamera"
+            },
+            "propertyNames": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ]
+            },
+            "type": "object",
+            "title": "Cameras"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "source_versions"
+        ],
+        "title": "PreviewStatus"
+      },
       "ProductActionCounts": {
         "properties": {
           "triple_threat": {
@@ -3830,6 +5097,61 @@
         },
         "type": "object",
         "title": "ProductShotSummary"
+      },
+      "QuotaPatch": {
+        "properties": {
+          "drafts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drafts"
+          },
+          "unfinished": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unfinished"
+          },
+          "daily_video": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Video"
+          },
+          "daily_ai": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Ai"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "QuotaPatch"
       },
       "ReportPublic": {
         "properties": {
@@ -4149,6 +5471,88 @@
         ],
         "title": "RetentionDescriptions"
       },
+      "SettingsPatch": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          },
+          "video_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Enabled"
+          },
+          "video_paused": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Paused"
+          },
+          "ai_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Enabled"
+          },
+          "ai_paused": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Paused"
+          },
+          "ai_concurrency": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Concurrency"
+          },
+          "default_quotas": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotaPatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "SettingsPatch"
+      },
       "SubjectAssignment": {
         "properties": {
           "id": {
@@ -4173,6 +5577,229 @@
           "id"
         ],
         "title": "SubjectAssignment"
+      },
+      "SyncConfig": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "anchor_camera": {
+            "type": "string",
+            "const": "cam_03",
+            "title": "Anchor Camera",
+            "default": "cam_03"
+          },
+          "camera_time_offsets_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "propertyNames": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ]
+            },
+            "type": "object",
+            "title": "Camera Time Offsets Ms"
+          },
+          "selected_timestamps_ms": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "cam_01",
+                    "cam_02",
+                    "cam_03",
+                    "cam_04"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Timestamps Ms"
+          },
+          "input_versions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ]
+            },
+            "type": "object",
+            "title": "Input Versions"
+          },
+          "durations_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "propertyNames": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ]
+            },
+            "type": "object",
+            "title": "Durations Ms"
+          },
+          "overlap_start_ms": {
+            "type": "number",
+            "title": "Overlap Start Ms"
+          },
+          "overlap_end_ms": {
+            "type": "number",
+            "title": "Overlap End Ms"
+          },
+          "confirmed_at": {
+            "type": "string",
+            "title": "Confirmed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "camera_time_offsets_ms",
+          "input_versions",
+          "durations_ms",
+          "overlap_start_ms",
+          "overlap_end_ms",
+          "confirmed_at"
+        ],
+        "title": "SyncConfig"
+      },
+      "SyncInput": {
+        "properties": {
+          "input_versions": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "cam_01",
+                    "cam_02",
+                    "cam_03",
+                    "cam_04"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Versions"
+          },
+          "selected_timestamps_ms": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "cam_01",
+                    "cam_02",
+                    "cam_03",
+                    "cam_04"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Timestamps Ms"
+          },
+          "offsets_ms": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "cam_01",
+                    "cam_02",
+                    "cam_03",
+                    "cam_04"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offsets Ms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SyncInput"
+      },
+      "SyncPublic": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "unconfirmed",
+              "confirmed",
+              "stale",
+              "legacy"
+            ],
+            "title": "Status"
+          },
+          "source_versions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "enum": [
+                "cam_01",
+                "cam_02",
+                "cam_03",
+                "cam_04"
+              ]
+            },
+            "type": "object",
+            "title": "Source Versions"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SyncConfig"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "source_versions"
+        ],
+        "title": "SyncPublic"
       },
       "TaskCreate": {
         "properties": {
@@ -4199,6 +5826,28 @@
             ],
             "title": "Analyst Locale",
             "default": "zh"
+          },
+          "enrollment_mode": {
+            "type": "string",
+            "enum": [
+              "sequential",
+              "lineup"
+            ],
+            "title": "Enrollment Mode",
+            "default": "sequential"
+          },
+          "expected_persons": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 6.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Persons"
           }
         },
         "type": "object",
@@ -4309,6 +5958,37 @@
             ],
             "title": "Analyst Locale",
             "default": "zh"
+          },
+          "enrollment_mode": {
+            "type": "string",
+            "enum": [
+              "sequential",
+              "lineup"
+            ],
+            "title": "Enrollment Mode",
+            "default": "sequential"
+          },
+          "expected_persons": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Persons"
+          },
+          "sync_status": {
+            "type": "string",
+            "enum": [
+              "unconfirmed",
+              "confirmed",
+              "stale",
+              "legacy"
+            ],
+            "title": "Sync Status",
+            "default": "unconfirmed"
           },
           "source_type": {
             "type": "string",
@@ -4479,6 +6159,34 @@
               }
             ],
             "title": "Analyst Locale"
+          },
+          "enrollment_mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "sequential",
+                  "lineup"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enrollment Mode"
+          },
+          "expected_persons": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 6.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Persons"
           }
         },
         "type": "object",
@@ -4643,7 +6351,7 @@
           },
           "limit": {
             "type": "integer",
-            "exclusiveMinimum": 0.0,
+            "minimum": 0.0,
             "title": "Limit"
           }
         },
@@ -4653,6 +6361,43 @@
           "limit"
         ],
         "title": "UsageQuota"
+      },
+      "UserPatch": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "quotas": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotaPatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "UserPatch"
       },
       "UserPublic": {
         "properties": {
@@ -4678,6 +6423,15 @@
           "is_active": {
             "type": "boolean",
             "title": "Is Active"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ],
+            "title": "Role",
+            "default": "user"
           }
         },
         "type": "object",

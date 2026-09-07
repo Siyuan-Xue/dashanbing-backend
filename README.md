@@ -6,10 +6,11 @@
 
 ## 使用结果
 
-登录后可以：
+普通账户登录后可以：
 
 - 秒开四个 v3 预计算样例，或使用 GPU 重新分析样例；
-- 上传标题、快速/完整模式及五个视频文件；
+- 填写标题、快速/完整模式、登记方式、1–6 人及五个视频文件，确认四路视频同步后提交；
+- 阅读自动生成的 AI 报告、切换球员和语气、追问、绑定训练档案并主动追加历史对比；
 - 自定义上传支持 MKV、MP4、MOV、WebM；浏览器仅通过文件选择器按视频类型与 `.mkv` 提示，服务端读取实际文件头校验容器签名，并在完整写入后运行 `ffprobe`；
 - 查看排队、注册、人体感知、球跟踪、同步、动作识别、命中判定、导出和可视化进度；
 - 查看班级汇总、匿名动作时间线、投篮汇总以及四宫格标注复核与四路机位原视频；
@@ -44,7 +45,7 @@ local-assets/runtime-models/insightface/models/buffalo_l/
 
 官方 v0.7 `buffalo_l.zip` 的 SHA-256 是 `80ffe37d8a5940d59a7384c201a2a38d4741f2f3c51eef46ebb28218a7b0ca2f`。模型由 [InsightFace 官方发布页](https://github.com/deepinsight/insightface/releases/tag/v0.7)提供。InsightFace 开源模型有独立的非商业/授权限制；产品化或商业使用前必须向模型权利方确认并取得适用许可，不能把代码仓库许可证当作模型商业许可。
 
-### 2. 配置现场同步与管理员
+### 2. 配置初始化管理员与任务同步
 
 ```bash
 mkdir -p local-assets/deployment
@@ -52,7 +53,7 @@ cp deployment/sync.example.json local-assets/deployment/sync.json
 cp .env.example .env
 ```
 
-把 `sync.json` 中 cam01、cam02、cam04 相对 cam03 的固定偏移替换成部署现场实测值。cam03 必须保持 `0`。在首次启动前修改 `.env` 的管理员密码和至少 32 字符的随机 JWT 密钥；空数据库首次启动会创建管理员账户，其他用户可通过前端注册页面创建账户。
+`sync.json` 仅供历史流程参考，新上传使用各自任务确认的同步数据，不能复用全局偏移。在首次启动前修改 `.env` 的管理员密码和至少 32 字符的随机 JWT 密钥，空数据库首次启动创建管理员，普通用户通过注册页面创建账户。管理员进入独立后台，不能查看普通用户的业务内容。已有 `admin` 账户不会自动提权，迁移说明见 [管理员指南](docs/admin-guide.md)。
 
 ### 3. 构建与启动
 
@@ -67,11 +68,11 @@ docker compose logs -f app
 - CUDA 与 ONNX CUDA provider；
 - FFmpeg；
 - 五个活动权重和 `buffalo_l`；
-- 现场同步配置与剩余空间；
+- 预置分组同步、样例完整性与剩余空间；
 - 实际 YOLOX + RTMW 空帧推理，同时加载 YOLO-Pose、OSNet 与 Basketball_v1。
 
 任何检查失败都阻止创建真实任务。严格产品运行模式禁止 stub embedding、模型首次联网下载和 CPU 静默退化。
-修正模型、GPU 或同步配置后请重启服务；启动预检通过后，SQLite 中保留的排队任务才会恢复执行，从而避免 readiness 探测与真实任务同时占用 GPU。
+修正模型、GPU 或预置环境后请由服务器操作者重启服务；启动预检通过后，SQLite 中保留的排队任务才会恢复执行，从而避免 readiness 探测与真实任务同时占用 GPU。
 
 ## Mac / 无 GPU 开发
 
@@ -116,12 +117,13 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 - `POST /api/v1/tasks` 创建 `quick` 或 `full` 草稿；
 - `PATCH /api/v1/tasks/{id}` 修改草稿名称与分析模式，保留已上传视频；
 - `PUT /api/v1/tasks/{id}/inputs/{slot}` 依次上传 `enrollment_video` 与 `cam_01`–`cam_04`（multipart 字段名为 `file`）；
+- `GET/PUT /api/v1/tasks/{id}/sync` 读取或保存与当前四路上传版本绑定的同步数据；
 - `POST /api/v1/tasks/{id}/submit` 提交，`GET /api/v1/tasks/{id}` 轮询；
 - `GET /api/v1/tasks/{id}/result` 和 `GET /api/v1/tasks/{id}/media/{kind}` 获取结果与复核媒体；
 - `POST /api/v1/tasks/{id}/cancel`、`POST /api/v1/tasks/{id}/retry`、`DELETE /api/v1/tasks/{id}` 管理生命周期；
 - `GET/POST /api/v1/api-keys`、`DELETE /api/v1/api-keys/{id}` 和 `GET /api/v1/account/usage` 管理密钥与配额。
 
-API 密钥请求使用 `Authorization: Bearer dsb_live_...`。浏览器继续使用 HttpOnly、SameSite=Lax Cookie。旧 `/api/v1/analyses` 仅在兼容期内保留并返回弃用响应头；新集成只应使用 `/tasks` 工作流。其他主要接口：
+API 密钥请求使用 `Authorization: Bearer dsb_live_...`。浏览器继续使用 HttpOnly、SameSite=Lax Cookie。旧 `/api/v1/analyses` 路由保留并返回弃用响应头，其中一次上传接口同步增加登记、人数、语言和同步数据必填参数，两套入口共用服务层校验。详细顺序、兼容变化及错误码见 [输入与 API 升级指南](docs/input-and-api-guide.md)。其他主要接口：
 
 - `POST /api/v1/login/access-token`、`POST /api/v1/logout`、`GET /api/v1/users/me`
 - `GET /api/v1/system/readiness`
@@ -153,3 +155,9 @@ uv run alembic current
 ```
 
 Linux/NVIDIA 上还需真实重跑 group4 和 group5，记录完整与快速模式耗时、峰值显存，并按 [GPU 验收清单](docs/GPU_ACCEPTANCE.md)完成迁移验收。当前 v3 阈值只代表该固定测试集，不是泛化性能承诺。
+
+## 管理与本版收尾
+
+[管理员权限及离线账户迁移](docs/admin-guide.md) · [登记、同步与 API](docs/input-and-api-guide.md) · [隔离恢复流程](docs/recovery-workflow.md)
+
+发布继续采用 SCP 上传已有构建与源码，并记录提交号。功能合并不自动执行生产部署、账户迁移、备份或定时任务。本轮测试按实测记录能力和限制，不设定先验性能门槛，不将 20 人测试负载表述为已承诺容量。历史 GPU 和视觉文档只代表其当时版本，当前证据另行索引。

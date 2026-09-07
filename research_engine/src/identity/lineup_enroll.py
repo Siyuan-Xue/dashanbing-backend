@@ -15,6 +15,9 @@ import numpy as np
 
 from src.identity.embedders import create_face_embedder
 from src.identity.enrollment import EnrollmentGallery
+from src.identity.enrollment_validation import (
+    RegistrationError, validate_registration_config, validate_gallery_samples,
+)
 from src.identity.perception import _estimate_face_bbox
 from src.identity.sequential_enroll import _detect_persons_pose, _frontal_score, _load_yolo
 
@@ -65,9 +68,10 @@ def pick_best_lineup_frame(
     min_frontal: float = 0.40,
 ) -> tuple[int, float, np.ndarray, list[dict]] | None:
     """Return (frame_idx, t_s, frame_bgr, persons_ltr) or None."""
+    validate_registration_config('lineup', expected_persons)
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
-        raise RuntimeError(f"Cannot open enrollment video: {video_path}")
+        raise RegistrationError('registration_quality_failed', 'Cannot open the enrollment video.')
     fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
     n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
     step = max(1, int(round(fps / max(sample_hz, 0.5))))
@@ -83,25 +87,11 @@ def pick_best_lineup_frame(
         cands = _frame_lineup_candidates(frame, dets, min_frontal=min_frontal)
         if len(cands) < expected_persons:
             continue
-        # Prefer similarly sized court players (drop tiny bystanders / huge outliers)
-        cands = sorted(cands, key=lambda x: x["area_ratio"], reverse=True)
-        top = cands[: max(expected_persons + 2, expected_persons)]
-        med = float(np.median([x["area_ratio"] for x in top[:expected_persons]]))
-        similar = [x for x in top if x["area_ratio"] >= 0.45 * med]
-        if len(similar) < expected_persons:
-            continue
-        chosen = sorted(similar, key=lambda x: x["cx"])[:expected_persons]
-        # If still more than expected after cx sort window, take expected contiguous in x
-        if len(similar) > expected_persons:
-            similar_ltr = sorted(similar, key=lambda x: x["cx"])
-            # sliding window of size expected with max frontal*area
-            best_win = None
-            for a in range(0, len(similar_ltr) - expected_persons + 1):
-                win = similar_ltr[a : a + expected_persons]
-                sc = sum(p["frontal"] * p["area_ratio"] for p in win)
-                if best_win is None or sc > best_win[0]:
-                    best_win = (sc, win)
-            chosen = best_win[1] if best_win else chosen
+        if len(cands) > expected_persons:
+            cap.release()
+            raise RegistrationError('registration_count_mismatch', 'The lineup contains more people than requested.',
+                                    expected_persons=expected_persons, detected_persons=len(cands))
+        chosen = sorted(cands, key=lambda x: x['cx'])
 
         score = sum(p["frontal"] * p["area_ratio"] for p in chosen)
         # Prefer more centered group
@@ -112,7 +102,7 @@ def pick_best_lineup_frame(
             best = (score, i, t, frame.copy(), chosen)
     cap.release()
     if best is None:
-        return None
+        raise RegistrationError('registration_count_mismatch', 'No frontal lineup with the requested headcount was found.', expected_persons=expected_persons)
     _, fi, t, frame, persons = best
     return fi, t, frame, persons
 
@@ -170,6 +160,9 @@ def enroll_lineup_from_video(
             continue
         dets = _detect_persons_pose(backend, kind, fr, 0.35)
         cands = _frame_lineup_candidates(fr, dets, min_frontal=0.32)
+        if len(cands) > expected_persons:
+            cap.release()
+            raise RegistrationError("registration_count_mismatch", "Extra people appeared in the enrollment lineup.")
         if len(cands) < expected_persons:
             if off == 0:
                 cands = persons  # fallback to primary
@@ -240,9 +233,4 @@ def enroll_lineup_from_video(
             cv2.imwrite(str(preview_dir / f"{sid}.jpg"), vis)
 
     cap.release()
-    if len(student_ids) < expected_persons:
-        print(
-            f"  [enroll-lineup] WARNING: expected {expected_persons}, got {len(student_ids)}",
-            flush=True,
-        )
-    return student_ids
+    return validate_gallery_samples(gallery.root, student_ids, expected_persons)

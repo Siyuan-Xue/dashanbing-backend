@@ -1,16 +1,23 @@
 import { expect, test, type Page } from "@playwright/test";
+import type { ConfigurableTask } from "../src/lib/task-sync";
+import type { TaskSlot } from "../src/workspace/types";
+import { confirmedRegistration, incompleteRegistration, legacySyncFixture, submissionFixtureError } from "../src/test/legacyTaskSyncFixture";
+import { confirmTaskSync, fulfillSyncFixture } from "./task-sync.fixture";
 
 const timestamp = "2026-09-05T01:00:00Z";
-const slots = ["enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04"];
-const validInput = (slot: string, name = `${slot}.mp4`) => ({ slot, original_filename: name, byte_size: 100, validation_state: "valid", created_at: timestamp, updated_at: timestamp });
+const slots = ["enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04"] as const;
+const validInput = (slot: TaskSlot, name = `${slot}.mp4`) => ({ slot, original_filename: name, byte_size: 100, validation_state: "valid", created_at: timestamp, updated_at: timestamp });
 
 async function server(page: Page, restored = false) {
-  let task = { id: "draft-1", title: "Saved practice", mode: "quick", source_type: "upload", preset_id: null, status: "draft", progress: 0, stage_message: "Draft", error_code: null, error_message: null, submitted_at: null, created_via: "tasks_api", retry_count: 0, created_at: timestamp, updated_at: timestamp, started_at: null, completed_at: null, inputs: restored ? [validInput(slots[0])] : [] };
+  let task: ConfigurableTask = { id: "draft-1", title: "Saved practice", mode: "quick", analyst_locale: "zh", ...incompleteRegistration, source_type: "upload", preset_id: null, status: "draft", progress: 0, stage_message: "Draft", error_code: null, error_message: null, submitted_at: null, created_via: "tasks_api", retry_count: 0, created_at: timestamp, updated_at: timestamp, started_at: null, completed_at: null, inputs: restored ? [validInput(slots[0])] : [] };
+  const sync = legacySyncFixture(task.id);
   let creates = 0;
   let invalidReplacement = false;
   await page.route("**/api/v1/**", async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
+    const syncResponse = sync.response(new URL(request.url()), request.method(), path.endsWith("/sync") && request.method() === "PUT" ? request.postDataJSON() : undefined);
+    if (syncResponse) { task.sync_status = sync.status; return fulfillSyncFixture(route, syncResponse); }
     if (path === "/api/v1/users/me") return route.fulfill({ json: { id: 7, username: "coach", email: "coach@example.com", is_active: true } });
     if (path === "/api/v1/presets") return route.fulfill({ json: [] });
     if (path === "/api/v1/tasks") {
@@ -23,12 +30,17 @@ async function server(page: Page, restored = false) {
     }
     if (path.includes("/inputs/")) {
       if (invalidReplacement) { invalidReplacement = false; return route.fulfill({ status: 400, json: { detail: "Invalid video" } }); }
-      const slot = path.split("/").at(-1)!;
+      const slot = path.split("/").at(-1)! as TaskSlot;
       const name = request.postDataBuffer()?.toString().match(/filename="([^"]+)"/)?.[1] || `${slot}.mp4`;
-      task = { ...task, inputs: [...task.inputs.filter(item => item.slot !== slot), validInput(slot, name)] };
+      sync.replaceInput(slot);
+      task = { ...task, sync_status: sync.status, inputs: [...task.inputs.filter(item => item.slot !== slot), validInput(slot, name)] };
       return route.fulfill({ json: task });
     }
-    if (path.endsWith("/submit")) { task.status = "queued"; task.stage_message = "Queued"; return route.fulfill({ json: task }); }
+    if (path.endsWith("/submit")) {
+      const invalid = submissionFixtureError(task);
+      if (invalid) return route.fulfill({ status: invalid.code === "sync_stale" ? 409 : 422, json: { detail: invalid } });
+      task.status = "queued"; task.stage_message = "Queued"; return route.fulfill({ json: task });
+    }
     return route.fulfill({ status: 404, json: { detail: "Not found" } });
   });
   return { get task() { return task; }, get creates() { return creates; }, failReplacement: () => { invalidReplacement = true; } };
@@ -67,6 +79,8 @@ for (const locale of ["zh", "en"] as const) for (const theme of ["light", "dark"
     await expect(page.getByText("players.mp4", { exact: true })).toHaveCount(0);
     for (let index = 1; index < 5; index++) await fileInputs.nth(index).setInputFiles(file(`${slots[index]}.mp4`));
     const submit = page.getByRole("button", { name: zh ? "提交分析" : "Submit analysis", exact: true });
+    await expect(submit).toBeDisabled();
+    await confirmTaskSync(page, locale);
     await expect(submit).toBeEnabled();
     await expect(page.getByText(zh ? "点击替换" : "Click to replace", { exact: true })).toHaveCount(5);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -105,6 +119,7 @@ for (const width of [320, 1440]) test(`restored draft layout at ${width}px`, asy
   test.skip(info.project.name !== "desktop-chromium", "explicit viewport coverage");
   const api = await server(page, true);
   api.task.inputs = slots.map(slot => validInput(slot));
+  Object.assign(api.task, confirmedRegistration);
   await page.setViewportSize({ width, height: 900 });
   await page.goto("/workspace/new?draft=draft-1");
   await expect(page.getByText("点击替换", { exact: true })).toHaveCount(5);

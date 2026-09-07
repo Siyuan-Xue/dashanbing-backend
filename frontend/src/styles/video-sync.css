@@ -1,0 +1,76 @@
+.task-registration-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; max-width: 620px; }
+.task-registration-fields > label { display: grid; gap: 8px; min-width: 0; color: var(--text-soft); }
+.task-sync-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; }
+.task-sync-summary > div { display: flex; flex-wrap: wrap; gap: 6px 12px; min-width: 0; }
+.task-sync-summary strong { font-size: 14px; font-weight: 500; }
+.task-sync-summary span, .task-sync-summary small, .task-registration-hint { color: var(--muted); font-size: 13px; }
+.task-sync-summary small { flex-basis: 100%; }
+.task-sync-summary .is-confirmed { color: var(--brand); }
+.task-sync-summary > button { flex-shrink: 0; }
+.video-sync-dialog { width: min(1120px, 100%); max-height: calc(100dvh - 40px); min-width: 0; display: flex; flex-direction: column; overflow: hidden; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-md); }
+.video-sync-heading { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; padding: 18px 20px 12px; }
+.video-sync-heading h2 { margin: 0 0 6px; font-size: 20px; font-weight: 500; }
+.video-sync-heading p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.video-sync-dialog button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text); font: inherit; font-size: 12px; cursor: pointer; }
+.video-sync-dialog button:disabled { opacity: .45; cursor: not-allowed; }
+.video-sync-dialog button:focus-visible, .video-sync-dialog input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.video-sync-dialog button svg { flex-shrink: 0; }
+.video-sync-dialog .video-sync-close { width: 36px; flex-shrink: 0; border-color: transparent; }
+.video-sync-content { min-height: 0; overflow-y: auto; padding: 0 20px 12px; overscroll-behavior: contain; }
+.video-sync-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.video-sync-camera { min-width: 0; padding: 9px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-subtle); }
+.video-sync-camera[hidden] { display: none; }
+.video-sync-camera.is-anchor { border-color: var(--brand); }
+.video-sync-camera > header { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-height: 22px; margin-bottom: 6px; font-size: 12px; }
+.video-sync-camera strong { font-weight: 500; }
+.video-sync-selection { display: flex; gap: 4px; align-items: center; color: var(--brand); font-variant-numeric: tabular-nums; }
+.video-sync-media { position: relative; width: 100%; aspect-ratio: 16/9; max-height: 25dvh; background: #080a0e; border-radius: 5px; overflow: hidden; }
+.video-sync-media video, .video-sync-media img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.video-sync-media img { position: absolute; inset: 0; background: #080a0e; }
+.video-sync-frame-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; background: #080a0e66; }
+.video-sync-frame-loading svg, .video-sync-loading svg { animation: workspace-spin 1s linear infinite; }
+.video-sync-seek { display: flex; gap: 8px; align-items: center; padding: 6px 0; }
+.video-sync-dialog input[type="range"] { width: 100%; min-width: 0; accent-color: var(--brand); height: 22px; }
+.video-sync-dialog output { flex-shrink: 0; color: var(--text-soft); font-size: 11px; font-variant-numeric: tabular-nums; }
+.video-sync-frame-controls { display: flex; gap: 5px; }
+.video-sync-frame-controls > button { flex: 1; min-width: 0; padding: 5px 6px; white-space: nowrap; }
+.video-sync-frame-controls > .video-sync-select { flex: 1.6; }
+.video-sync-dialog [aria-pressed="true"], .video-sync-tabs [aria-selected="true"] { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+.video-sync-linked { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.video-sync-linked input { flex: 1; flex-basis: 120px; }
+.video-sync-linked button { flex-shrink: 0; }
+.video-sync-loading { min-height: 180px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
+.video-sync-error, .video-sync-camera-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; overflow-wrap: anywhere; padding: 10px; margin: 0 0 10px; color: var(--danger); background: var(--surface-subtle); border-radius: 6px; font-size: 13px; }
+.video-sync-camera-error { margin: 8px 0 0; }
+.video-sync-error > span { flex: 1; }
+.video-sync-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--border); }
+.video-sync-footer > span { color: var(--muted); font-size: 12px; }
+.video-sync-footer > div { display: flex; gap: 8px; flex-shrink: 0; }
+.video-sync-dialog .button-primary { color: var(--on-brand); background: var(--brand); border-color: var(--brand); }
+.video-sync-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.video-sync-tabs button { flex: 1; }
+@media (max-width: 640px) {
+  .task-registration-fields { gap: 10px; }
+  .task-sync-summary { padding: 12px; gap: 10px; }
+  .dialog-backdrop.video-sync-backdrop { padding: 0; }
+  .video-sync-dialog { width: 100%; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  .video-sync-heading { padding: 10px 10px 8px; gap: 6px; }
+  .video-sync-heading h2 { font-size: 17px; margin-bottom: 3px; }
+  .video-sync-heading p { font-size: 12px; line-height: 1.4; }
+  .video-sync-content { flex: 1; padding: 0 8px 8px; display: flex; flex-direction: column; }
+  .video-sync-tabs, .video-sync-linked, .video-sync-error { flex-shrink: 0; }
+  .video-sync-grid { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .video-sync-camera { min-height: 126px; padding: 6px; display: flex; flex-direction: column; }
+  .video-sync-camera.is-anchor { order: -1; }
+  .video-sync-media { flex: 1; min-height: 24px; max-height: none; aspect-ratio: auto; }
+  .video-sync-camera > header { min-height: 18px; margin-bottom: 4px; }
+  .video-sync-frame-controls { gap: 4px; }
+  .video-sync-frame-controls > button { flex-direction: column; gap: 2px; padding: 3px 2px; font-size: 10px; min-height: 38px; }
+  .video-sync-seek { padding: 2px 0; }
+  .video-sync-camera > header, .video-sync-frame-controls, .video-sync-seek { flex-shrink: 0; }
+  .video-sync-linked { gap: 6px; margin-top: 8px; }
+  .video-sync-linked button { font-size: 11px; }
+  .video-sync-footer { padding: 8px 10px; gap: 6px; flex-wrap: wrap; }
+  .video-sync-footer > div { margin-left: auto; }
+  .video-sync-footer > span { font-size: 11px; }
+}

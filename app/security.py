@@ -45,10 +45,12 @@ def create_access_token(
     expires_delta: timedelta | None = None,
     *,
     secret_key: str = JWT_SECRET_KEY,
+    role: str = "user",
+    session_version: int = 0,
 ) -> str:
     expires_at = datetime.now(timezone.utc) + (
         expires_delta
         if expires_delta is not None
         else timedelta(minutes=DEFAULT_TOKEN_EXPIRES_MINUTES)
     )
-    return jwt.encode({"sub": subject, "exp": expires_at}, secret_key, algorithm=JWT_ALGORITHM)
+    return jwt.encode({"sub": subject, "exp": expires_at, "role": role, "version": session_version}, secret_key, algorithm=JWT_ALGORITHM)

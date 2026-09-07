@@ -13,6 +13,14 @@ from app.models import Analysis, SubmissionEvent, TaskInput
 from app.api.routes import analyses as analyses_routes
 from app.api.routes import tasks as task_routes
 from app.services.retention import RetentionService
+from business_fixture import (
+    PRESET_SYNC,
+    confirm_task_sync,
+    install_mock_video_probe,
+    login_business_user,
+    register_business_user,
+    upload_form,
+)
 
 
 MKV_HEADER = b"\x1a\x45\xdf\xa3"
@@ -47,11 +55,11 @@ def _build_sample_root(root: Path) -> None:
     for name in ("0-2.mkv", "4-1.mkv", "4-2.mkv", "4-3.mkv", "4-4.mkv"):
         (inputs / name).write_bytes(_mkv(name.encode()))
     (inputs / "sync").mkdir()
-    (inputs / "sync" / "group_04.json").write_text("{}", encoding="utf-8")
+    _write_json(inputs / "sync" / "group_04.json", PRESET_SYNC)
 
 
 @pytest.fixture
-def client(tmp_path: Path):
+def client(tmp_path: Path, monkeypatch):
     sample_root = tmp_path / "samples"
     _build_sample_root(sample_root)
     sync = tmp_path / "sync.json"
@@ -72,17 +80,14 @@ def client(tmp_path: Path):
     )
     with TestClient(create_app(settings=settings), raise_server_exceptions=False) as test_client:
         test_client.app.state.readiness.require_ready = lambda: None
-        test_client.app.state.storage.video_probe = lambda _path, _title: None
+        install_mock_video_probe(test_client, monkeypatch)
+        test_client.owner_id = register_business_user(test_client)["id"]
         _login(test_client)
         yield test_client
 
 
 def _login(client: TestClient) -> None:
-    response = client.post(
-        "/api/v1/login/access-token",
-        data={"username": "admin", "password": "correct-password"},
-    )
-    assert response.status_code == 200
+    login_business_user(client)
 
 
 def _register(client: TestClient, username: str) -> dict[str, str]:
@@ -106,7 +111,7 @@ def _register(client: TestClient, username: str) -> dict[str, str]:
 def _create(client: TestClient, title: str = "训练任务", **kwargs):
     return client.post(
         "/api/v1/tasks",
-        json={"title": title, "mode": "quick"},
+        json={"title": title, "mode": "quick", "expected_persons": 4},
         **kwargs,
     )
 
@@ -243,12 +248,12 @@ def test_update_task_metadata_does_not_consume_or_require_submission_quota(clien
     with Session(client.app.state.engine) as session:
         for index in range(20):
             session.add(Analysis(
-                title=f"submitted-{index}", status="completed", owner_id=1,
+                title=f"submitted-{index}", status="completed", owner_id=client.owner_id,
                 input_manifest_json="{}", submitted_at=now, completed_at=now,
             ))
         for index, status in enumerate(("draft", "draft", "queued", "queued")):
             session.add(Analysis(
-                title=f"unfinished-{index}", status=status, owner_id=1,
+                title=f"unfinished-{index}", status=status, owner_id=client.owner_id,
                 input_manifest_json="{}",
             ))
         session.commit()
@@ -347,6 +352,7 @@ def test_update_task_metadata_cannot_change_a_concurrently_submitted_task(
     task_id = _create(client, "Original title").json()["id"]
     for slot in SLOTS:
         assert _upload(client, task_id, slot, _mkv(slot.encode())).status_code == 200
+    confirm_task_sync(client, task_id)
     submission_started = threading.Event()
     allow_submission = threading.Event()
     patch_waiting_or_finished = threading.Event()
@@ -436,7 +442,7 @@ def test_daily_submission_quota_is_per_user_and_uses_utc_day(client: TestClient)
                     status="completed",
                     progress=100,
                     input_manifest_json="{}",
-                    owner_id=1,
+                    owner_id=client.owner_id,
                     submitted_at=now,
                     completed_at=now,
                     created_via="tasks_preset",
@@ -447,7 +453,7 @@ def test_daily_submission_quota_is_per_user_and_uses_utc_day(client: TestClient)
                 title="yesterday",
                 status="completed",
                 input_manifest_json="{}",
-                owner_id=1,
+                owner_id=client.owner_id,
                 submitted_at=now - timedelta(days=1),
                 created_via="tasks_preset",
             )
@@ -533,6 +539,7 @@ def test_submit_requires_all_slots_and_injects_sync_only_at_submit(client: TestC
     assert not (job_input / "sync.json").exists()
 
     assert _upload(client, task_id, "cam_04", _mkv(b"four")).status_code == 200
+    confirm_task_sync(client, task_id)
     submitted = client.post(f"/api/v1/tasks/{task_id}/submit")
     assert submitted.status_code == 200
     assert submitted.json()["status"] == "queued"
@@ -671,7 +678,7 @@ def test_legacy_submission_cannot_bypass_the_daily_task_quota(client: TestClient
                     title=f"submitted-{index}",
                     status="completed",
                     input_manifest_json="{}",
-                    owner_id=1,
+                    owner_id=client.owner_id,
                     submitted_at=now,
                     completed_at=now,
                 )
@@ -700,7 +707,7 @@ def test_legacy_retry_cannot_bypass_the_unfinished_task_quota(client: TestClient
                     title=f"unfinished-{index}",
                     status="queued",
                     input_manifest_json="{}",
-                    owner_id=1,
+                    owner_id=client.owner_id,
                     submitted_at=datetime.now(timezone.utc),
                 )
             )
@@ -716,7 +723,7 @@ def test_new_retry_supports_a_migrated_legacy_task_without_task_input_rows(clien
         title="migrated legacy task",
         status="failed",
         input_manifest_json="{}",
-        owner_id=1,
+        owner_id=client.owner_id,
         submitted_at=datetime.now(timezone.utc) - timedelta(days=1),
         created_via="legacy",
     )
@@ -770,7 +777,7 @@ def test_retry_consumes_a_new_daily_submission_at_the_limit(client: TestClient):
                     title=f"prior-{index}",
                     status="completed",
                     input_manifest_json="{}",
-                    owner_id=1,
+                    owner_id=client.owner_id,
                     submitted_at=now,
                     completed_at=now,
                 )
@@ -1100,7 +1107,7 @@ def test_legacy_upload_does_not_hold_the_database_writer_during_media_io(
     def upload() -> None:
         result["response"] = client.post(
             "/api/v1/analyses/upload",
-            data={"title": "legacy", "mode": "quick"},
+            data=upload_form("legacy"),
             files={
                 slot: (f"{slot}.mkv", _mkv(slot.encode()), "video/x-matroska")
                 for slot in SLOTS
@@ -1214,7 +1221,7 @@ def test_task_status_schema_is_closed_and_unknown_internal_states_fail(client: T
         title="unknown state",
         status="mystery",
         input_manifest_json="{}",
-        owner_id=1,
+        owner_id=client.owner_id,
         submitted_at=None,
     )
     task_id = task.id

@@ -8,12 +8,14 @@ import { CopyKey } from "../copy";
 import { useAuth } from "../providers/AuthProvider";
 import { useLocale } from "../providers/LocaleProvider";
 
+import { loginDestination } from "../lib/adminRole";
+
 type Mode = "login" | "register";
 type Errors = Partial<Record<"identity" | "username" | "email" | "password" | "server", string>>;
 
 function safeNext(search: string) {
   const candidate = new URLSearchParams(search).get("next") || "/workspace/new";
-  return candidate.startsWith("/") && !candidate.startsWith("//") ? candidate : "/workspace/new";
+  return candidate.startsWith("/") && !candidate.startsWith("//") && !candidate.includes("\\") ? candidate : "/workspace/new";
 }
 
 function localizedServerError(error: unknown, mode: Mode): CopyKey {
@@ -58,7 +60,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
   const [pending, setPending] = useState(false);
   const next = safeNext(location.search);
 
-  if (!checking && user) return <Navigate to={next} replace/>;
+  if (!checking && user) return <Navigate to={loginDestination(user, next)} replace/>;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,9 +83,8 @@ export function AuthPage({ mode }: { mode: Mode }) {
     if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
     setErrors({}); setPending(true);
     try {
-      if (mode === "login") await login(identity, password);
-      else await register({ username, email, password });
-      navigate(next, { replace: true });
+      const current = mode === "login" ? await login(identity, password) : await register({ username, email, password });
+      navigate(loginDestination(current, next), { replace: true });
     } catch (error) {
       setErrors(mode === "register" ? localizedValidationErrors(error, t) || { server: t(localizedServerError(error, mode)) } : { server: t(localizedServerError(error, mode)) });
       setPending(false);

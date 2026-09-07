@@ -2,7 +2,8 @@ import { startTransition, createContext, useCallback, useContext, useEffect, use
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError, authApi } from "../api";
-import type { AuthUser, Registration } from "../api";
+import type { Registration } from "../api";
+import type { RoleUser as AuthUser } from "../lib/adminRole";
 import { subscribeToSessionExpiry } from "../session";
 
 type AuthContextValue = {

@@ -15,6 +15,9 @@ class PresetDefinition:
     description: str
     group_number: int
     expected_minutes: float
+    # Verified against research_engine/scripts/run_v3_testset.py: group 0 = lineup A–D.
+    enrollment_mode: str = 'lineup'
+    expected_persons: int = 4
 
     @property
     def group_id(self) -> str:
@@ -125,7 +128,7 @@ class PresetCatalog:
         except KeyError as exc:
             raise KeyError(kind) from exc
 
-    def rerun_manifest(self, preset_id: str) -> dict[str, str]:
+    def rerun_manifest(self, preset_id: str) -> dict:
         preset = self._preset(preset_id)
         inputs = self.sample_root / "test_data_v3"
         group = preset.group_number
@@ -139,4 +142,4 @@ class PresetCatalog:
         }
         if not all(Path(path).is_file() for path in manifest.values()):
             raise FileNotFoundError("Preset rerun inputs are incomplete")
-        return manifest
+        return manifest | {'enrollment_mode': preset.enrollment_mode, 'expected_persons': preset.expected_persons}

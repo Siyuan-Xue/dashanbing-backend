@@ -19,6 +19,9 @@ from src.config import load_models_config, model_path
 from src.identity.clothing_color import clothing_color_similarity, extract_clothing_color
 from src.identity.embedders import create_body_embedder, create_face_embedder
 from src.identity.enrollment import EnrollmentGallery
+from src.identity.enrollment_validation import (
+    RegistrationError, validate_registration_config, validate_detected_count, validate_gallery_samples,
+)
 from src.identity.perception import _estimate_face_bbox
 
 
@@ -292,8 +295,6 @@ def cluster_sequential_enrollments(
                 matched = ent
                 break
         if matched is None:
-            if len(people) >= max_persons:
-                continue
             sid = f"{id_prefix}_{len(people):02d}"
             matched = EnrollPerson(
                 student_id=sid, t0=seg[0].timestamp_s, t_end=seg[-1].timestamp_s,
@@ -323,7 +324,9 @@ def cluster_sequential_enrollments(
                 if dur_b < 0.45 * dur_a and len(b.samples) <= max(4, len(a.samples) // 3):
                     keep_flags[j] = False
     filtered = [p for p, ok in zip(people, keep_flags) if ok]
-    # re-index ids (caller may further trim to expected_persons)
+    if len(filtered) > max_persons:
+        raise RegistrationError('registration_count_mismatch', 'Too many people were detected during enrollment.', detected_persons=len(filtered))
+    # Re-index only after quality filtering; never trim a valid participant.
     for i, p in enumerate(filtered):
         p.student_id = f"{id_prefix}_{i:02d}"
     return filtered
@@ -416,7 +419,7 @@ def write_enrollment_gallery(
                 cv2.imwrite(str(preview_dir / f"{person.student_id}.jpg"), vis)
 
     cap.release()
-    return student_ids
+    return validate_gallery_samples(gallery.root, student_ids, len(people))
 
 
 def enroll_sequential_from_video(
@@ -427,6 +430,7 @@ def enroll_sequential_from_video(
     preview_dir: Path | None = None,
     max_persons: int = 16,
     expected_persons: int | None = None,
+    allow_legacy_count: bool = False,
     **scan_kwargs: Any,
 ) -> list[str]:
     """
@@ -434,6 +438,8 @@ def enroll_sequential_from_video(
 
     Returns enrolled student_ids in appearance order.
     """
+    if not (allow_legacy_count and expected_persons is None):
+        validate_registration_config('sequential', expected_persons)
     perc = get_perception_config()
     min_ar = float(scan_kwargs.pop(
         "min_area_ratio", max(0.03, float(perc.get("min_person_area_ratio", 0.015))),
@@ -467,16 +473,7 @@ def enroll_sequential_from_video(
         revisit_color_thr=0.75,
         revisit_max_gap_s=4.0,
     )
-    if expected_persons is not None and len(people) > expected_persons:
-        # Keep earliest walk-ups (appearance order), not just largest clusters
-        people = sorted(people, key=lambda p: p.t0)[:expected_persons]
-        for i, p in enumerate(people):
-            p.student_id = f"{id_prefix}_{i:02d}"
-    elif expected_persons is not None and len(people) < expected_persons:
-        print(
-            f"  [enroll] WARNING: expected {expected_persons} persons, got {len(people)}",
-            flush=True,
-        )
+    validate_detected_count(len(people), expected_persons)
     return write_enrollment_gallery(
         session_id, people, video_path, preview_dir=preview_dir,
     )

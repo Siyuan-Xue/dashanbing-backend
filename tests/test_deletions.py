@@ -12,6 +12,7 @@ from app.main import create_app
 from app.models import Analysis, StorageDeletion
 from app.services.deletions import drain_storage_deletions
 from app.services.tasks import TASK_SLOTS, add_task_inputs_from_manifest
+from business_fixture import login_business_user, register_business_user
 
 
 def _settings(tmp_path: Path) -> AppSettings:
@@ -36,11 +37,8 @@ def _settings(tmp_path: Path) -> AppSettings:
 @pytest.fixture
 def client(tmp_path: Path):
     with TestClient(create_app(settings=_settings(tmp_path)), raise_server_exceptions=False) as test_client:
-        login = test_client.post(
-            "/api/v1/login/access-token",
-            data={"username": "admin", "password": "correct-password"},
-        )
-        assert login.status_code == 200
+        register_business_user(test_client)
+        login_business_user(test_client)
         yield test_client
 
 

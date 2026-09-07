@@ -3,11 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, expect, test, vi } from "vitest";
 import App from "./App";
-import type { Task, TaskSlot } from "./workspace/types";
+import type { TaskSlot } from "./workspace/types";
+import type { ConfigurableTask as Task } from "./lib/task-sync";
+import { confirmedRegistration, incompleteRegistration, submissionFixtureError } from "./test/legacyTaskSyncFixture";
 
 const slots: TaskSlot[] = ["enrollment_video", "cam_01", "cam_02", "cam_03", "cam_04"];
 const input = (slot: TaskSlot, name = `${slot}.mp4`) => ({ slot, original_filename: name, byte_size: 100, validation_state: "valid", created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z" });
-const draft = (): Task => ({ id: "draft-1", title: "已有训练", mode: "quick", analyst_locale: "zh", source_type: "upload", preset_id: null, status: "draft", progress: 0, stage_message: "Draft", error_code: null, error_message: null, submitted_at: null, created_via: "tasks_api", retry_count: 0, created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z", started_at: null, completed_at: null, inputs: [] });
+const draft = (): Task => ({ id: "draft-1", title: "已有训练", mode: "quick", analyst_locale: "zh", ...incompleteRegistration, source_type: "upload", preset_id: null, status: "draft", progress: 0, stage_message: "Draft", error_code: null, error_message: null, submitted_at: null, created_via: "tasks_api", retry_count: 0, created_at: "2026-09-05T01:00:00Z", updated_at: "2026-09-05T01:00:00Z", started_at: null, completed_at: null, inputs: [] });
 
 function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}{location.search}</output>; }
 function open(path: string) { return render(<MemoryRouter initialEntries={[path]}><App/><Location/></MemoryRouter>); }
@@ -41,7 +43,11 @@ function installServer(initial = draft()) {
       }
       return Response.json(task);
     }
-    if (url.pathname.endsWith("/submit")) { task = { ...task, status: "queued", stage_message: "Queued" }; return Response.json(task); }
+    if (url.pathname.endsWith("/submit")) {
+      const invalid = submissionFixtureError(task);
+      if (invalid) return Response.json({ detail: invalid }, { status: invalid.code === "sync_stale" ? 409 : 422 });
+      task = { ...task, status: "queued", stage_message: "Queued" }; return Response.json(task);
+    }
     return Response.json({ detail: "Not found" }, { status: 404 });
   }));
   vi.stubGlobal("XMLHttpRequest", class {
@@ -92,7 +98,7 @@ test("uploads before naming, keeps fields editable and restores saved draft afte
 });
 
 test("opens a draft from task history as an upload form and submits its existing five files", async () => {
-  const server = installServer({ ...draft(), inputs: slots.map(slot => input(slot)) });
+  const server = installServer({ ...draft(), ...confirmedRegistration, inputs: slots.map(slot => input(slot)) });
   const user = userEvent.setup();
   open("/workspace/tasks");
   const table = await screen.findByRole("table");
@@ -108,7 +114,7 @@ test("opens a draft from task history as an upload form and submits its existing
 });
 
 test("does not submit a draft with unsaved metadata when saving fails", async () => {
-  const server = installServer({ ...draft(), inputs: slots.map(slot => input(slot)) });
+  const server = installServer({ ...draft(), ...confirmedRegistration, inputs: slots.map(slot => input(slot)) });
   server.failSave(true);
   const user = userEvent.setup();
   open("/workspace/new?draft=draft-1");
@@ -123,7 +129,7 @@ test("does not submit a draft with unsaved metadata when saving fails", async ()
 });
 
 test("enforces the title length at submission and accepts 120 Unicode characters", async () => {
-  const server = installServer({ ...draft(), inputs: slots.map(slot => input(slot)) });
+  const server = installServer({ ...draft(), ...confirmedRegistration, inputs: slots.map(slot => input(slot)) });
   const user = userEvent.setup();
   open("/workspace/new?draft=draft-1");
   const title = await screen.findByDisplayValue("已有训练");
@@ -155,7 +161,7 @@ test("late metadata responses cannot roll back restored upload progress", async 
 });
 
 test("late submission cannot navigate away from a new draft", async () => {
-  const server = installServer({ ...draft(), inputs: slots.map(slot => input(slot)) });
+  const server = installServer({ ...draft(), ...confirmedRegistration, inputs: slots.map(slot => input(slot)) });
   server.holdPatch();
   const user = userEvent.setup();
   open("/workspace/new?draft=draft-1");

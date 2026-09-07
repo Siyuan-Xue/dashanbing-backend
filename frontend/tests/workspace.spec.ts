@@ -1,5 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
+import { incompleteRegistration, legacySyncFixture, submissionFixtureError } from "../src/test/legacyTaskSyncFixture";
+import { confirmTaskSync, fulfillSyncFixture } from "./task-sync.fixture";
 
 const authUser = { id: 7, username: "coach", email: "coach@example.com", is_active: true };
 const baseTask = {
@@ -169,12 +171,25 @@ test("task list filters through the real query contract and detail switches medi
 
 test("staged browser upload recovers one failed slot and gates submission", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "desktop upload interaction coverage");
-  const inputs: Array<Record<string, unknown>> = [];
+  const inputs: Array<{ slot: string; original_filename: string; byte_size: number; validation_state: string; created_at: string; updated_at: string }> = [];
   let camOneAttempts = 0;
-  const draft = () => ({ ...baseTask, status: "draft", progress: 0, submitted_at: null, started_at: null, completed_at: null, inputs });
+  const sync = legacySyncFixture("task-1");
+  let taskStatus = "draft";
+  let registration = { ...incompleteRegistration, expected_persons: null as number | null };
+  const draft = () => ({ ...baseTask, analyst_locale: "zh", ...registration, sync_status: sync.status, status: taskStatus, progress: 0, submitted_at: null, started_at: null, completed_at: null, inputs });
   await page.route("**/api/v1/tasks", async (route) => {
     if (route.request().method() !== "POST") return route.fallback();
+    registration = { ...registration, ...route.request().postDataJSON() };
     await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify(draft()) });
+  });
+  await page.route("**/api/v1/tasks/task-1", async route => {
+    if (route.request().method() === "PATCH") registration = { ...registration, ...route.request().postDataJSON() };
+    return route.fulfill({ json: draft() });
+  });
+  await page.route("**/api/v1/tasks/task-1/sync**", async route => {
+    const response = sync.response(new URL(route.request().url()), route.request().method(), route.request().method() === "PUT" ? route.request().postDataJSON() : undefined);
+    if (response) return fulfillSyncFixture(route, response);
+    return route.fallback();
   });
   await page.route("**/api/v1/tasks/task-1/inputs/*", async (route) => {
     const slot = new URL(route.request().url()).pathname.split("/").at(-1)!;
@@ -183,10 +198,16 @@ test("staged browser upload recovers one failed slot and gates submission", asyn
     }
     const multipart = route.request().postDataBuffer()?.toString() || "";
     const filename = multipart.match(/filename="([^"]+)"/)?.[1] || `${slot}.mp4`;
+    sync.replaceInput(slot);
     inputs.splice(0, inputs.length, ...inputs.filter((item) => item.slot !== slot), { slot, original_filename: filename, byte_size: 5, validation_state: "valid", created_at: baseTask.created_at, updated_at: baseTask.updated_at });
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(draft()) });
   });
-  await page.route("**/api/v1/tasks/task-1/submit", async (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...draft(), status: "queued" }) }));
+  await page.route("**/api/v1/tasks/task-1/submit", async route => {
+    const invalid = submissionFixtureError(draft());
+    if (invalid) return route.fulfill({ status: 422, json: { detail: invalid } });
+    taskStatus = "queued";
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...draft(), status: "queued" }) });
+  });
 
   await page.goto("/workspace/new");
   const submit = page.getByRole("button", { name: "提交分析" });
@@ -201,6 +222,8 @@ test("staged browser upload recovers one failed slot and gates submission", asyn
   await page.getByLabel("机位 2").setInputFiles({ name: "cam2.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
   await page.getByLabel("机位 3").setInputFiles({ name: "cam3.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
   await page.getByLabel("机位 4").setInputFiles({ name: "cam4.mp4", mimeType: "video/mp4", buffer: Buffer.from("video") });
+  await expect(submit).toBeDisabled();
+  await confirmTaskSync(page);
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect(page).toHaveURL(/\/workspace\/tasks\/task-1$/);

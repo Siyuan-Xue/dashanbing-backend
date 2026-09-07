@@ -16,6 +16,7 @@ import type {
 import { ApiError } from "../api";
 import type { ApiValidationIssue } from "../api";
 import { notifySessionExpired } from "../session";
+import type { ConfigurableTask, RegistrationFields } from "../lib/task-sync";
 
 export class WorkspaceApiError extends ApiError {
   constructor(status: number, message: string, validationIssues: ApiValidationIssue[] = []) {
@@ -28,6 +29,9 @@ function errorFromPayload(payload: unknown, fallback = "Request failed") {
   if (typeof payload !== "object" || payload === null) return { message: fallback, validationIssues: [] as ApiValidationIssue[] };
   const detail = (payload as { detail?: unknown }).detail;
   if (typeof detail === "string") return { message: detail, validationIssues: [] as ApiValidationIssue[] };
+  if (typeof detail === "object" && detail !== null && "message" in detail && typeof detail.message === "string") {
+    return { message: detail.message, validationIssues: [] as ApiValidationIssue[] };
+  }
   if (Array.isArray(detail)) {
     const issues = detail.flatMap((item): ApiValidationIssue[] => {
       if (typeof item !== "object" || item === null) return [];
@@ -75,16 +79,17 @@ function taskListSearch(query: TaskListQuery) {
 }
 
 export const workspaceApi = {
-  createTask: (title: string, mode: TaskMode, analystLocale: "zh" | "en" = "zh") => {
-    const body: CreateTaskRequest = { title, mode, analyst_locale: analystLocale };
-    return request<Task>("/api/v1/tasks", jsonInit("POST", body));
+  createTask: (title: string, mode: TaskMode, analystLocale: "zh" | "en" = "zh", registration?: RegistrationFields) => {
+    const body: CreateTaskRequest & Partial<RegistrationFields> = { title, mode, analyst_locale: analystLocale, enrollment_mode: "sequential", ...registration };
+    return request<ConfigurableTask>("/api/v1/tasks", jsonInit("POST", body));
   },
   submitTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/submit`, jsonInit("POST")),
-  updateDraft: (taskId: string, title: string, mode: TaskMode, analystLocale?: "zh" | "en") => {
-    const body: UpdateDraftRequest = { title, mode, ...(analystLocale ? { analyst_locale: analystLocale } : {}) };
-    return request<Task>(`/api/v1/tasks/${taskId}`, jsonInit("PATCH", body));
+  updateDraft: (taskId: string, title: string, mode: TaskMode, analystLocale?: "zh" | "en", registration?: RegistrationFields) => {
+    const body: UpdateDraftRequest & Partial<RegistrationFields> = { title, mode, ...(analystLocale ? { analyst_locale: analystLocale } : {}), ...registration };
+    return request<ConfigurableTask>(`/api/v1/tasks/${taskId}`, jsonInit("PATCH", body));
   },
-  getTask: (taskId: string, signal?: AbortSignal) => request<Task>(`/api/v1/tasks/${taskId}`, { signal }),
+  getTask: (taskId: string, signal?: AbortSignal) => request<ConfigurableTask>(`/api/v1/tasks/${taskId}`, { signal }),
+  returnToInput: (taskId: string) => request<ConfigurableTask>(`/api/v1/tasks/${taskId}/return-to-input`, jsonInit("POST")),
   listTasks: (query: TaskListQuery) => request<TaskPage>(`/api/v1/tasks?${taskListSearch(query)}`),
   cancelTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/cancel`, jsonInit("POST")),
   retryTask: (taskId: string) => request<Task>(`/api/v1/tasks/${taskId}/retry`, jsonInit("POST")),
@@ -101,7 +106,7 @@ export const workspaceApi = {
 
 export function uploadTaskInput(taskId: string, slot: TaskSlot, file: File, onProgress: (progress: number) => void) {
   const path: UploadTaskPath = { task_id: taskId, slot };
-  return new Promise<UploadTaskResponse>((resolve, reject) => {
+  return new Promise<UploadTaskResponse & ConfigurableTask>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", `/api/v1/tasks/${path.task_id}/inputs/${path.slot}`);
     xhr.withCredentials = true;

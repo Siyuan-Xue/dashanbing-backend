@@ -15,6 +15,9 @@ import { ApiDocsPage } from "./pages/ApiDocsPage";
 import { ApiKeysPage } from "./pages/ApiKeysPage";
 import { ApiShell } from "./components/ApiShell";
 
+import { AdminShell } from "./components/AdminShell";
+import { AdminPage } from "./pages/AdminPage";
+
 export default function App() {
   return (
     <AppProviders>
@@ -39,6 +42,13 @@ export default function App() {
             <Route path="profiles" element={<ProfilesPage/>}/>
             <Route path="profiles/:profileId" element={<ProfileDetailPage/>}/>
             <Route path="settings" element={<SettingsPage/>}/>
+          </Route>
+        </Route>
+        <Route element={<RouteGuard role="admin"/>}>
+          <Route path="/admin" element={<AdminShell/>}>
+            <Route index element={<Navigate to="overview" replace/>}/>
+            {(["overview", "users", "scheduling", "quotas", "operations", "audit"] as const).map(section => <Route key={section} path={section} element={<AdminPage key={section} section={section}/>}/>)}
+            <Route path="*" element={<Navigate to="/admin" replace/>}/>
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace/>}/>

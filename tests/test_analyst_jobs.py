@@ -17,10 +17,12 @@ from sqlmodel import Session, select
 from starlette.requests import Request
 
 from app.analyst_models import AnalystConversation, AnalystJob, AnalystMessage, AnalystReport
+from app.admin_models import AdminUserQuota
 from app.config import AppSettings
 from app.models import Analysis, User
 from app.services import analyst
 from app.services.glm import GlmError, GlmJsonResult, GlmTextDelta, GlmUsage
+from business_fixture import login_business_user, register_business_user
 
 
 USAGE = {"prompt_tokens": 50, "completion_tokens": 20, "total_tokens": 70}
@@ -106,19 +108,16 @@ def job_client(tmp_path):
     app = create_app(settings=settings)
     app.state.glm_client = ScriptedProvider()
     with TestClient(app, raise_server_exceptions=False) as client:
-        response = client.post("/api/v1/login/access-token", data={
-            "username": "admin", "password": "correct-password",
-        })
-        assert response.status_code == 200, response.text
+        owner = register_business_user(client)
+        login_business_user(client)
         with Session(app.state.engine) as session:
-            owner = session.exec(select(User).where(User.username == "admin")).one()
-            task = Analysis(title="Training", owner_id=owner.id, status="completed",
+            task = Analysis(title="Training", owner_id=owner["id"], status="completed",
                             progress=100, input_manifest_json="{}")
             session.add(task)
             session.commit()
             session.refresh(task)
             client.task_id = task.id
-            client.owner_id = owner.id
+            client.owner_id = owner["id"]
         output = app.state.storage.analysis_root(client.task_id) / "output"
         output.mkdir(parents=True)
         (output / "report.json").write_text(json.dumps({
@@ -156,6 +155,19 @@ def report_body(facts):
                      "evidence_ids": [first.id]}],
         "suggestions": ["Repeat the drill and review the next session"],
     }
+
+
+def set_daily_ai_limit(client, limit):
+    # Admission reads persisted per-user/default quotas after startup. Mutating
+    # AppSettings alone no longer changes the user's effective daily limit.
+    with Session(client.app.state.engine) as session:
+        quota = session.get(AdminUserQuota, client.owner_id) or AdminUserQuota(owner_id=client.owner_id)
+        quota.values_json = json.dumps(json.loads(quota.values_json) | {"daily_ai": limit})
+        session.add(quota)
+        session.commit()
+    response = client.get("/api/v1/account/limits")
+    assert response.status_code == 200, response.text
+    assert response.json()["quotas"]["daily_ai"] == limit
 
 
 def all_rows(client, model):
@@ -437,7 +449,7 @@ def test_no_key_prevents_manual_jobs_and_automatic_enqueue(job_client):
 
 def test_manual_daily_quota_covers_regeneration_and_chat_but_excludes_automatic_and_duplicates(job_client, report_body):
     client = job_client
-    client.app.state.settings = client.app.state.settings.model_copy(update={"analyst_daily_limit": 2})
+    set_daily_ai_limit(client, 2)
     client.app.state.glm_client = ScriptedProvider(reports=[report_body, report_body], streams=[
         [GlmTextDelta(text="A complete answer"), GlmUsage(usage=dict(USAGE))],
     ])
@@ -473,7 +485,7 @@ def test_manual_daily_quota_covers_regeneration_and_chat_but_excludes_automatic_
 
 def test_prior_day_jobs_do_not_consume_todays_quota_and_request_ids_are_conversation_scoped(job_client):
     client = job_client
-    client.app.state.settings = client.app.state.settings.model_copy(update={"analyst_daily_limit": 1})
+    set_daily_ai_limit(client, 1)
     first, first_conversation = request_chat(client)
     with Session(client.app.state.engine) as session:
         job = session.get(AnalystJob, first.id)
@@ -717,7 +729,7 @@ def test_task_deletion_while_provider_waits_cannot_leave_completed_analyst_orpha
 @pytest.mark.parametrize("late_error", [False, True])
 def test_memory_changes_preserve_inflight_session_but_revoke_chat_without_refunding_quota(job_client, report_body, kind, late_error):
     client = job_client
-    client.app.state.settings = client.app.state.settings.model_copy(update={"analyst_daily_limit": 1})
+    set_daily_ai_limit(client, 1)
     profile = client.post("/api/v1/training-profiles", json={"kind": "player", "name": "Player"})
     assert profile.status_code == 201, profile.text
     context = client.put(f"/api/v1/tasks/{client.task_id}/analyst/context", json={
@@ -1007,7 +1019,7 @@ def test_task_is_rechecked_after_facts_loading_before_queue_writes(job_client, s
 @pytest.mark.parametrize("completed", [False, True])
 def test_invalidated_chat_request_replay_returns_original_ids_without_new_quota_use(job_client, completed):
     client = job_client
-    client.app.state.settings = client.app.state.settings.model_copy(update={"analyst_daily_limit": 1})
+    set_daily_ai_limit(client, 1)
     profile = client.post("/api/v1/training-profiles", json={"kind": "player", "name": "Player"})
     assert profile.status_code == 201, profile.text
     context = client.put(f"/api/v1/tasks/{client.task_id}/analyst/context", json={
@@ -1045,7 +1057,7 @@ def test_invalidated_replay_uses_question_from_the_same_conversation(job_client)
     from app.services.training_profiles import invalidate_memory
 
     client = job_client
-    client.app.state.settings = client.app.state.settings.model_copy(update={"analyst_daily_limit": 2})
+    set_daily_ai_limit(client, 2)
     first = create_conversation(client)
     second = create_conversation(client)
     first_result = submit(client, first, content="Review my shooting")

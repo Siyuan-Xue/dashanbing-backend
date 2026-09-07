@@ -68,7 +68,8 @@ def limit_requests(app, session: Session, owner_id: int) -> None:
     since = utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
     rows = session.exec(select(AnalystJob).where(AnalystJob.owner_id == owner_id, AnalystJob.created_at >= since)).all()
     used = sum(1 for row in rows if not json.loads(row.payload_json).get("automatic"))
-    if used >= app.state.settings.analyst_daily_limit:
+    from app.services.admin import effective_quotas
+    if used >= effective_quotas(session, owner_id, app.state.settings)["daily_ai"]:
         raise HTTPException(429, "今日 AI 分析师使用次数已用完")
 
 
@@ -278,7 +279,12 @@ def enqueue_completed(session: Session, task: Analysis, *, enabled: bool) -> Non
         return
     key = f"automatic:{task.id}:{task.retry_count}"
     if not session.exec(select(AnalystJob).where(AnalystJob.request_id == key)).first():
-        session.add(AnalystJob(owner_id=task.owner_id, kind="prepare", task_id=task.id, request_id=key, payload_json=pack({"automatic": True})))
+        job = AnalystJob(owner_id=task.owner_id, kind="prepare", task_id=task.id, request_id=key, payload_json=pack({"automatic": True}))
+        session.add(job)
+        from app.admin_models import AdminJobControl
+        control = session.get(AdminJobControl, ("video", task.id))
+        if control and control.repair:
+            session.add(AdminJobControl(kind="ai", job_id=job.id, repair=True))
 
 
 def message_public(row: AnalystMessage) -> MessagePublic:
@@ -395,20 +401,14 @@ class AnalystSupervisor:
         self.tasks: list[asyncio.Task] = []
 
     async def start(self):
+        from app.services.admin_scheduling import recover_dead_leases, recover_unleased_jobs
         with Session(self.app.state.engine) as session:
-            for job in session.exec(select(AnalystJob).where(AnalystJob.status == "running")).all():
-                job.status = "queued"; job.available_at = utc_now(); session.add(job)
-                if job.report_id:
-                    report = session.get(AnalystReport, job.report_id)
-                    if report:
-                        report.status = "queued"; report.error = None; report.updated_at = utc_now(); session.add(report)
-                if job.message_id:
-                    message = session.get(AnalystMessage, job.message_id)
-                    if message:
-                        message.content = ""; message.citations_json = "[]"; message.status = "queued"; message.revision += 1; session.add(message)
+            session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            recover_dead_leases(session)
+            recover_unleased_jobs(session)
             session.commit()
         await asyncio.to_thread(self.reconcile_completed)
-        self.tasks = [asyncio.create_task(self._loop(), name=f"analyst-{i}") for i in range(self.app.state.settings.analyst_concurrency)]
+        self.tasks = [asyncio.create_task(self._loop(), name=f"analyst-{i}") for i in range(self.app.state.settings.analyst_concurrency_cap)]
         self.tasks.append(asyncio.create_task(self._reconcile_loop(), name="analyst-reconcile"))
 
     def reconcile_completed(self) -> int:
@@ -435,7 +435,7 @@ class AnalystSupervisor:
                 AnalystJob.status.in_(("queued", "running", "failed")),
             ).exists()
             tasks = session.exec(select(Analysis).join(User, User.id == Analysis.owner_id).where(
-                Analysis.status == "completed", User.is_active.is_(True),
+                Analysis.status == "completed", User.is_active.is_(True), User.role == "user",
                 ~has_report, ~blocked_prepare,
             ).order_by(Analysis.created_at, Analysis.id).limit(RECONCILE_BATCH_SIZE)).all()
             for task in tasks:
@@ -484,17 +484,14 @@ class AnalystSupervisor:
                 await asyncio.sleep(1)
 
     async def run_once(self) -> bool:
+        from app.services.admin_scheduling import claim_ai, release_lease
+        job_id = claim_ai(self.app)
+        if job_id is None:
+            from app.services.admin_presets import next_preset, run_preset
+            preset_id = next_preset(self.app)
+            return await run_preset(self.app, preset_id) if preset_id else False
         with Session(self.app.state.engine) as session:
-            session.connection().exec_driver_sql("BEGIN IMMEDIATE")
-            provider = session.get(AnalystProviderState, "glm")
-            if provider and provider.available_at.replace(tzinfo=timezone.utc) > utc_now():
-                session.commit(); return False
-            job = session.exec(select(AnalystJob).where(AnalystJob.status == "queued", AnalystJob.available_at <= utc_now()).order_by(AnalystJob.created_at)).first()
-            if job is None:
-                session.commit(); return False
-            job.status = "running"; job.attempts += 1; job.updated_at = utc_now()
-            session.add(job); session.commit(); session.refresh(job)
-            job_id = job.id
+            job = session.get(AnalystJob, job_id)
         try:
             if job.kind == "prepare":
                 await asyncio.to_thread(self._prepare, job_id)
@@ -505,9 +502,13 @@ class AnalystSupervisor:
             else:
                 raise ValueError("Unknown analyst job")
         except asyncio.CancelledError:
+            from app.services.admin_scheduling import mark_interrupted
+            mark_interrupted(self.app.state.engine, "ai", job_id)
             raise
         except Exception as error:
             self._fail(job_id, error)
+        finally:
+            release_lease(self.app.state.engine, "ai", job_id)
         return True
 
     def _prepare(self, job_id):
@@ -530,9 +531,35 @@ class AnalystSupervisor:
             if task.updated_at != version:
                 raise ValueError("Task changed during analyst preparation")
             from app.services.analyst_collections import request_reports, COLLECTION_VERSION
-            request_reports(self.app, session, task, task.analyst_locale, automatic=True, facts=facts)
+            before_ids = set(session.exec(select(AnalystJob.id).where(AnalystJob.task_id == task.id)).all())
+            from app.admin_models import AdminJobControl
+            control = session.get(AdminJobControl, ("ai", job.id))
+            original = json.loads(job.payload_json)
+            expected_locale = task.analyst_locale
+            expected_subjects = [s.id for s in facts.subjects]
+            if control and control.repair and original.get("collection_version") == COLLECTION_VERSION:
+                expected_locale = original["locale"]
+                expected_subjects = original["subjects"]
+                if not set(expected_subjects).issubset({s.id for s in facts.subjects}):
+                    raise ValueError("Original report subjects are unavailable")
+                for subject_id in [None, *expected_subjects]:
+                    for style in ("coach", "roast"):
+                        existing = session.exec(select(AnalystReport.id).where(
+                            AnalystReport.owner_id == task.owner_id, AnalystReport.task_id == task.id,
+                            AnalystReport.kind == "session", AnalystReport.locale == expected_locale,
+                            AnalystReport.style == style, AnalystReport.subject_id == subject_id)).first()
+                        if existing is None:
+                            request_report(self.app, session, task, locale=expected_locale, style=style,
+                                           subject_id=subject_id, automatic=True, facts=facts)
+            else:
+                request_reports(self.app, session, task, expected_locale, automatic=True, facts=facts)
+            if control and control.repair:
+                session.flush()
+                for child_id in session.exec(select(AnalystJob.id).where(AnalystJob.task_id == task.id)).all():
+                    if child_id not in before_ids:
+                        session.add(AdminJobControl(kind="ai", job_id=child_id, repair=True))
             job.payload_json = pack({"automatic": True, "collection_version": COLLECTION_VERSION,
-                                     "locale": task.analyst_locale, "subjects": [s.id for s in facts.subjects]})
+                                     "locale": expected_locale, "subjects": expected_subjects})
             job.status = "completed"; job.updated_at = utc_now(); session.add(job); session.commit()
 
     def _provider(self):
@@ -567,6 +594,9 @@ class AnalystSupervisor:
                 # Also isolate a queued original produced before this migration.
                 payload["memory"] = {}
             row.status = "running"; session.add(row); session.commit()
+        from app.services.admin_scheduling import record_ai_attempt
+        if not record_ai_attempt(self.app, "ai", job_id):
+            return
         response = await self._provider().complete_json([
             {"role": "system", "content": system_prompt(payload, report=True)},
             {"role": "user", "content": pack({"facts": payload["facts"], "memory": payload["memory"]})},
@@ -601,6 +631,9 @@ class AnalystSupervisor:
             message.status = "running"; message.content = ""; message.revision += 1; session.add(message); session.commit()
         messages = [{"role": "system", "content": system_prompt(payload, report=False)}, {"role": "user", "content": pack({"facts": payload["facts"], "memory": payload["memory"], "subject_id": payload.get("subject_id")})}, *history]
         content = ""; usage = {}; last_write = 0.0
+        from app.services.admin_scheduling import record_ai_attempt
+        if not record_ai_attempt(self.app, "ai", job_id):
+            return
         async for event in self._provider().stream(messages, request_id=job.request_id):
             if event.type == "text":
                 content += event.text
@@ -657,7 +690,9 @@ class AnalystSupervisor:
             job = session.get(AnalystJob, job_id)
             if not job or job.status != "running":
                 return
-            retry = retryable and job.attempts < MAX_ATTEMPTS
+            from app.admin_models import AdminJobControl
+            control = session.get(AdminJobControl, ("ai", job_id))
+            retry = retryable and job.attempts < MAX_ATTEMPTS and not (control and control.repair)
             job.status = "queued" if retry else "failed"
             job.error = "AI 分析暂时未完成，请稍后重试"; job.updated_at = utc_now()
             rate_limited = getattr(error, "code", None) == "rate_limited"

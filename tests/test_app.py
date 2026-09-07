@@ -193,7 +193,7 @@ def test_login_rejects_unknown_or_wrong_credentials(client: TestClient, username
 
 def test_current_user_accepts_bearer_for_api_tooling(client: TestClient, configured_app):
     _, settings = configured_app
-    token = create_access_token("local_admin", secret_key=settings.jwt_secret_key)
+    token = create_access_token("local_admin", secret_key=settings.jwt_secret_key, role="admin")
     response = client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json()["username"] == "local_admin"
@@ -207,7 +207,7 @@ def test_current_user_rejects_invalid_tokens(client: TestClient, configured_app,
         token = "not-a-jwt"
     elif kind == "forged":
         token = jwt.encode(
-            {"sub": "local_admin", "exp": 4_102_444_800},
+            {"sub": "local_admin", "exp": 4_102_444_800, "role": "admin", "version": 0},
             "wrong-secret-key-with-at-least-thirty-two-characters",
             algorithm="HS256",
         )
@@ -216,9 +216,14 @@ def test_current_user_rejects_invalid_tokens(client: TestClient, configured_app,
             "local_admin",
             expires_delta=timedelta(seconds=-1),
             secret_key=settings.jwt_secret_key,
+            role="admin",
         )
     elif kind == "no_exp":
-        token = jwt.encode({"sub": "local_admin"}, settings.jwt_secret_key, algorithm="HS256")
+        token = jwt.encode(
+            {"sub": "local_admin", "role": "admin", "version": 0},
+            settings.jwt_secret_key,
+            algorithm="HS256",
+        )
     headers = {} if token is None else {"Authorization": f"Bearer {token}"}
     response = client.get("/api/v1/users/me", headers=headers)
     assert response.status_code == 401

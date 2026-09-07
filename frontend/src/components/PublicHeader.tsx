@@ -6,11 +6,13 @@ import { useAuth } from "../providers/AuthProvider";
 import { useLocale } from "../providers/LocaleProvider";
 import { useTheme } from "../providers/ThemeProvider";
 
+import { accountHome, isAdmin } from "../lib/adminRole";
+
 const GITHUB_URL = "https://github.com/Siyuan-Xue/dashanbing-backend";
 
 export function PublicHeader() {
   const { user, logout } = useAuth();
-  const { t, toggleLocale } = useLocale();
+  const { t, locale, toggleLocale } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -82,7 +84,7 @@ export function PublicHeader() {
           </button>
           <button className="text-button language-button" type="button" onClick={toggleLocale} aria-label={t("language")}><Icon name="language"/><span>{t("language")}</span></button>
           <a className="icon-button github-button" href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label={t("github")} title={t("github")}><Icon name="github"/></a>
-          <Link className="button button-outline header-cta" to="/workspace/new">{t("onlineUse")}</Link>
+          <Link className="button button-outline header-cta" to={accountHome(user)}>{isAdmin(user) ? (locale === "zh" ? "管理控制台" : "Administration") : t("onlineUse")}</Link>
           {user ? (
             <div ref={account} className="account-menu" onKeyDown={event => {
               if (event.key === "Escape" && accountOpen) {
@@ -100,6 +102,7 @@ export function PublicHeader() {
                     <strong>{user.username}</strong>
                     {user.email && <span>{user.email}</span>}
                   </div>
+                  <Link className="account-logout" to={accountHome(user)}><Icon name={isAdmin(user) ? "settings" : "layers"}/><span>{isAdmin(user) ? (locale === "zh" ? "管理控制台" : "Administration") : (locale === "zh" ? "工作台" : "Workspace")}</span></Link>
                   <button ref={logoutButton} className="account-logout" type="button" aria-disabled={loggingOut} onClick={() => void signOut()}>
                     <Icon name="logout"/><span>{t(loggingOut ? "loggingOut" : "logout")}</span>
                   </button>
