@@ -1,0 +1,26 @@
+[
+  {
+    "preset": "quick-demo",
+    "queued_variants": 10,
+    "source": "existing real preset output, no new GPU run",
+    "status": "queued"
+  },
+  {
+    "preset": "mixed-actions",
+    "queued_variants": 10,
+    "source": "existing real preset output, no new GPU run",
+    "status": "queued"
+  },
+  {
+    "preset": "verified-outcome",
+    "queued_variants": 10,
+    "source": "existing real preset output, no new GPU run",
+    "status": "queued"
+  },
+  {
+    "preset": "layup-demo",
+    "queued_variants": 10,
+    "source": "existing real preset output, no new GPU run",
+    "status": "queued"
+  }
+]

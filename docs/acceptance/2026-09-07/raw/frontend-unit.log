@@ -1,0 +1,163 @@
+
+ RUN  v5.0.0 <WORKTREE>/frontend
+
+ ✓ src/analyst/ComparisonReports.test.tsx (8 tests) 412ms
+stderr | src/analyst/AnalystPanel.test.tsx > tasks without a completed result cannot chat while a completed result can chat before its report exists
+An update to AnalystBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AnalystBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AnalystBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AnalystBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/analyst/AnalystChat.test.tsx (6 tests) 274ms
+ ✓ src/analyst/AnalystPanel.test.tsx (13 tests) 1437ms
+ ✓ src/pages/AdminPage.test.tsx (6 tests) 1345ms
+   ✓ disabling a user sends the confirmed reason and refreshes actual account status 339ms
+   ✓ job selection caps at ten and cannot mix kinds; metadata excludes report bodies 635ms
+ ✓ src/pages/ProfilesPage.test.tsx (8 tests) 1563ms
+   ✓ creates, edits confirmed goals and notes, reads retained history, and deletes a player profile 498ms
+   ✓ shows a searchable table with type filtering and twenty profiles per page 407ms
+ ✓ src/analyst/ProfileBindingsDialog.test.tsx (23 tests) 1790ms
+ ✓ src/pages/ProfileDetailPage.test.tsx (2 tests) 192ms
+ ✓ src/components/AdminControls.test.tsx (3 tests) 316ms
+ ✓ src/pages/TaskListPage.test.tsx (3 tests) 214ms
+ ✓ src/components/VideoSyncDialog.test.tsx (9 tests) 2766ms
+   ✓ preparing is polled until real ready metadata enables frame selection 1538ms
+ ✓ src/pages/NewTaskPage.sync.test.tsx (6 tests) 651ms
+ ❯ src/ApiCenter.test.tsx (18 tests | 1 failed) 2430ms
+   ❯ API center (17)
+     × publishes an accurate public task API guide in the dedicated shell 278ms
+     ✓ keeps the English guide executable and documents upload cancellation 167ms
+     ✓ links every nested TOC entry to a named heading and selects a child deep link 163ms
+     ✓ keeps child targets stable in English and safely ignores a malformed hash 147ms
+     ✓ expands inline navigation and TOC, then restores the toggle on Escape 213ms
+     ✓ uses all four live quotas and the returned key limit 41ms
+     ✓ explains an empty key list while keeping creation available 18ms
+     ✓ creates a key, reveals its full secret once, copies it, then closes without retaining it 223ms
+     ✓ keeps a one-time secret keyboard-selectable after clipboard failure 227ms
+     ✓ keeps API-key creation failures announced inside the active dialog 162ms
+     ✓ keeps a revoke failure announced inside its confirmation dialog 72ms
+     ✓ keeps a busy revoke dialog focusable and announces its pending state 100ms
+     ✓ keeps focus on the copy action when its confirmation rerenders the secret dialog 155ms
+     ✓ locks document scrolling for API dialogs and restores previous overflow on close or unmount 72ms
+     ✓ requires confirmation before revoking a key and refreshes list and usage 75ms
+     ✓ restores the invoking control after closing API-key dialogs 108ms
+     ✓ expires the browser session when API management receives a 401 31ms
+   ✓ documents analyst/profile endpoints with stable public subanchors and streaming recovery 177ms
+ ✓ src/components/AdminRouting.test.tsx (6 tests) 681ms
+ ✓ src/components/Icon.test.tsx (4 tests) 128ms
+ ✓ src/analyst/ContextControls.test.tsx (1 test) 218ms
+ ✓ src/analyst/useReport.test.tsx (39 tests) 194ms
+ ✓ src/DraftTask.test.tsx (7 tests) 3134ms
+   ✓ uploads before naming, keeps fields editable and restores saved draft after reopening 458ms
+   ✓ late metadata responses cannot roll back restored upload progress 2056ms
+stderr | src/pages/HomePage.test.tsx > preserves the basketball hero and places the standalone AI showcase before capabilities
+An update to AuthProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/HeroAnalystPreview.test.tsx (3 tests) 163ms
+stderr | src/pages/HomePage.test.tsx > mobile menu and capability controls keep accessible labels with official icons
+An update to AuthProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/HomePage.test.tsx (2 tests) 282ms
+ ✓ src/pages/TaskDetailPage.correction.test.tsx (2 tests) 165ms
+ ✓ src/components/StatusChip.test.tsx (4 tests) 119ms
+ ✓ src/pages/AdminOverviewPage.test.tsx (3 tests) 320ms
+ ✓ src/analyst/useReports.test.tsx (13 tests) 89ms
+ ✓ src/components/ResultVideo.test.tsx (2 tests) 26ms
+ ✓ src/workspace/api.create.test.ts (2 tests) 4ms
+ ✓ src/analyst/previewManifest.test.ts (1 test) 3ms
+ ✓ src/workspace/types.test.ts (1 test) 2ms
+ ✓ src/lib/task-sync.test.ts (2 tests) 2ms
+ ✓ src/Workspace.test.tsx (38 tests) 4225ms
+   ✓ workspace shell and staged creation (10)
+     ✓ collapses the sidebar without losing accessible navigation and keeps its state across routes 475ms
+     ✓ keeps every phone drawer action in the focus loop and closes from utility navigation 432ms
+     ✓ renders the scoped shell and recovers a failed slot before enabling explicit submit 547ms
+   ✓ task list workflows (6)
+     ✓ re-queries filtered rows after lifecycle success and state conflict 319ms
+ ✓ src/App.test.tsx (28 tests) 2096ms
+   ✓ public foundation (11)
+     ✓ renders the scoped public header and full public landing story 316ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/ApiCenter.test.tsx > API center > publishes an accurate public task API guide in the dedicated shell
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <code>
+  POST /api/v1/analyses/upload
+</code> instead
+ ❯ src/ApiCenter.test.tsx:61:59
+     59|     expect(screen.getByText("运行前执行：python3 -m pip install requests")).…
+     60|     expect([...document.querySelectorAll(".api-code")].some(block => b…
+     61|     expect(screen.queryByText(/\/api\/v1\/analyses/)).not.toBeInTheDoc…
+       |                                                           ^
+     62|     expect(screen.queryByText("客户端")).not.toBeInTheDocument();
+     63|     expect(screen.queryByText("生态")).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 29 passed (30)
+      Tests  1 failed | 262 passed (263)
+   Start at  13:16:15
+   Duration  7.14s (tests 50%, environment 30%, setup 7%, transform 7%, import 6%)
+
+Environment  jsdom was created 30 times · 14.91s total, 30% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+JSON report written to <WORKTREE>/runtime/release-closeout/evidence/frontend-unit.json

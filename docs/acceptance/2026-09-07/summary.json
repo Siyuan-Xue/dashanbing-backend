@@ -1,0 +1,246 @@
+{
+  "code_baseline": "eff724d27266112bac12594ed367fed0d221c4f2",
+  "measurement_date": "2026-09-07",
+  "acceptance_reruns": 0,
+  "backend": {
+    "tests": 842,
+    "passed": 817,
+    "failed": 25,
+    "failures": [
+      "tests.test_analyst_collections::test_collection_queues_full_reports_for_both_styles_once_and_charges_once",
+      "tests.test_analyst_comparisons::test_comparison_validation_dedup_and_quota_are_separate_from_session[coach]",
+      "tests.test_analyst_comparisons::test_comparison_validation_dedup_and_quota_are_separate_from_session[roast]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-report]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-message]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-report]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-message]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-report]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-message]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-report]",
+      "tests.test_analyst_invalidation::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-message]",
+      "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-report]",
+      "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-message]",
+      "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-report]",
+      "tests.test_analyst_jobs::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-message]",
+      "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[0.5-True]",
+      "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[30.0-False]",
+      "tests.test_analyst_pose::test_product_real_runner_carries_task_context_and_retains_artifact[52.0-False]",
+      "tests.test_analyst_report_regressions::test_generator_reuses_legacy_preset_and_fills_both_styles",
+      "tests.test_analyst_report_regressions::test_additive_migration_defaults_language_and_preserves_legacy_rows",
+      "tests.test_app::test_readiness_rejects_admin_password_that_does_not_match_database",
+      "tests.test_app::test_registration_normalizes_identity_and_returns_a_public_user",
+      "tests.test_presets::test_preset_rerun_manifest_binds_registration_cameras_and_group_sync",
+      "tests.test_readiness::test_real_readiness_names_missing_active_models_and_sync",
+      "tests.test_tasks_api::test_submit_requires_all_slots_and_injects_sync_only_at_submit"
+    ]
+  },
+  "frontend_unit": {
+    "tests": 263,
+    "passed": 262,
+    "failed": 1
+  },
+  "e2e": {
+    "startTime": "2026-09-07T05:17:32.898Z",
+    "duration": 94118.301,
+    "expected": 177,
+    "skipped": 61,
+    "unexpected": 4,
+    "flaky": 0
+  },
+  "build": {
+    "command": [
+      "pnpm",
+      "build"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 3.8233912920113653,
+    "log": "frontend-build.log",
+    "phase": "concentrated_frontend_acceptance",
+    "reruns": 0
+  },
+  "chrome": {
+    "pages": 300,
+    "page_findings": 0,
+    "document_horizontal_overflow": 0,
+    "boundary_groups": 40,
+    "boundary_findings": [
+      {
+        "id": "boundary-admin-768x900-zh-light",
+        "findings": [
+          {
+            "kind": "boundary_mismatch",
+            "check": "direct_role_boundary"
+          }
+        ]
+      },
+      {
+        "id": "boundary-admin-768x900-zh-dark",
+        "findings": [
+          {
+            "kind": "boundary_mismatch",
+            "check": "direct_role_boundary"
+          }
+        ]
+      },
+      {
+        "id": "boundary-admin-768x900-en-light",
+        "findings": [
+          {
+            "kind": "boundary_mismatch",
+            "check": "direct_role_boundary"
+          }
+        ]
+      },
+      {
+        "id": "boundary-admin-768x900-en-dark",
+        "findings": [
+          {
+            "kind": "boundary_mismatch",
+            "check": "direct_role_boundary"
+          }
+        ]
+      }
+    ],
+    "server_boundary_checks": {
+      "matched": 40
+    },
+    "heading_visible_ms": {
+      "count": 300,
+      "p50": 65.2100419999988,
+      "p95": 91.68083399999887,
+      "p99": 123.99345799999719
+    }
+  },
+  "capacity": [
+    {
+      "users": 1,
+      "errors": 0,
+      "wall_seconds": 0.12099037494044751,
+      "latency_ms": {
+        "count": 20,
+        "p50": 5.386375007219613,
+        "p95": 7.706333068199456,
+        "p99": 13.354375027120113
+      },
+      "successful_latency_ms": {
+        "count": 20,
+        "p50": 5.386375007219613,
+        "p95": 7.706333068199456,
+        "p99": 13.354375027120113
+      }
+    },
+    {
+      "users": 5,
+      "errors": 0,
+      "wall_seconds": 0.2958737079752609,
+      "latency_ms": {
+        "count": 100,
+        "p50": 13.784707989543676,
+        "p95": 19.126332947053015,
+        "p99": 20.613000029698014
+      },
+      "successful_latency_ms": {
+        "count": 100,
+        "p50": 13.784707989543676,
+        "p95": 19.126332947053015,
+        "p99": 20.613000029698014
+      }
+    },
+    {
+      "users": 10,
+      "errors": 0,
+      "wall_seconds": 0.7943202919559553,
+      "latency_ms": {
+        "count": 200,
+        "p50": 37.44108299724758,
+        "p95": 60.485041001811624,
+        "p99": 80.28229197952896
+      },
+      "successful_latency_ms": {
+        "count": 200,
+        "p50": 37.44108299724758,
+        "p95": 60.485041001811624,
+        "p99": 80.28229197952896
+      }
+    },
+    {
+      "users": 20,
+      "errors": 0,
+      "wall_seconds": 1.7167345830239356,
+      "latency_ms": {
+        "count": 400,
+        "p50": 83.75533297657967,
+        "p95": 117.58537497371435,
+        "p99": 153.3233750378713
+      },
+      "successful_latency_ms": {
+        "count": 400,
+        "p50": 83.75533297657967,
+        "p95": 117.58537497371435,
+        "p99": 153.3233750378713
+      }
+    }
+  ],
+  "gpu": {
+    "planned_cases": 8,
+    "executed_video_cases": 0,
+    "blocker": "OSNet strict runtime initialization failed",
+    "peak_task_vram": null
+  },
+  "glm": {
+    "source": "Existing real preset outputs, Chinese, session and four subjects, coach and roast per preset; no new GPU task completion",
+    "jobs": 40,
+    "job_status": {
+      "failed": 40
+    },
+    "actual_requests": 40,
+    "errors": {
+      "upstream_error": 40
+    },
+    "peak_concurrent_calls": 8,
+    "provider_network_seconds_including_failures": {
+      "count": 40,
+      "p50": 0.4264214523136616,
+      "p95": 5.38038120046258,
+      "p99": 5.78475995734334
+    },
+    "queue_to_first_call_seconds": {
+      "count": 40,
+      "p50": 0.607687,
+      "p95": 4.909636,
+      "p99": 4.966395
+    },
+    "successful_first_report_seconds": null,
+    "successful_full_set_seconds": null,
+    "usage_available": false,
+    "exact_upstream_http_status": "not retained by measurement recorder"
+  },
+  "recovery": {
+    "commands": 8,
+    "failed_commands": 0,
+    "checks": {
+      "manifest_checksums_all_match": true,
+      "new_restore_matches_new_release": true,
+      "new_snapshot_matches_new_release": true,
+      "old_restore_matched_source_before_upgrade": true,
+      "old_snapshot_matches_source": true,
+      "rollback_left_new_release_intact": true,
+      "rollback_matches_old_release_exactly": true,
+      "source_unchanged": true,
+      "sqlite_foreign_keys_all_ok": true,
+      "sqlite_integrity_all_ok": true,
+      "synthetic_upgrade_changed_database_and_file": true,
+      "tool_unchanged_during_drill": true
+    },
+    "wall_seconds": 0.22982858307659626,
+    "scope": "tiny synthetic SQLite and file fixture, not production recovery"
+  },
+  "manual_visual_findings": [
+    {
+      "id": "UI-01",
+      "case": "admin-users-admin-390x900-en-dark",
+      "finding": "Search icon and submit arrow wrap into separate rows; English quota labels wrap excessively",
+      "severity": "UI usability, not an authorization bypass"
+    }
+  ]
+}

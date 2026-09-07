@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-09-07T05:13:41.462646+00:00",
+  "system": "Darwin",
+  "machine": "arm64",
+  "os_version": "26.6.2",
+  "python": "3.12.13",
+  "logical_cpu_count": 10,
+  "packages": {
+    "fastapi": "0.141.1",
+    "starlette": "1.6.0",
+    "httpx": "0.28.1",
+    "sqlmodel": "0.0.42",
+    "pydantic": "2.13.5",
+    "alembic": "1.19.1",
+    "pytest": "9.1.1",
+    "opencv-python-headless": "4.11.0.86"
+  },
+  "backend_database": "isolated SQLite with 20 synthetic users, 25 canceled tasks per user",
+  "video_workers": false,
+  "glm_workers": false,
+  "network": "loopback; dedicated private-interface phone proxy",
+  "test_policy": "measure and record once after implementation; no preset performance capacity thresholds",
+  "phone_input_fixture": "two separate drafts with five synthetic 2-second 25fps H264 MP4 videos each",
+  "real_device": "iPhone 16 Pro; actual Safari iOS 26.6.1, not emulation",
+  "browsers": {
+    "Chrome": "152.0.7977.83",
+    "macOS Safari": "26.6.2",
+    "iPhone Safari": "26.6.1"
+  }
+}

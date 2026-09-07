@@ -1,0 +1,16 @@
+{
+  "command": [
+    "pnpm",
+    "exec",
+    "vitest",
+    "run",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=<WORKTREE>/runtime/release-closeout/evidence/frontend-unit.json"
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 7.519648874993436,
+  "log": "frontend-unit.log",
+  "phase": "concentrated_frontend_acceptance",
+  "reruns": 0
+}

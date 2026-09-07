@@ -1,0 +1,467 @@
+{
+  "attempt": 1,
+  "checks": {
+    "manifest_checksums_all_match": true,
+    "new_restore_matches_new_release": true,
+    "new_snapshot_matches_new_release": true,
+    "old_restore_matched_source_before_upgrade": true,
+    "old_snapshot_matches_source": true,
+    "rollback_left_new_release_intact": true,
+    "rollback_matches_old_release_exactly": true,
+    "source_unchanged": true,
+    "sqlite_foreign_keys_all_ok": true,
+    "sqlite_integrity_all_ok": true,
+    "synthetic_upgrade_changed_database_and_file": true,
+    "tool_unchanged_during_drill": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "plan",
+        "--source",
+        "/private/tmp/dsb-closeout-recovery/source",
+        "--target",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old",
+        "--database",
+        "data.sqlite",
+        "--include",
+        "files"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py plan --source /private/tmp/dsb-closeout-recovery/source --target <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old --database data.sqlite --include files",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.069366+00:00",
+      "result": {
+        "bytes": 122880,
+        "database_checks": "not_run",
+        "directory_count": 1,
+        "file_count": 2,
+        "offline_required": true,
+        "operation": "snapshot",
+        "status": "planned"
+      },
+      "stage": "01-plan-old",
+      "started_at": "2026-09-07T04:50:24.045043+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.024317207979038358
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "snapshot",
+        "--source",
+        "/private/tmp/dsb-closeout-recovery/source",
+        "--target",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old",
+        "--database",
+        "data.sqlite",
+        "--include",
+        "files",
+        "--offline",
+        "--fixture"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py snapshot --source /private/tmp/dsb-closeout-recovery/source --target <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old --database data.sqlite --include files --offline --fixture",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.097305+00:00",
+      "result": {
+        "evidence_kind": "synthetic_fixture",
+        "file_count": 2,
+        "operation": "snapshot",
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "verified",
+        "wall_seconds": 0.003918834030628204
+      },
+      "stage": "02-snapshot-old",
+      "started_at": "2026-09-07T04:50:24.069850+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.02744720794726163
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "verify",
+        "--source",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py verify --source <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.123188+00:00",
+      "result": {
+        "file_count": 2,
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "verified"
+      },
+      "stage": "03-verify-old",
+      "started_at": "2026-09-07T04:50:24.097799+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.02538091700989753
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "restore",
+        "--source",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old",
+        "--target",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/release-new",
+        "--offline"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py restore --source <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old --target <WORKTREE>/runtime/release-closeout/evidence/recovery/release-new --offline",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.152835+00:00",
+      "result": {
+        "file_count": 2,
+        "operation": "restore",
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "restored"
+      },
+      "stage": "04-restore-old",
+      "started_at": "2026-09-07T04:50:24.123622+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.02920445892959833
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "snapshot",
+        "--source",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/release-new",
+        "--target",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-new",
+        "--database",
+        "data.sqlite",
+        "--include",
+        "files",
+        "--offline",
+        "--fixture"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py snapshot --source <WORKTREE>/runtime/release-closeout/evidence/recovery/release-new --target <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-new --database data.sqlite --include files --offline --fixture",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.183060+00:00",
+      "result": {
+        "evidence_kind": "synthetic_fixture",
+        "file_count": 2,
+        "operation": "snapshot",
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "verified",
+        "wall_seconds": 0.00455433304887265
+      },
+      "stage": "06-snapshot-new",
+      "started_at": "2026-09-07T04:50:24.154355+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.028697374975308776
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "verify",
+        "--source",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-new"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py verify --source <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-new",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.209295+00:00",
+      "result": {
+        "file_count": 2,
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "verified"
+      },
+      "stage": "07-verify-new",
+      "started_at": "2026-09-07T04:50:24.183431+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.025857542059384286
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "restore",
+        "--source",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-new",
+        "--target",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/restored-new",
+        "--offline"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py restore --source <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-new --target <WORKTREE>/runtime/release-closeout/evidence/recovery/restored-new --offline",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.237402+00:00",
+      "result": {
+        "file_count": 2,
+        "operation": "restore",
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "restored"
+      },
+      "stage": "08-restore-new",
+      "started_at": "2026-09-07T04:50:24.209722+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.027673249947838485
+    },
+    {
+      "argv": [
+        "<WORKTREE>/.venv/bin/python",
+        "<WORKTREE>/scripts/release_recovery.py",
+        "rollback",
+        "--source",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old",
+        "--target",
+        "<WORKTREE>/runtime/release-closeout/evidence/recovery/rollback-old",
+        "--offline"
+      ],
+      "attempt": 1,
+      "command": "<WORKTREE>/.venv/bin/python <WORKTREE>/scripts/release_recovery.py rollback --source <WORKTREE>/runtime/release-closeout/evidence/recovery/snapshot-old --target <WORKTREE>/runtime/release-closeout/evidence/recovery/rollback-old --offline",
+      "exit_code": 0,
+      "finished_at": "2026-09-07T04:50:24.265836+00:00",
+      "result": {
+        "file_count": 2,
+        "operation": "rollback",
+        "sqlite_foreign_keys": "ok",
+        "sqlite_integrity": "ok",
+        "status": "restored"
+      },
+      "stage": "09-rollback-old",
+      "started_at": "2026-09-07T04:50:24.237777+00:00",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 0.028053124900907278
+    }
+  ],
+  "cwd": "<WORKTREE>",
+  "evidence_kind": "isolated_synthetic_recovery_drill",
+  "files": {
+    "new_release": [
+      {
+        "path": "data.sqlite",
+        "sha256": "047b0e9b438762fe72c0aebd8fbaec99501e5a1c30dfc750138f4967cca7db12",
+        "size": 20480
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "271639d0c7212ac8bb435cf8a1cdc13c9abfef0b380d1e236d8ad99a83938fd1",
+        "size": 110622
+      }
+    ],
+    "restored_new": [
+      {
+        "path": "data.sqlite",
+        "sha256": "047b0e9b438762fe72c0aebd8fbaec99501e5a1c30dfc750138f4967cca7db12",
+        "size": 20480
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "271639d0c7212ac8bb435cf8a1cdc13c9abfef0b380d1e236d8ad99a83938fd1",
+        "size": 110622
+      }
+    ],
+    "rollback_old": [
+      {
+        "path": "data.sqlite",
+        "sha256": "6cf65180d7fc2608a2b866c7361cd5c23e09ba661ce7ea1051b8e6db15a9d3b7",
+        "size": 12288
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "962249215a685591177da8d8fa4ae5ef460d3bbc7f24e5b39879d2db3b39bcd1",
+        "size": 110592
+      }
+    ],
+    "snapshot_new_payload": [
+      {
+        "path": "data.sqlite",
+        "sha256": "047b0e9b438762fe72c0aebd8fbaec99501e5a1c30dfc750138f4967cca7db12",
+        "size": 20480
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "271639d0c7212ac8bb435cf8a1cdc13c9abfef0b380d1e236d8ad99a83938fd1",
+        "size": 110622
+      }
+    ],
+    "snapshot_old_payload": [
+      {
+        "path": "data.sqlite",
+        "sha256": "6cf65180d7fc2608a2b866c7361cd5c23e09ba661ce7ea1051b8e6db15a9d3b7",
+        "size": 12288
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "962249215a685591177da8d8fa4ae5ef460d3bbc7f24e5b39879d2db3b39bcd1",
+        "size": 110592
+      }
+    ],
+    "source": [
+      {
+        "path": "data.sqlite",
+        "sha256": "6cf65180d7fc2608a2b866c7361cd5c23e09ba661ce7ea1051b8e6db15a9d3b7",
+        "size": 12288
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "962249215a685591177da8d8fa4ae5ef460d3bbc7f24e5b39879d2db3b39bcd1",
+        "size": 110592
+      }
+    ]
+  },
+  "finished_at": "2026-09-07T04:50:24.267654+00:00",
+  "fixture_preparation": "parent_prepared_source_reused",
+  "independent_checks_wall_seconds": 0.0014275830471888185,
+  "manifests": {
+    "new": {
+      "checksum_matches": true,
+      "manifest": {
+        "consistency": "offline_exclusive_sqlite_lock",
+        "created_at": "2026-09-07T04:50:24.177604+00:00",
+        "database": "data.sqlite",
+        "directories": [
+          "files"
+        ],
+        "files": [
+          {
+            "path": "data.sqlite",
+            "sha256": "047b0e9b438762fe72c0aebd8fbaec99501e5a1c30dfc750138f4967cca7db12",
+            "size": 20480
+          },
+          {
+            "path": "files/synthetic.bin",
+            "sha256": "271639d0c7212ac8bb435cf8a1cdc13c9abfef0b380d1e236d8ad99a83938fd1",
+            "size": 110622
+          }
+        ],
+        "format_version": 1
+      },
+      "manifest_sha256": "8626fc9baaebc9764b01298996b47f2687db2e1b79243531fd41b298d44bc8f7"
+    },
+    "old": {
+      "checksum_matches": true,
+      "manifest": {
+        "consistency": "offline_exclusive_sqlite_lock",
+        "created_at": "2026-09-07T04:50:24.092106+00:00",
+        "database": "data.sqlite",
+        "directories": [
+          "files"
+        ],
+        "files": [
+          {
+            "path": "data.sqlite",
+            "sha256": "6cf65180d7fc2608a2b866c7361cd5c23e09ba661ce7ea1051b8e6db15a9d3b7",
+            "size": 12288
+          },
+          {
+            "path": "files/synthetic.bin",
+            "sha256": "962249215a685591177da8d8fa4ae5ef460d3bbc7f24e5b39879d2db3b39bcd1",
+            "size": 110592
+          }
+        ],
+        "format_version": 1
+      },
+      "manifest_sha256": "1e60d272afa7ec5e427bbe2af16a9c8a759039eba19304d38e340ecb111c4d40"
+    }
+  },
+  "offline_basis": "parent-prepared synthetic database/files, no app or workers attached",
+  "production_access": false,
+  "restored_old_before_simulated_upgrade": [
+    {
+      "path": "data.sqlite",
+      "sha256": "6cf65180d7fc2608a2b866c7361cd5c23e09ba661ce7ea1051b8e6db15a9d3b7",
+      "size": 12288
+    },
+    {
+      "path": "files/synthetic.bin",
+      "sha256": "962249215a685591177da8d8fa4ae5ef460d3bbc7f24e5b39879d2db3b39bcd1",
+      "size": 110592
+    }
+  ],
+  "runner_command": "<WORKTREE>/.venv/bin/python <WORKTREE>/runtime/release-closeout/evidence/recovery/run_once.py",
+  "runner_sha256": "e34e49f76035fcead55e3699d4b3bc00884e306dca1b31ee2766458b642a9f84",
+  "schema_version": 1,
+  "source": "/private/tmp/dsb-closeout-recovery/source",
+  "source_before": [
+    {
+      "path": "data.sqlite",
+      "sha256": "6cf65180d7fc2608a2b866c7361cd5c23e09ba661ce7ea1051b8e6db15a9d3b7",
+      "size": 12288
+    },
+    {
+      "path": "files/synthetic.bin",
+      "sha256": "962249215a685591177da8d8fa4ae5ef460d3bbc7f24e5b39879d2db3b39bcd1",
+      "size": 110592
+    }
+  ],
+  "source_version_freeze": "eff724d27266112bac12594ed367fed0d221c4f2",
+  "sqlite": {
+    "new_release": {
+      "foreign_key_violations": 0,
+      "integrity_ok": true
+    },
+    "restored_new": {
+      "foreign_key_violations": 0,
+      "integrity_ok": true
+    },
+    "rollback_old": {
+      "foreign_key_violations": 0,
+      "integrity_ok": true
+    },
+    "snapshot_new_payload": {
+      "foreign_key_violations": 0,
+      "integrity_ok": true
+    },
+    "snapshot_old_payload": {
+      "foreign_key_violations": 0,
+      "integrity_ok": true
+    },
+    "source": {
+      "foreign_key_violations": 0,
+      "integrity_ok": true
+    }
+  },
+  "started_at": "2026-09-07T04:50:24.037829+00:00",
+  "status": "completed",
+  "synthetic_upgrade": {
+    "file_append_hex": "0a4453425f53594e5448455449435f4e45575f52454c454153455f56310a",
+    "files_after": [
+      {
+        "path": "data.sqlite",
+        "sha256": "047b0e9b438762fe72c0aebd8fbaec99501e5a1c30dfc750138f4967cca7db12",
+        "size": 20480
+      },
+      {
+        "path": "files/synthetic.bin",
+        "sha256": "271639d0c7212ac8bb435cf8a1cdc13c9abfef0b380d1e236d8ad99a83938fd1",
+        "size": 110622
+      }
+    ],
+    "sql": "PRAGMA foreign_keys=ON; BEGIN IMMEDIATE;CREATE TABLE recovery_drill_release_marker(id INTEGER PRIMARY KEY, label TEXT NOT NULL);INSERT INTO recovery_drill_release_marker VALUES(1, 'synthetic-new-release-v1');CREATE TABLE recovery_drill_release_link(marker_id INTEGER REFERENCES recovery_drill_release_marker(id));INSERT INTO recovery_drill_release_link VALUES(1); COMMIT;",
+    "stage": "05-simulate-new-synthetic-release",
+    "target": "<WORKTREE>/runtime/release-closeout/evidence/recovery/release-new",
+    "wall_seconds": 0.0007760419975966215
+  },
+  "timings_scope": "synthetic fixture only",
+  "tool_sha256_after": "da7332e6c0a4aa77448cd8b18600c07a55e45829e3da3874b30151c1f3438ba0",
+  "tool_sha256_before": "da7332e6c0a4aa77448cd8b18600c07a55e45829e3da3874b30151c1f3438ba0",
+  "wall_seconds": 0.22982858307659626
+}

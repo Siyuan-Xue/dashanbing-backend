@@ -1,0 +1,5923 @@
+{
+  "schema_version": 1,
+  "tool": "measure_capacity",
+  "status": "measured",
+  "evidence_kind": "real",
+  "base_url": "http://127.0.0.1:8013",
+  "path": "/api/v1/tasks",
+  "started_at": "2026-09-07T05:31:06.637981+00:00",
+  "workload": "closed_loop_authenticated_get",
+  "samples_per_user": 20,
+  "percentile_method": "nearest_rank",
+  "runs": [
+    {
+      "users": 1,
+      "outcomes": [
+        {
+          "user": 1,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.354375027120113
+        },
+        {
+          "user": 1,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 6.089790957048535
+        },
+        {
+          "user": 1,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.568165914155543
+        },
+        {
+          "user": 1,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.6056249886751175
+        },
+        {
+          "user": 1,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.386375007219613
+        },
+        {
+          "user": 1,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.569290951825678
+        },
+        {
+          "user": 1,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.563499988056719
+        },
+        {
+          "user": 1,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.159249994903803
+        },
+        {
+          "user": 1,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.100000067614019
+        },
+        {
+          "user": 1,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.303625017404556
+        },
+        {
+          "user": 1,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.706333068199456
+        },
+        {
+          "user": 1,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.940208095125854
+        },
+        {
+          "user": 1,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.55533401388675
+        },
+        {
+          "user": 1,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.29020803514868
+        },
+        {
+          "user": 1,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.2476669661700726
+        },
+        {
+          "user": 1,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.30087505467236
+        },
+        {
+          "user": 1,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.247666034847498
+        },
+        {
+          "user": 1,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.2354170475155115
+        },
+        {
+          "user": 1,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.1796670304611325
+        },
+        {
+          "user": 1,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.3924169624224305
+        }
+      ],
+      "errors": 0,
+      "wall_seconds": 0.12099037494044751,
+      "latency_ms": {
+        "count": 20,
+        "p50": 5.386375007219613,
+        "p95": 7.706333068199456,
+        "p99": 13.354375027120113
+      },
+      "successful_latency_ms": {
+        "count": 20,
+        "p50": 5.386375007219613,
+        "p95": 7.706333068199456,
+        "p99": 13.354375027120113
+      }
+    },
+    {
+      "users": 5,
+      "outcomes": [
+        {
+          "user": 1,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 20.569832995533943
+        },
+        {
+          "user": 1,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.814832993783057
+        },
+        {
+          "user": 1,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.50120804272592
+        },
+        {
+          "user": 1,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.568082962185144
+        },
+        {
+          "user": 1,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.233707984909415
+        },
+        {
+          "user": 1,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.806458049453795
+        },
+        {
+          "user": 1,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.505457974039018
+        },
+        {
+          "user": 1,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.359374901279807
+        },
+        {
+          "user": 1,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.917750001884997
+        },
+        {
+          "user": 1,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.645166996866465
+        },
+        {
+          "user": 1,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.918374971486628
+        },
+        {
+          "user": 1,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 18.451499985530972
+        },
+        {
+          "user": 1,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.392958065494895
+        },
+        {
+          "user": 1,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.497249943204224
+        },
+        {
+          "user": 1,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.80533292144537
+        },
+        {
+          "user": 1,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 18.141083070077002
+        },
+        {
+          "user": 1,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.432249966077507
+        },
+        {
+          "user": 1,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.469084028154612
+        },
+        {
+          "user": 1,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.193874995224178
+        },
+        {
+          "user": 1,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.711708080023527
+        },
+        {
+          "user": 2,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.47208400350064
+        },
+        {
+          "user": 2,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 8.899000007659197
+        },
+        {
+          "user": 2,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.952290988527238
+        },
+        {
+          "user": 2,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.065709033980966
+        },
+        {
+          "user": 2,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.910000074654818
+        },
+        {
+          "user": 2,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.1804580129683
+        },
+        {
+          "user": 2,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.87716704327613
+        },
+        {
+          "user": 2,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.526291025802493
+        },
+        {
+          "user": 2,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.922167010605335
+        },
+        {
+          "user": 2,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.725416967645288
+        },
+        {
+          "user": 2,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.073833098635077
+        },
+        {
+          "user": 2,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.67420791555196
+        },
+        {
+          "user": 2,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.87495892494917
+        },
+        {
+          "user": 2,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.731415944173932
+        },
+        {
+          "user": 2,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 20.613000029698014
+        },
+        {
+          "user": 2,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 18.420750042423606
+        },
+        {
+          "user": 2,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.050667010247707
+        },
+        {
+          "user": 2,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.218666982837021
+        },
+        {
+          "user": 2,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.1899169171229
+        },
+        {
+          "user": 2,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.170374954119325
+        },
+        {
+          "user": 3,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 19.126332947053015
+        },
+        {
+          "user": 3,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.123500065878034
+        },
+        {
+          "user": 3,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.893915943801403
+        },
+        {
+          "user": 3,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.037541928701103
+        },
+        {
+          "user": 3,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.01133306697011
+        },
+        {
+          "user": 3,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.205292005091906
+        },
+        {
+          "user": 3,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.797709067352116
+        },
+        {
+          "user": 3,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.703832915984094
+        },
+        {
+          "user": 3,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.585875043645501
+        },
+        {
+          "user": 3,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 18.01583298947662
+        },
+        {
+          "user": 3,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.476249925792217
+        },
+        {
+          "user": 3,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.132583026774228
+        },
+        {
+          "user": 3,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.867957957088947
+        },
+        {
+          "user": 3,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.05279093887657
+        },
+        {
+          "user": 3,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 18.49720801692456
+        },
+        {
+          "user": 3,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 18.561916891485453
+        },
+        {
+          "user": 3,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.9685420114547
+        },
+        {
+          "user": 3,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.27791703119874
+        },
+        {
+          "user": 3,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.098582931794226
+        },
+        {
+          "user": 3,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.575833031907678
+        },
+        {
+          "user": 4,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 20.24258393794298
+        },
+        {
+          "user": 4,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.210083034820855
+        },
+        {
+          "user": 4,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.519542058929801
+        },
+        {
+          "user": 4,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.44174998626113
+        },
+        {
+          "user": 4,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.236958999186754
+        },
+        {
+          "user": 4,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.807375052943826
+        },
+        {
+          "user": 4,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.543917056173086
+        },
+        {
+          "user": 4,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.322041904553771
+        },
+        {
+          "user": 4,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.676457990892231
+        },
+        {
+          "user": 4,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.017000048421323
+        },
+        {
+          "user": 4,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.876999961212277
+        },
+        {
+          "user": 4,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 9.510791045613587
+        },
+        {
+          "user": 4,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.784707989543676
+        },
+        {
+          "user": 4,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.476166969165206
+        },
+        {
+          "user": 4,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.727417073212564
+        },
+        {
+          "user": 4,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.1529170460999
+        },
+        {
+          "user": 4,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.388458945788443
+        },
+        {
+          "user": 4,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.752792009152472
+        },
+        {
+          "user": 4,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.97729097213596
+        },
+        {
+          "user": 4,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.506124934181571
+        },
+        {
+          "user": 5,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 19.37204203568399
+        },
+        {
+          "user": 5,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.064291931688786
+        },
+        {
+          "user": 5,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.884709005244076
+        },
+        {
+          "user": 5,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.043665956705809
+        },
+        {
+          "user": 5,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.961833039298654
+        },
+        {
+          "user": 5,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.292915907688439
+        },
+        {
+          "user": 5,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.428333913907409
+        },
+        {
+          "user": 5,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.14066699706018
+        },
+        {
+          "user": 5,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.4287079134956
+        },
+        {
+          "user": 5,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.73012494109571
+        },
+        {
+          "user": 5,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.66079198103398
+        },
+        {
+          "user": 5,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 13.065708102658391
+        },
+        {
+          "user": 5,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.102958957664669
+        },
+        {
+          "user": 5,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 10.4674999602139
+        },
+        {
+          "user": 5,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.399499981664121
+        },
+        {
+          "user": 5,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.487542026676238
+        },
+        {
+          "user": 5,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.81670795287937
+        },
+        {
+          "user": 5,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 11.397167108953
+        },
+        {
+          "user": 5,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 12.283166986890137
+        },
+        {
+          "user": 5,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 15.301415929570794
+        }
+      ],
+      "errors": 0,
+      "wall_seconds": 0.2958737079752609,
+      "latency_ms": {
+        "count": 100,
+        "p50": 13.784707989543676,
+        "p95": 19.126332947053015,
+        "p99": 20.613000029698014
+      },
+      "successful_latency_ms": {
+        "count": 100,
+        "p50": 13.784707989543676,
+        "p95": 19.126332947053015,
+        "p99": 20.613000029698014
+      }
+    },
+    {
+      "users": 10,
+      "outcomes": [
+        {
+          "user": 1,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.96604109182954
+        },
+        {
+          "user": 1,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 32.23266697023064
+        },
+        {
+          "user": 1,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.418583068065345
+        },
+        {
+          "user": 1,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 51.699584000743926
+        },
+        {
+          "user": 1,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.51462497934699
+        },
+        {
+          "user": 1,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 29.325541923753917
+        },
+        {
+          "user": 1,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.21416693087667
+        },
+        {
+          "user": 1,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.00608406122774
+        },
+        {
+          "user": 1,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.70041691698134
+        },
+        {
+          "user": 1,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.873333051800728
+        },
+        {
+          "user": 1,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.690125042572618
+        },
+        {
+          "user": 1,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 23.147290921770036
+        },
+        {
+          "user": 1,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.18533305171877
+        },
+        {
+          "user": 1,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.44108299724758
+        },
+        {
+          "user": 1,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.81537500396371
+        },
+        {
+          "user": 1,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.664459044113755
+        },
+        {
+          "user": 1,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 29.943833011202514
+        },
+        {
+          "user": 1,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.742875050753355
+        },
+        {
+          "user": 1,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.575416021980345
+        },
+        {
+          "user": 1,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 29.936583014205098
+        },
+        {
+          "user": 2,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 46.98241699952632
+        },
+        {
+          "user": 2,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 58.17574996035546
+        },
+        {
+          "user": 2,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 50.52900000009686
+        },
+        {
+          "user": 2,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.481499990448356
+        },
+        {
+          "user": 2,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.92341598495841
+        },
+        {
+          "user": 2,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.28229197952896
+        },
+        {
+          "user": 2,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.46408302988857
+        },
+        {
+          "user": 2,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 43.929042061790824
+        },
+        {
+          "user": 2,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 50.398958032019436
+        },
+        {
+          "user": 2,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 54.50429196935147
+        },
+        {
+          "user": 2,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 46.70583293773234
+        },
+        {
+          "user": 2,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 29.356874991208315
+        },
+        {
+          "user": 2,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.64991705492139
+        },
+        {
+          "user": 2,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.6557499403134
+        },
+        {
+          "user": 2,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 50.018500071018934
+        },
+        {
+          "user": 2,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.72783303633332
+        },
+        {
+          "user": 2,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.26083306595683
+        },
+        {
+          "user": 2,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 8.149083005264401
+        },
+        {
+          "user": 2,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.869833032600582
+        },
+        {
+          "user": 2,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 6.139375036582351
+        },
+        {
+          "user": 3,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.11108399834484
+        },
+        {
+          "user": 3,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.411541949026287
+        },
+        {
+          "user": 3,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.18408406712115
+        },
+        {
+          "user": 3,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.218082967214286
+        },
+        {
+          "user": 3,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 30.593208968639374
+        },
+        {
+          "user": 3,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.321750055998564
+        },
+        {
+          "user": 3,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.96862506028265
+        },
+        {
+          "user": 3,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 54.75195904728025
+        },
+        {
+          "user": 3,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.375500002875924
+        },
+        {
+          "user": 3,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.949500070884824
+        },
+        {
+          "user": 3,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.91504100244492
+        },
+        {
+          "user": 3,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.525124890729785
+        },
+        {
+          "user": 3,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.997791995294392
+        },
+        {
+          "user": 3,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.849750003777444
+        },
+        {
+          "user": 3,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.40470900386572
+        },
+        {
+          "user": 3,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 25.36495798267424
+        },
+        {
+          "user": 3,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 42.8520831046626
+        },
+        {
+          "user": 3,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 31.795833026990294
+        },
+        {
+          "user": 3,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.229582926258445
+        },
+        {
+          "user": 3,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 70.1133330585435
+        },
+        {
+          "user": 4,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 46.886791940778494
+        },
+        {
+          "user": 4,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.32825002912432
+        },
+        {
+          "user": 4,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 25.264417054131627
+        },
+        {
+          "user": 4,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 48.77174994908273
+        },
+        {
+          "user": 4,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.64658302254975
+        },
+        {
+          "user": 4,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.94845797307789
+        },
+        {
+          "user": 4,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 55.49870803952217
+        },
+        {
+          "user": 4,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 29.066957999020815
+        },
+        {
+          "user": 4,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.720250013284385
+        },
+        {
+          "user": 4,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.886416038498282
+        },
+        {
+          "user": 4,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 52.75849997997284
+        },
+        {
+          "user": 4,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.901290994137526
+        },
+        {
+          "user": 4,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.652792050503194
+        },
+        {
+          "user": 4,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.99462507292628
+        },
+        {
+          "user": 4,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.524041978642344
+        },
+        {
+          "user": 4,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 31.46366705186665
+        },
+        {
+          "user": 4,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 89.15400004480034
+        },
+        {
+          "user": 4,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.34024996589869
+        },
+        {
+          "user": 4,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.642417000606656
+        },
+        {
+          "user": 4,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.074582972563803
+        },
+        {
+          "user": 5,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.87320797145367
+        },
+        {
+          "user": 5,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.59129189327359
+        },
+        {
+          "user": 5,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.79316690005362
+        },
+        {
+          "user": 5,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 46.613584039732814
+        },
+        {
+          "user": 5,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 23.90104194637388
+        },
+        {
+          "user": 5,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.091624901629984
+        },
+        {
+          "user": 5,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 63.1054169498384
+        },
+        {
+          "user": 5,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.32270903047174
+        },
+        {
+          "user": 5,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.124499942176044
+        },
+        {
+          "user": 5,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.30500004813075
+        },
+        {
+          "user": 5,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.77658408135176
+        },
+        {
+          "user": 5,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 31.97670797817409
+        },
+        {
+          "user": 5,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.68791693355888
+        },
+        {
+          "user": 5,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 51.76804191432893
+        },
+        {
+          "user": 5,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.48883302230388
+        },
+        {
+          "user": 5,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.543082932941616
+        },
+        {
+          "user": 5,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.06841702759266
+        },
+        {
+          "user": 5,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.638291008770466
+        },
+        {
+          "user": 5,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 59.03516698163003
+        },
+        {
+          "user": 5,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.641499928198755
+        },
+        {
+          "user": 6,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 21.44979208242148
+        },
+        {
+          "user": 6,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 30.84566700272262
+        },
+        {
+          "user": 6,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.62412502896041
+        },
+        {
+          "user": 6,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.05937494710088
+        },
+        {
+          "user": 6,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.980457991361618
+        },
+        {
+          "user": 6,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.141374920494854
+        },
+        {
+          "user": 6,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 32.92354196310043
+        },
+        {
+          "user": 6,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.41241595894098
+        },
+        {
+          "user": 6,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 32.550042029470205
+        },
+        {
+          "user": 6,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.10554095171392
+        },
+        {
+          "user": 6,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 20.207374938763678
+        },
+        {
+          "user": 6,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.53516593296081
+        },
+        {
+          "user": 6,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 50.68850005045533
+        },
+        {
+          "user": 6,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.75525002088398
+        },
+        {
+          "user": 6,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.615207945927978
+        },
+        {
+          "user": 6,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.135084052570164
+        },
+        {
+          "user": 6,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.225541998632252
+        },
+        {
+          "user": 6,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.22149994131178
+        },
+        {
+          "user": 6,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.48949994426221
+        },
+        {
+          "user": 6,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.174792014993727
+        },
+        {
+          "user": 7,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 56.391083053313196
+        },
+        {
+          "user": 7,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.936749898828566
+        },
+        {
+          "user": 7,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.71704092994332
+        },
+        {
+          "user": 7,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.072500019334257
+        },
+        {
+          "user": 7,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 48.377832979895175
+        },
+        {
+          "user": 7,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 65.64858299680054
+        },
+        {
+          "user": 7,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 21.848375094123185
+        },
+        {
+          "user": 7,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 43.75245899427682
+        },
+        {
+          "user": 7,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.10879102535546
+        },
+        {
+          "user": 7,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.09058405365795
+        },
+        {
+          "user": 7,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.44816595967859
+        },
+        {
+          "user": 7,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.39291597250849
+        },
+        {
+          "user": 7,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.068082937039435
+        },
+        {
+          "user": 7,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 42.99729107879102
+        },
+        {
+          "user": 7,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.419749989174306
+        },
+        {
+          "user": 7,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 21.592124947346747
+        },
+        {
+          "user": 7,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.19958299957216
+        },
+        {
+          "user": 7,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.7069169068709
+        },
+        {
+          "user": 7,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 48.03933307994157
+        },
+        {
+          "user": 7,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 25.427832966670394
+        },
+        {
+          "user": 8,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 46.808416955173016
+        },
+        {
+          "user": 8,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.778208972886205
+        },
+        {
+          "user": 8,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.507291982881725
+        },
+        {
+          "user": 8,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.842040988616645
+        },
+        {
+          "user": 8,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.79579107929021
+        },
+        {
+          "user": 8,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 28.25379208661616
+        },
+        {
+          "user": 8,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 42.99554193858057
+        },
+        {
+          "user": 8,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.13533396087587
+        },
+        {
+          "user": 8,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 43.14233304467052
+        },
+        {
+          "user": 8,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 26.768167037516832
+        },
+        {
+          "user": 8,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.41908301971853
+        },
+        {
+          "user": 8,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 26.636875001713634
+        },
+        {
+          "user": 8,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.14858300797641
+        },
+        {
+          "user": 8,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 43.63570804707706
+        },
+        {
+          "user": 8,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 21.379958023317158
+        },
+        {
+          "user": 8,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.983500006608665
+        },
+        {
+          "user": 8,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.22420903574675
+        },
+        {
+          "user": 8,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 59.08258294221014
+        },
+        {
+          "user": 8,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 52.5741659803316
+        },
+        {
+          "user": 8,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.347500082105398
+        },
+        {
+          "user": 9,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.76095909718424
+        },
+        {
+          "user": 9,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 31.989749986678362
+        },
+        {
+          "user": 9,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.17816700413823
+        },
+        {
+          "user": 9,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 60.485041001811624
+        },
+        {
+          "user": 9,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.00079104118049
+        },
+        {
+          "user": 9,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.97254104819149
+        },
+        {
+          "user": 9,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.12437497638166
+        },
+        {
+          "user": 9,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 29.642000095918775
+        },
+        {
+          "user": 9,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.0554161015898
+        },
+        {
+          "user": 9,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 30.981500050984323
+        },
+        {
+          "user": 9,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.05529103334993
+        },
+        {
+          "user": 9,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 51.747041987255216
+        },
+        {
+          "user": 9,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.975792083889246
+        },
+        {
+          "user": 9,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.0832090144977
+        },
+        {
+          "user": 9,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 30.09154205210507
+        },
+        {
+          "user": 9,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.73566698934883
+        },
+        {
+          "user": 9,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.33941604197025
+        },
+        {
+          "user": 9,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 20.008792052976787
+        },
+        {
+          "user": 9,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 14.888250036165118
+        },
+        {
+          "user": 9,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 8.494041976518929
+        },
+        {
+          "user": 10,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.750041948631406
+        },
+        {
+          "user": 10,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.84945801552385
+        },
+        {
+          "user": 10,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 40.76050000730902
+        },
+        {
+          "user": 10,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.63608406390995
+        },
+        {
+          "user": 10,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 25.174250011332333
+        },
+        {
+          "user": 10,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.03787496872246
+        },
+        {
+          "user": 10,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.11183291953057
+        },
+        {
+          "user": 10,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 53.74045798089355
+        },
+        {
+          "user": 10,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 30.326958978548646
+        },
+        {
+          "user": 10,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 43.676250032149255
+        },
+        {
+          "user": 10,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.13466597441584
+        },
+        {
+          "user": 10,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.50979101378471
+        },
+        {
+          "user": 10,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 27.708082925528288
+        },
+        {
+          "user": 10,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.65987497474998
+        },
+        {
+          "user": 10,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.06612497102469
+        },
+        {
+          "user": 10,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.28658302780241
+        },
+        {
+          "user": 10,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.96624999772757
+        },
+        {
+          "user": 10,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.76416692510247
+        },
+        {
+          "user": 10,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 46.874042018316686
+        },
+        {
+          "user": 10,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 24.617332965135574
+        }
+      ],
+      "errors": 0,
+      "wall_seconds": 0.7943202919559553,
+      "latency_ms": {
+        "count": 200,
+        "p50": 37.44108299724758,
+        "p95": 60.485041001811624,
+        "p99": 80.28229197952896
+      },
+      "successful_latency_ms": {
+        "count": 200,
+        "p50": 37.44108299724758,
+        "p95": 60.485041001811624,
+        "p99": 80.28229197952896
+      }
+    },
+    {
+      "users": 20,
+      "outcomes": [
+        {
+          "user": 1,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 118.8630829565227
+        },
+        {
+          "user": 1,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.60658399015665
+        },
+        {
+          "user": 1,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.73574999719858
+        },
+        {
+          "user": 1,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.86787500139326
+        },
+        {
+          "user": 1,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.52387502603233
+        },
+        {
+          "user": 1,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 84.48362501803786
+        },
+        {
+          "user": 1,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.291916991584
+        },
+        {
+          "user": 1,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 173.48629096522927
+        },
+        {
+          "user": 1,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 71.71654200647026
+        },
+        {
+          "user": 1,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.29850006196648
+        },
+        {
+          "user": 1,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.19991608895361
+        },
+        {
+          "user": 1,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 57.47183400671929
+        },
+        {
+          "user": 1,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.931541970931
+        },
+        {
+          "user": 1,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.9469169806689
+        },
+        {
+          "user": 1,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 54.711875040084124
+        },
+        {
+          "user": 1,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.67508394178003
+        },
+        {
+          "user": 1,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.27441709581763
+        },
+        {
+          "user": 1,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 70.40366693399847
+        },
+        {
+          "user": 1,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.25504107028246
+        },
+        {
+          "user": 1,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 32.42974996101111
+        },
+        {
+          "user": 2,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 125.39741699583828
+        },
+        {
+          "user": 2,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 116.9741660123691
+        },
+        {
+          "user": 2,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 110.69299990776926
+        },
+        {
+          "user": 2,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 25.632083066739142
+        },
+        {
+          "user": 2,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 99.0362090524286
+        },
+        {
+          "user": 2,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 97.35787496902049
+        },
+        {
+          "user": 2,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 98.60166709404439
+        },
+        {
+          "user": 2,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.29125000722706
+        },
+        {
+          "user": 2,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.39541704021394
+        },
+        {
+          "user": 2,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 141.56962500419468
+        },
+        {
+          "user": 2,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.31091595068574
+        },
+        {
+          "user": 2,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 102.18254197388887
+        },
+        {
+          "user": 2,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.24595804698765
+        },
+        {
+          "user": 2,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.4939170256257
+        },
+        {
+          "user": 2,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.04191694315523
+        },
+        {
+          "user": 2,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.09141605626792
+        },
+        {
+          "user": 2,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 56.56599998474121
+        },
+        {
+          "user": 2,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 30.529749928973615
+        },
+        {
+          "user": 2,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.476250058971345
+        },
+        {
+          "user": 2,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 5.614541936665773
+        },
+        {
+          "user": 3,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.81070908624679
+        },
+        {
+          "user": 3,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.41554107796401
+        },
+        {
+          "user": 3,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.81125004217029
+        },
+        {
+          "user": 3,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 107.84850001800805
+        },
+        {
+          "user": 3,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.58716696500778
+        },
+        {
+          "user": 3,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.63566699530929
+        },
+        {
+          "user": 3,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.51224998012185
+        },
+        {
+          "user": 3,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.2215410573408
+        },
+        {
+          "user": 3,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.40454099420458
+        },
+        {
+          "user": 3,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.67779199965298
+        },
+        {
+          "user": 3,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.40512500423938
+        },
+        {
+          "user": 3,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 42.30104200541973
+        },
+        {
+          "user": 3,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 63.91416699625552
+        },
+        {
+          "user": 3,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 108.29495801590383
+        },
+        {
+          "user": 3,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.46029209904373
+        },
+        {
+          "user": 3,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.280624974519014
+        },
+        {
+          "user": 3,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.13491696491838
+        },
+        {
+          "user": 3,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.84708396624774
+        },
+        {
+          "user": 3,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 55.08520803414285
+        },
+        {
+          "user": 3,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.81816702056676
+        },
+        {
+          "user": 4,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 105.8671249775216
+        },
+        {
+          "user": 4,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.93470794521272
+        },
+        {
+          "user": 4,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.6172910053283
+        },
+        {
+          "user": 4,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 96.41716699115932
+        },
+        {
+          "user": 4,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 86.81858307681978
+        },
+        {
+          "user": 4,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 90.21599998231977
+        },
+        {
+          "user": 4,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 61.70154199935496
+        },
+        {
+          "user": 4,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.41645807214081
+        },
+        {
+          "user": 4,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 102.49462502542883
+        },
+        {
+          "user": 4,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.51662496756762
+        },
+        {
+          "user": 4,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.78766593057662
+        },
+        {
+          "user": 4,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.43770801182836
+        },
+        {
+          "user": 4,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.158541010692716
+        },
+        {
+          "user": 4,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 62.6598329981789
+        },
+        {
+          "user": 4,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.5374169126153
+        },
+        {
+          "user": 4,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 65.54670794866979
+        },
+        {
+          "user": 4,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.51537501160055
+        },
+        {
+          "user": 4,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.43624992854893
+        },
+        {
+          "user": 4,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 90.54670901969075
+        },
+        {
+          "user": 4,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 89.16791703086346
+        },
+        {
+          "user": 5,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 35.17770895268768
+        },
+        {
+          "user": 5,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 128.73995897825807
+        },
+        {
+          "user": 5,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.72129202913493
+        },
+        {
+          "user": 5,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.56929090991616
+        },
+        {
+          "user": 5,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 81.74950000829995
+        },
+        {
+          "user": 5,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 99.73837505094707
+        },
+        {
+          "user": 5,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 53.44558402430266
+        },
+        {
+          "user": 5,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.14970900211483
+        },
+        {
+          "user": 5,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.99733299668878
+        },
+        {
+          "user": 5,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.92587502580136
+        },
+        {
+          "user": 5,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.05916593316942
+        },
+        {
+          "user": 5,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.58758409041911
+        },
+        {
+          "user": 5,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 135.41887502651662
+        },
+        {
+          "user": 5,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.99604198895395
+        },
+        {
+          "user": 5,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.0976250199601
+        },
+        {
+          "user": 5,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.82808301132172
+        },
+        {
+          "user": 5,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.77687506005168
+        },
+        {
+          "user": 5,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.56533300504088
+        },
+        {
+          "user": 5,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.34924998600036
+        },
+        {
+          "user": 5,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 54.035832989029586
+        },
+        {
+          "user": 6,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 115.32137508038431
+        },
+        {
+          "user": 6,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.63695795740932
+        },
+        {
+          "user": 6,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.65045794378966
+        },
+        {
+          "user": 6,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 62.53225007094443
+        },
+        {
+          "user": 6,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.36691595148295
+        },
+        {
+          "user": 6,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 63.097250065766275
+        },
+        {
+          "user": 6,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 57.95270903035998
+        },
+        {
+          "user": 6,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.5164999756962
+        },
+        {
+          "user": 6,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 157.6475000474602
+        },
+        {
+          "user": 6,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.65883406624198
+        },
+        {
+          "user": 6,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 115.54820905439556
+        },
+        {
+          "user": 6,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.15225003752857
+        },
+        {
+          "user": 6,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 61.800583032891154
+        },
+        {
+          "user": 6,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 71.5452500153333
+        },
+        {
+          "user": 6,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.23091702628881
+        },
+        {
+          "user": 6,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.18200000189245
+        },
+        {
+          "user": 6,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 67.26995902135968
+        },
+        {
+          "user": 6,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.71237505506724
+        },
+        {
+          "user": 6,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 61.87824998050928
+        },
+        {
+          "user": 6,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.01012499071658
+        },
+        {
+          "user": 7,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 56.09929107595235
+        },
+        {
+          "user": 7,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 81.04354201350361
+        },
+        {
+          "user": 7,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.7337910272181
+        },
+        {
+          "user": 7,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.68387498147786
+        },
+        {
+          "user": 7,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.5233340607956
+        },
+        {
+          "user": 7,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.9012910546735
+        },
+        {
+          "user": 7,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 55.552000063471496
+        },
+        {
+          "user": 7,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 86.8722079321742
+        },
+        {
+          "user": 7,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.47141598723829
+        },
+        {
+          "user": 7,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 97.0931249903515
+        },
+        {
+          "user": 7,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.673291966319084
+        },
+        {
+          "user": 7,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.81979106646031
+        },
+        {
+          "user": 7,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.26062499266118
+        },
+        {
+          "user": 7,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 79.7010000096634
+        },
+        {
+          "user": 7,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.81574998609722
+        },
+        {
+          "user": 7,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 99.3511249544099
+        },
+        {
+          "user": 7,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 77.41300005000085
+        },
+        {
+          "user": 7,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.56237495876849
+        },
+        {
+          "user": 7,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.79091604892164
+        },
+        {
+          "user": 7,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.68908296525478
+        },
+        {
+          "user": 8,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.7277079988271
+        },
+        {
+          "user": 8,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 82.85958308260888
+        },
+        {
+          "user": 8,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.71591700986028
+        },
+        {
+          "user": 8,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.29899992514402
+        },
+        {
+          "user": 8,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.30045801308006
+        },
+        {
+          "user": 8,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 90.9744999371469
+        },
+        {
+          "user": 8,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 61.80783302988857
+        },
+        {
+          "user": 8,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.3247499493882
+        },
+        {
+          "user": 8,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 157.18429104890674
+        },
+        {
+          "user": 8,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 104.22908305190504
+        },
+        {
+          "user": 8,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 53.25333389919251
+        },
+        {
+          "user": 8,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 96.41799994278699
+        },
+        {
+          "user": 8,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 60.186667018570006
+        },
+        {
+          "user": 8,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 86.18133398704231
+        },
+        {
+          "user": 8,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 57.61545791756362
+        },
+        {
+          "user": 8,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.78283299319446
+        },
+        {
+          "user": 8,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.80787507165223
+        },
+        {
+          "user": 8,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.10129198618233
+        },
+        {
+          "user": 8,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.64829203207046
+        },
+        {
+          "user": 8,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.044708082452416
+        },
+        {
+          "user": 9,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 62.64558306429535
+        },
+        {
+          "user": 9,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.62225008290261
+        },
+        {
+          "user": 9,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 53.53033391293138
+        },
+        {
+          "user": 9,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 97.09100006148219
+        },
+        {
+          "user": 9,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.65391704905778
+        },
+        {
+          "user": 9,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.67858306318521
+        },
+        {
+          "user": 9,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.15841694455594
+        },
+        {
+          "user": 9,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.27079090103507
+        },
+        {
+          "user": 9,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.57537506893277
+        },
+        {
+          "user": 9,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 52.703708061017096
+        },
+        {
+          "user": 9,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.0661669773981
+        },
+        {
+          "user": 9,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.05345797538757
+        },
+        {
+          "user": 9,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 79.34774993918836
+        },
+        {
+          "user": 9,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.19895803555846
+        },
+        {
+          "user": 9,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.06808394100517
+        },
+        {
+          "user": 9,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 82.21654105000198
+        },
+        {
+          "user": 9,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 64.4602079410106
+        },
+        {
+          "user": 9,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 62.77316703926772
+        },
+        {
+          "user": 9,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.23979099094868
+        },
+        {
+          "user": 9,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 84.88533308263868
+        },
+        {
+          "user": 10,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.718166006729
+        },
+        {
+          "user": 10,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 65.37587498314679
+        },
+        {
+          "user": 10,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.2560830079019
+        },
+        {
+          "user": 10,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 90.1549580739811
+        },
+        {
+          "user": 10,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.51637500431389
+        },
+        {
+          "user": 10,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.8205839926377
+        },
+        {
+          "user": 10,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 106.32599995005876
+        },
+        {
+          "user": 10,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 116.24737503007054
+        },
+        {
+          "user": 10,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 79.82699992135167
+        },
+        {
+          "user": 10,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.59016699250787
+        },
+        {
+          "user": 10,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.64637499675155
+        },
+        {
+          "user": 10,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 82.68562494777143
+        },
+        {
+          "user": 10,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.37612500041723
+        },
+        {
+          "user": 10,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 79.1262499988079
+        },
+        {
+          "user": 10,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.51704200357199
+        },
+        {
+          "user": 10,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 70.90962503571063
+        },
+        {
+          "user": 10,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.77158396597952
+        },
+        {
+          "user": 10,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.72737497929484
+        },
+        {
+          "user": 10,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.5786670288071
+        },
+        {
+          "user": 10,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.94620800949633
+        },
+        {
+          "user": 11,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 112.95275005977601
+        },
+        {
+          "user": 11,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 72.74983311071992
+        },
+        {
+          "user": 11,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 56.0684580123052
+        },
+        {
+          "user": 11,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 84.57116701174527
+        },
+        {
+          "user": 11,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.58416710142046
+        },
+        {
+          "user": 11,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.98670805804431
+        },
+        {
+          "user": 11,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 68.93125001806766
+        },
+        {
+          "user": 11,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 112.82749997917563
+        },
+        {
+          "user": 11,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 113.12404193449765
+        },
+        {
+          "user": 11,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 62.86166701465845
+        },
+        {
+          "user": 11,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.19133306480944
+        },
+        {
+          "user": 11,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.15766598470509
+        },
+        {
+          "user": 11,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 61.89349992200732
+        },
+        {
+          "user": 11,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 81.9240000564605
+        },
+        {
+          "user": 11,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.90379096660763
+        },
+        {
+          "user": 11,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.99641703441739
+        },
+        {
+          "user": 11,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 55.45633309520781
+        },
+        {
+          "user": 11,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 82.87137502338737
+        },
+        {
+          "user": 11,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.52024996001273
+        },
+        {
+          "user": 11,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 51.771916914731264
+        },
+        {
+          "user": 12,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 113.53987501934171
+        },
+        {
+          "user": 12,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.84341692179441
+        },
+        {
+          "user": 12,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 84.92924994789064
+        },
+        {
+          "user": 12,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.85654206946492
+        },
+        {
+          "user": 12,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 86.32608293555677
+        },
+        {
+          "user": 12,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 104.8845830373466
+        },
+        {
+          "user": 12,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 50.17154198139906
+        },
+        {
+          "user": 12,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 56.53454107232392
+        },
+        {
+          "user": 12,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 95.52566707134247
+        },
+        {
+          "user": 12,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.80820795893669
+        },
+        {
+          "user": 12,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.08845802396536
+        },
+        {
+          "user": 12,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.61308305617422
+        },
+        {
+          "user": 12,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 68.74274997971952
+        },
+        {
+          "user": 12,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 102.37800003960729
+        },
+        {
+          "user": 12,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.57916597742587
+        },
+        {
+          "user": 12,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.95137499831617
+        },
+        {
+          "user": 12,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 116.89645797014236
+        },
+        {
+          "user": 12,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 99.0873749833554
+        },
+        {
+          "user": 12,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.73520803637803
+        },
+        {
+          "user": 12,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.724249984137714
+        },
+        {
+          "user": 13,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.94279204774648
+        },
+        {
+          "user": 13,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.11720794718713
+        },
+        {
+          "user": 13,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.828082964755595
+        },
+        {
+          "user": 13,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.18116699997336
+        },
+        {
+          "user": 13,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 125.74758392293006
+        },
+        {
+          "user": 13,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.87466607242823
+        },
+        {
+          "user": 13,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 152.06983301322907
+        },
+        {
+          "user": 13,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 113.67533402517438
+        },
+        {
+          "user": 13,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 89.96091701555997
+        },
+        {
+          "user": 13,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 33.01970800384879
+        },
+        {
+          "user": 13,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 145.8248330745846
+        },
+        {
+          "user": 13,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 71.6267500538379
+        },
+        {
+          "user": 13,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.63641701545566
+        },
+        {
+          "user": 13,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 72.2445419523865
+        },
+        {
+          "user": 13,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 98.79362501669675
+        },
+        {
+          "user": 13,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.02591698523611
+        },
+        {
+          "user": 13,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.98775001335889
+        },
+        {
+          "user": 13,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 68.85104207322001
+        },
+        {
+          "user": 13,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.37554194312543
+        },
+        {
+          "user": 13,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 17.050166963599622
+        },
+        {
+          "user": 14,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 126.72212510369718
+        },
+        {
+          "user": 14,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 104.85191701445729
+        },
+        {
+          "user": 14,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 72.48662505298853
+        },
+        {
+          "user": 14,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.9421669645235
+        },
+        {
+          "user": 14,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 98.88200007844716
+        },
+        {
+          "user": 14,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 36.53954202309251
+        },
+        {
+          "user": 14,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 60.39541692007333
+        },
+        {
+          "user": 14,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.32420788612217
+        },
+        {
+          "user": 14,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.75533297657967
+        },
+        {
+          "user": 14,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.403624958358705
+        },
+        {
+          "user": 14,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 60.75816706288606
+        },
+        {
+          "user": 14,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.93216596636921
+        },
+        {
+          "user": 14,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 109.60658395197242
+        },
+        {
+          "user": 14,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.02949998341501
+        },
+        {
+          "user": 14,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.51783396210521
+        },
+        {
+          "user": 14,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.34795793518424
+        },
+        {
+          "user": 14,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.86691610049456
+        },
+        {
+          "user": 14,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.87408304121345
+        },
+        {
+          "user": 14,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 83.04050005972385
+        },
+        {
+          "user": 14,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.46370899584144
+        },
+        {
+          "user": 15,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 153.3233750378713
+        },
+        {
+          "user": 15,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 121.13358394708484
+        },
+        {
+          "user": 15,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 39.55700004007667
+        },
+        {
+          "user": 15,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.343833967112
+        },
+        {
+          "user": 15,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 60.818832949735224
+        },
+        {
+          "user": 15,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 66.44620804581791
+        },
+        {
+          "user": 15,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 121.19070801418275
+        },
+        {
+          "user": 15,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 148.29345792531967
+        },
+        {
+          "user": 15,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 59.966917033307254
+        },
+        {
+          "user": 15,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 99.35224999208003
+        },
+        {
+          "user": 15,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 102.68454195465893
+        },
+        {
+          "user": 15,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 72.54125003237277
+        },
+        {
+          "user": 15,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 104.39500003121793
+        },
+        {
+          "user": 15,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.64029209222645
+        },
+        {
+          "user": 15,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.26408408395946
+        },
+        {
+          "user": 15,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 96.06224996969104
+        },
+        {
+          "user": 15,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 81.6610420588404
+        },
+        {
+          "user": 15,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.51137504074723
+        },
+        {
+          "user": 15,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 34.93229195009917
+        },
+        {
+          "user": 15,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 7.4924579821527
+        },
+        {
+          "user": 16,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 115.05124997347593
+        },
+        {
+          "user": 16,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.40970803331584
+        },
+        {
+          "user": 16,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 81.9892919389531
+        },
+        {
+          "user": 16,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 45.59829202480614
+        },
+        {
+          "user": 16,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.00770799722522
+        },
+        {
+          "user": 16,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.15966595336795
+        },
+        {
+          "user": 16,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 104.98762491624802
+        },
+        {
+          "user": 16,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 117.29099997319281
+        },
+        {
+          "user": 16,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.43120797351003
+        },
+        {
+          "user": 16,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 110.41545798070729
+        },
+        {
+          "user": 16,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 69.15954104624689
+        },
+        {
+          "user": 16,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 58.65324998740107
+        },
+        {
+          "user": 16,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 67.84320808947086
+        },
+        {
+          "user": 16,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 57.734290952794254
+        },
+        {
+          "user": 16,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 108.0834170570597
+        },
+        {
+          "user": 16,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 55.382458958774805
+        },
+        {
+          "user": 16,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.91441604215652
+        },
+        {
+          "user": 16,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.27358294464648
+        },
+        {
+          "user": 16,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 65.07270806469023
+        },
+        {
+          "user": 16,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 63.46033303998411
+        },
+        {
+          "user": 17,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 163.71654206886888
+        },
+        {
+          "user": 17,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 38.93137502018362
+        },
+        {
+          "user": 17,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 81.7017910303548
+        },
+        {
+          "user": 17,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.58237500209361
+        },
+        {
+          "user": 17,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 89.72162508871406
+        },
+        {
+          "user": 17,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.44775004964322
+        },
+        {
+          "user": 17,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 56.31495802663267
+        },
+        {
+          "user": 17,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 108.92416699789464
+        },
+        {
+          "user": 17,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 105.15079193282872
+        },
+        {
+          "user": 17,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.19570797774941
+        },
+        {
+          "user": 17,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 63.381999963894486
+        },
+        {
+          "user": 17,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.12141700461507
+        },
+        {
+          "user": 17,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 67.69829196855426
+        },
+        {
+          "user": 17,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 32.649500062689185
+        },
+        {
+          "user": 17,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 37.97254094388336
+        },
+        {
+          "user": 17,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 103.41841704212129
+        },
+        {
+          "user": 17,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 32.82437496818602
+        },
+        {
+          "user": 17,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 110.40733300615102
+        },
+        {
+          "user": 17,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.98037500772625
+        },
+        {
+          "user": 17,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 67.78866704553366
+        },
+        {
+          "user": 18,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 111.88616696745157
+        },
+        {
+          "user": 18,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.36741608381271
+        },
+        {
+          "user": 18,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 90.03220801241696
+        },
+        {
+          "user": 18,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 60.89345901273191
+        },
+        {
+          "user": 18,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 61.2761250231415
+        },
+        {
+          "user": 18,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.35287496913224
+        },
+        {
+          "user": 18,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.20887495577335
+        },
+        {
+          "user": 18,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.22554097138345
+        },
+        {
+          "user": 18,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 120.73487509042025
+        },
+        {
+          "user": 18,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 76.86108397319913
+        },
+        {
+          "user": 18,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 90.83995898254216
+        },
+        {
+          "user": 18,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 70.27970801573247
+        },
+        {
+          "user": 18,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 101.74037504475564
+        },
+        {
+          "user": 18,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.67100008297712
+        },
+        {
+          "user": 18,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 58.60391701571643
+        },
+        {
+          "user": 18,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 48.043582937680185
+        },
+        {
+          "user": 18,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 54.52683300245553
+        },
+        {
+          "user": 18,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 114.59512496367097
+        },
+        {
+          "user": 18,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 77.23599998280406
+        },
+        {
+          "user": 18,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 82.99899997655302
+        },
+        {
+          "user": 19,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 116.89291696529835
+        },
+        {
+          "user": 19,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 117.58537497371435
+        },
+        {
+          "user": 19,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 108.69804199319333
+        },
+        {
+          "user": 19,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.21420804876834
+        },
+        {
+          "user": 19,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.90645798482001
+        },
+        {
+          "user": 19,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 131.35137502104044
+        },
+        {
+          "user": 19,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 117.203208967112
+        },
+        {
+          "user": 19,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 78.66295811254531
+        },
+        {
+          "user": 19,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 85.98966698627919
+        },
+        {
+          "user": 19,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.22550004534423
+        },
+        {
+          "user": 19,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 44.24508404918015
+        },
+        {
+          "user": 19,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 49.06745802145451
+        },
+        {
+          "user": 19,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 75.62758296262473
+        },
+        {
+          "user": 19,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 94.77204200811684
+        },
+        {
+          "user": 19,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.00379100628197
+        },
+        {
+          "user": 19,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 113.92716597765684
+        },
+        {
+          "user": 19,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.253749979659915
+        },
+        {
+          "user": 19,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.4929581079632
+        },
+        {
+          "user": 19,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 47.599333920516074
+        },
+        {
+          "user": 19,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 22.84570806659758
+        },
+        {
+          "user": 20,
+          "sample": 1,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 107.68241691403091
+        },
+        {
+          "user": 20,
+          "sample": 2,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 91.51879197452217
+        },
+        {
+          "user": 20,
+          "sample": 3,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 87.79841603245586
+        },
+        {
+          "user": 20,
+          "sample": 4,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 100.19487503450364
+        },
+        {
+          "user": 20,
+          "sample": 5,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 57.88879108149558
+        },
+        {
+          "user": 20,
+          "sample": 6,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 92.0836670557037
+        },
+        {
+          "user": 20,
+          "sample": 7,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 89.59583297837526
+        },
+        {
+          "user": 20,
+          "sample": 8,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 120.32133294269443
+        },
+        {
+          "user": 20,
+          "sample": 9,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 86.51725004892796
+        },
+        {
+          "user": 20,
+          "sample": 10,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 98.92229095567018
+        },
+        {
+          "user": 20,
+          "sample": 11,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 68.63245798740536
+        },
+        {
+          "user": 20,
+          "sample": 12,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 106.65845905896276
+        },
+        {
+          "user": 20,
+          "sample": 13,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 80.23320895154029
+        },
+        {
+          "user": 20,
+          "sample": 14,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 74.51645797118545
+        },
+        {
+          "user": 20,
+          "sample": 15,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 93.10933307278901
+        },
+        {
+          "user": 20,
+          "sample": 16,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 88.94958405289799
+        },
+        {
+          "user": 20,
+          "sample": 17,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 112.30791604612023
+        },
+        {
+          "user": 20,
+          "sample": 18,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 84.740582969971
+        },
+        {
+          "user": 20,
+          "sample": 19,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 41.86983301769942
+        },
+        {
+          "user": 20,
+          "sample": 20,
+          "http_status": 200,
+          "ok": true,
+          "error": null,
+          "latency_ms": 16.68991695623845
+        }
+      ],
+      "errors": 0,
+      "wall_seconds": 1.7167345830239356,
+      "latency_ms": {
+        "count": 400,
+        "p50": 83.75533297657967,
+        "p95": 117.58537497371435,
+        "p99": 153.3233750378713
+      },
+      "successful_latency_ms": {
+        "count": 400,
+        "p50": 83.75533297657967,
+        "p95": 117.58537497371435,
+        "p99": 153.3233750378713
+      }
+    }
+  ],
+  "wall_seconds": 2.9281329159857705,
+  "errors": 0,
+  "conditions": {
+    "fixture_accounts": 20,
+    "synthetic_tasks_per_account": 25,
+    "video_worker": false,
+    "ai_worker": false,
+    "transport": "Mac loopback",
+    "queue_change": "read-only workload, video and AI workers disabled",
+    "resource_sampling_seconds": 0.25
+  },
+  "process_samples": [
+    {
+      "monotonic_seconds": 757062.337146375,
+      "cpu_percent": 0.1,
+      "rss_kib": 38400
+    },
+    {
+      "monotonic_seconds": 757062.595574541,
+      "cpu_percent": 53.6,
+      "rss_kib": 57152
+    },
+    {
+      "monotonic_seconds": 757062.851447541,
+      "cpu_percent": 103.3,
+      "rss_kib": 60560
+    },
+    {
+      "monotonic_seconds": 757063.107457791,
+      "cpu_percent": 135.6,
+      "rss_kib": 86128
+    },
+    {
+      "monotonic_seconds": 757063.367244,
+      "cpu_percent": 160.3,
+      "rss_kib": 86240
+    },
+    {
+      "monotonic_seconds": 757063.63464025,
+      "cpu_percent": 138.2,
+      "rss_kib": 88960
+    },
+    {
+      "monotonic_seconds": 757063.895063208,
+      "cpu_percent": 168.8,
+      "rss_kib": 90000
+    },
+    {
+      "monotonic_seconds": 757064.159031916,
+      "cpu_percent": 180.5,
+      "rss_kib": 90800
+    },
+    {
+      "monotonic_seconds": 757064.415863666,
+      "cpu_percent": 185.7,
+      "rss_kib": 91248
+    },
+    {
+      "monotonic_seconds": 757064.676173166,
+      "cpu_percent": 191.8,
+      "rss_kib": 91264
+    },
+    {
+      "monotonic_seconds": 757064.933670625,
+      "cpu_percent": 190.5,
+      "rss_kib": 91392
+    },
+    {
+      "monotonic_seconds": 757065.193818625,
+      "cpu_percent": 185.1,
+      "rss_kib": 91536
+    }
+  ]
+}

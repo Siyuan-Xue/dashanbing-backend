@@ -1,0 +1,36 @@
+{
+  "status": "failed",
+  "platform": "ios",
+  "browser": "real_safari",
+  "emulation": false,
+  "steps": [
+    {
+      "step": "authenticate",
+      "status": "matched",
+      "details": {
+        "http_status": 200
+      },
+      "elapsed_ms": 322.46629195287824
+    },
+    {
+      "step": "open_draft",
+      "status": "failed",
+      "error": "condition_timeout",
+      "elapsed_ms": 20482.98516694922
+    }
+  ],
+  "capabilities": {
+    "browserName": "Safari",
+    "browserVersion": "26.6.1",
+    "platformName": "iOS",
+    "safari:platformVersion": "26.6.1",
+    "safari:deviceUDID": "<DEVICE_UDID>",
+    "safari:useSimulator": false
+  },
+  "error_geometry": {
+    "devicePixelRatio": 3,
+    "width": 402,
+    "height": 714,
+    "scrollWidth": 402
+  }
+}

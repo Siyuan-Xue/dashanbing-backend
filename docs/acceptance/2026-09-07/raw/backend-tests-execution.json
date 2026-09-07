@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "elapsed_seconds": 81.19042441691272,
+  "phase": "concentrated_backend_acceptance",
+  "reruns": 0,
+  "log": "backend-tests.log"
+}

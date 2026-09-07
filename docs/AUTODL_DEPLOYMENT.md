@@ -1,5 +1,7 @@
 # AutoDL Linux / NVIDIA 部署手册
 
+> 历史环境与发布流程记录。当前发布继续使用 SCP，不将下文早期 Gitee 拉取方式视为默认方式。新上传采用任务自己的同步确认，管理员采用独立角色，升级前阅读 [当前账户迁移指南](admin-guide.md) 和 [输入/API 变化](input-and-api-guide.md)。本轮只交付工具及隔离验证，不执行本文的生产操作。
+
 本文记录篮球课堂训练复盘产品在 AutoDL 类 GPU 租赁环境中的完整部署流程，供更换实例、机器重启后恢复或后续交接时复用。本文主线是 **Ubuntu 22.04 + Python 3.12 + CUDA 12.4、无 Docker 守护进程** 的直接部署方式；如果目标机具备 Docker Engine、Compose v2 和 NVIDIA Container Toolkit，优先参考项目根目录的 [README](../README.md) 使用 Compose。
 
 本文不会记录 SSH 密码、管理员密码、JWT 密钥等真实凭据。所有 `<...>` 或 `replace-with-...` 都必须在执行前替换，并且不要把替换后的命令、`.env` 或终端输出提交到 Git。

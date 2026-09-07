@@ -1,0 +1,9 @@
+{
+  "isolated": true,
+  "gpu_worker": true,
+  "glm_configured": true,
+  "ai_concurrency": 8,
+  "storage_reserve_gb": 20.0,
+  "source_media_and_weights": "existing read-only files",
+  "database": "new synthetic accounts only"
+}

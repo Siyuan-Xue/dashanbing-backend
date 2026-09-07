@@ -1,0 +1,54 @@
+{
+  "status": "failed",
+  "platform": "mac",
+  "browser": "real_safari",
+  "emulation": false,
+  "steps": [
+    {
+      "step": "authenticate",
+      "status": "matched",
+      "details": {
+        "http_status": 200
+      },
+      "elapsed_ms": 5680.333166033961
+    },
+    {
+      "step": "open_draft",
+      "status": "matched",
+      "details": {
+        "draft": true,
+        "uploaded": 5,
+        "count": 1,
+        "sequential": true
+      },
+      "elapsed_ms": 237.26029100362211
+    },
+    {
+      "step": "initial_status",
+      "status": "matched",
+      "details": {
+        "status": "unconfirmed"
+      },
+      "elapsed_ms": 5.276040988974273
+    },
+    {
+      "step": "open_sync_1",
+      "status": "failed",
+      "error": "webdriver_command_failed",
+      "elapsed_ms": 4.751709057018161
+    }
+  ],
+  "capabilities": {
+    "browserName": "Safari",
+    "browserVersion": "26.6.2",
+    "platformName": "macOS",
+    "safari:platformVersion": "26.6.2",
+    "safari:useSimulator": false
+  },
+  "error_geometry": {
+    "devicePixelRatio": 2,
+    "width": 800,
+    "height": 652,
+    "scrollWidth": 800
+  }
+}

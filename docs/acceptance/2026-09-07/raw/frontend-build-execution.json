@@ -1,0 +1,11 @@
+{
+  "command": [
+    "pnpm",
+    "build"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 3.8233912920113653,
+  "log": "frontend-build.log",
+  "phase": "concentrated_frontend_acceptance",
+  "reruns": 0
+}

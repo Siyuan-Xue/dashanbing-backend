@@ -1,0 +1,83 @@
+{
+  "ready": false,
+  "mode": "gpu",
+  "checks": [
+    {
+      "name": "yolox",
+      "ready": true,
+      "detail": "end2end.onnx 已找到"
+    },
+    {
+      "name": "rtmw",
+      "ready": true,
+      "detail": "end2end.onnx 已找到"
+    },
+    {
+      "name": "yolo_pose",
+      "ready": true,
+      "detail": "yolo11m-pose.pt 已找到"
+    },
+    {
+      "name": "osnet",
+      "ready": true,
+      "detail": "osnet_x1_0_msmt17.pth 已找到"
+    },
+    {
+      "name": "basketball",
+      "ready": true,
+      "detail": "Basketball_v1.pt 已找到"
+    },
+    {
+      "name": "buffalo_l",
+      "ready": true,
+      "detail": "5 个本地 ONNX 文件已找到"
+    },
+    {
+      "name": "sample_bundle",
+      "ready": true,
+      "detail": "四个预置组及复核视频完整"
+    },
+    {
+      "name": "credentials",
+      "ready": true,
+      "detail": "管理员密码与 JWT 密钥已配置"
+    },
+    {
+      "name": "worker",
+      "ready": true,
+      "detail": "任务执行器已启用"
+    },
+    {
+      "name": "ffmpeg",
+      "ready": true,
+      "detail": "ffmpeg executable"
+    },
+    {
+      "name": "ffprobe",
+      "ready": true,
+      "detail": "ffprobe executable"
+    },
+    {
+      "name": "storage",
+      "ready": true,
+      "detail": "可用 24.0 GiB"
+    },
+    {
+      "name": "cuda",
+      "ready": true,
+      "detail": "CUDA 可用"
+    },
+    {
+      "name": "empty_frame_inference",
+      "ready": false,
+      "detail": "运行时模型加载或空帧推理失败，请查看本地 readiness 日志"
+    },
+    {
+      "name": "startup_preflight",
+      "ready": false,
+      "detail": "启动预检未通过；修正环境后请重启服务"
+    }
+  ],
+  "diagnostic": "OSNet failed to load in strict runtime",
+  "no_gpu_tasks_submitted": true
+}

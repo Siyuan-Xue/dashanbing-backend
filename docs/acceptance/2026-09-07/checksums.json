@@ -1,0 +1,186 @@
+{
+  "code_baseline": "eff724d27266112bac12594ed367fed0d221c4f2",
+  "files": [
+    {
+      "file": "README.md",
+      "bytes": 3378,
+      "sha256": "132cd4894f4d41af37f9114b94e355d8301ffea69ead11605a3c11fac1f0a652"
+    },
+    {
+      "file": "failure-triage.md",
+      "bytes": 29716,
+      "sha256": "a22b7e76700a9cc51f4252c330b4fadc4e44480e5c541c06013b4bc5dcd63817"
+    },
+    {
+      "file": "page-measurements.json",
+      "bytes": 128391,
+      "sha256": "9b450675741eeb68e83f39bc5447eedd469f9e416168c8b6013169c113ca12ab"
+    },
+    {
+      "file": "raw/backend-tests-execution.json",
+      "bytes": 151,
+      "sha256": "21f2d081fa4c15f907a98d0909db48af30b114b0a5c9242e873cf55dc86990ad"
+    },
+    {
+      "file": "raw/backend-tests.log",
+      "bytes": 34089,
+      "sha256": "6280246ec3fd4a4f8af7d3368d7edf481bfc57212a62df637888d7652cfba9e0"
+    },
+    {
+      "file": "raw/backend-tests.xml",
+      "bytes": 154245,
+      "sha256": "ff2e749f33072ef93fa11d3ec542a25bded9d9a6d089527606aa6baf473d069b"
+    },
+    {
+      "file": "raw/capacity.json",
+      "bytes": 137105,
+      "sha256": "60946b88b8aad685125b3637dd01fcefdbd539f9532cb04e419d86ac177b999a"
+    },
+    {
+      "file": "raw/chrome-summary.json",
+      "bytes": 875159,
+      "sha256": "e62c55c3174377a22b1804030c3eb503ebf6b1dd862241b5fd2386c4c2bc2a0d"
+    },
+    {
+      "file": "raw/environment.json",
+      "bytes": 1021,
+      "sha256": "91f7a5fbcea011d23a05a69312ae9ea956a46ab27fd45881c74d9c9e4d14bf38"
+    },
+    {
+      "file": "raw/frontend-build-execution.json",
+      "bytes": 198,
+      "sha256": "614c107dbae6def77184dca12f3da13595a94f551988cfcd7dc2b127d20b7f34"
+    },
+    {
+      "file": "raw/frontend-build.log",
+      "bytes": 945,
+      "sha256": "9fc42447669d5af592937714863d034c052558278e3b4a11a4030dbcdff4d3ff"
+    },
+    {
+      "file": "raw/frontend-e2e-execution.json",
+      "bytes": 504,
+      "sha256": "6496100b4bcc1015abc2cdc5e4290e2e8d8fa3ecebce128ba2b40f9ad8974b70"
+    },
+    {
+      "file": "raw/frontend-e2e.json",
+      "bytes": 336381,
+      "sha256": "f7ee6c4b8151005027a65324405d94c4e0cd2b505de9e6b6199a5cda1de740cd"
+    },
+    {
+      "file": "raw/frontend-e2e.log",
+      "bytes": 42172,
+      "sha256": "06993182b9e54545f0b8936b3a8bf88d6cf8d87a70783aad610a66d9aa7ebc36"
+    },
+    {
+      "file": "raw/frontend-source-manifest.json",
+      "bytes": 103255,
+      "sha256": "d5c0e4289b695694cba0a4d5553e0b2f5f155a03a84d857f34681808ce53200f"
+    },
+    {
+      "file": "raw/frontend-unit-execution.json",
+      "bytes": 353,
+      "sha256": "cb57514ca642fe0e6f85d742dcff75434d7513ab89b5e0bb5fae95c49958b778"
+    },
+    {
+      "file": "raw/frontend-unit.json",
+      "bytes": 89108,
+      "sha256": "1a9bb8691c34c0460d5922ef91e1b4177d88ad8b48c963c405c6c6917ee70711"
+    },
+    {
+      "file": "raw/frontend-unit.log",
+      "bytes": 8602,
+      "sha256": "8e23b40dc82d84ce7e84c58d64b8ecdf77f05a605ef276b243089563fbcc05df"
+    },
+    {
+      "file": "raw/gpu-source-manifest.json",
+      "bytes": 33495,
+      "sha256": "92e3dd699df2c4af8d27231d0f1eae04f6fe710dbe12ee58ca7086da147dba7e"
+    },
+    {
+      "file": "raw/recovery-drill.json",
+      "bytes": 16913,
+      "sha256": "2b3314c0815bc2b5cfbcfa5c9d6cf44b65d2cc0ef2df0a6a9d8389f9a3d43371"
+    },
+    {
+      "file": "raw/remote-environment.json",
+      "bytes": 226,
+      "sha256": "9d4a2ce012850e26220d96e1c3b0d4821828b2680b2939c597635bc8a5f0a66e"
+    },
+    {
+      "file": "raw/remote-glm-calls.jsonl",
+      "bytes": 42397,
+      "sha256": "67a156222d8d20390edfee2f3639412971a84b2169c082db0f6f91408e300544"
+    },
+    {
+      "file": "raw/remote-glm-preset-enqueue.json",
+      "bytes": 603,
+      "sha256": "26a32ebc2afc6b17a1607ff9f124f480d5f98ca51c0a34485396fccf944225d8"
+    },
+    {
+      "file": "raw/remote-glm-preset-jobs.json",
+      "bytes": 15229,
+      "sha256": "3210f1d98de99d40359979664eb423778924b4674ee5bc8ca493d98d0045e513"
+    },
+    {
+      "file": "raw/remote-gpu-hardware.json",
+      "bytes": 137,
+      "sha256": "b24f84b0e211e26ab8992c954d34127a42126e502e0f6225acb5c4c575841494"
+    },
+    {
+      "file": "raw/remote-gpu-readiness.json",
+      "bytes": 1796,
+      "sha256": "f0909fb650217f434d608c431d991950066aa9b24ee271b12986c142ed6ebb9a"
+    },
+    {
+      "file": "raw/remote-gpu-results.json",
+      "bytes": 6694,
+      "sha256": "517316fc0ce0014700c233782fe88d3f0bfc5ff1019f25bce6ddce2824b25fd4"
+    },
+    {
+      "file": "raw/safari-ios.json",
+      "bytes": 760,
+      "sha256": "0471c7f26e98a8c182c5e1ea759413a24a9122fd398491fe3af2122884258f78"
+    },
+    {
+      "file": "raw/safari-mac.json",
+      "bytes": 1125,
+      "sha256": "4daef518d092796ad90bd9a0d8d371998844066eec484f9ac3b789369269eab9"
+    },
+    {
+      "file": "screenshots/admin-overview-admin-1440x900-zh-light.png",
+      "bytes": 89997,
+      "sha256": "dd25d63775920c304e2508e695299726116fc2e2f0ce9899608309faf05577e2"
+    },
+    {
+      "file": "screenshots/admin-users-admin-390x900-en-dark.png",
+      "bytes": 73213,
+      "sha256": "946e6da0df75ad9179d925a68c88293dca0f7ce9f704ec16b998246b5ed08856"
+    },
+    {
+      "file": "screenshots/home-anonymous-1440x900-zh-light.png",
+      "bytes": 511371,
+      "sha256": "006c45e9801883dc21597f4e70ee1164b587946a503fa7f630751417aff9a732"
+    },
+    {
+      "file": "screenshots/new-user-390x900-zh-light.png",
+      "bytes": 41580,
+      "sha256": "cae11258b0430f063f63bc09bfdb3e3dc30e7651d6a94e97bf602832d3e336ef"
+    },
+    {
+      "file": "screenshots/safari-ios-interrupted.png",
+      "bytes": 597743,
+      "sha256": "0a7a705476f8874bca2a2fccd1a0bdccb5149436678521dc1940ac0e50e63972"
+    },
+    {
+      "file": "screenshots/safari-mac-interrupted.png",
+      "bytes": 162086,
+      "sha256": "db8d9ce870061ae652fc7fca83cdcba31d262f5182e1df1cf12804a5f1ae591f"
+    },
+    {
+      "file": "summary.json",
+      "bytes": 8584,
+      "sha256": "f34685a934919aee3c3556d6a078d6c0504e17d8caa57ea94c1aae29f36bc157"
+    }
+  ],
+  "original_private_evidence": "runtime/release-closeout; retained locally and intentionally not all committed"
+}

@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "tool": "measure_gpu_acceptance",
+  "status": "unavailable",
+  "evidence_kind": "real",
+  "gpu_measured": false,
+  "base_url": "http://127.0.0.1:8014",
+  "engine_version": "frozen-34cc16b10d3f",
+  "version_source": "operator_provided",
+  "modes": [
+    "quick",
+    "full"
+  ],
+  "samples_per_case": 1,
+  "started_at": "2026-09-07T05:31:02.115863+00:00",
+  "gpu_model": null,
+  "gpu_metadata_status": "unavailable",
+  "gpu_metadata_reason": "current_api_does_not_expose_hardware",
+  "outcomes": [
+    {
+      "preset": "quick-demo",
+      "mode": "quick",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "quick-demo",
+      "mode": "full",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "quick",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "full",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "quick",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "full",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "quick",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "full",
+      "sample": 1,
+      "status": "unavailable",
+      "task_id": null,
+      "error": "required_engine_unavailable",
+      "http_events": [],
+      "wall_seconds": null,
+      "queue_seconds": null,
+      "runtime_seconds": null,
+      "timing_source": "server_task_timestamps",
+      "timing_status": "unavailable",
+      "vram_peak_mb": null,
+      "vram_status": "unavailable",
+      "vram_reason": "current_api_does_not_expose_vram"
+    }
+  ],
+  "errors": 0,
+  "preflight": [
+    {
+      "method": "GET",
+      "phase": "preflight",
+      "http_status": 200,
+      "error": null
+    }
+  ],
+  "percentile_method": "nearest_rank",
+  "unavailable_reason": "required_engine_unavailable",
+  "wall_seconds": 0.04646062105894089,
+  "queue_seconds": {
+    "count": 0,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "runtime_seconds": {
+    "count": 0,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "cases": [
+    {
+      "preset": "quick-demo",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "quick-demo",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "mixed-actions",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "verified-outcome",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "quick",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    },
+    {
+      "preset": "layup-demo",
+      "mode": "full",
+      "runtime_seconds": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "errors": 1
+    }
+  ]
+}

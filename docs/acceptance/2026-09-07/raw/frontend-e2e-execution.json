@@ -1,0 +1,20 @@
+{
+  "command": [
+    "pnpm",
+    "exec",
+    "playwright",
+    "test",
+    "--project=desktop-chromium",
+    "--project=mobile-chromium",
+    "--workers=4",
+    "--retries=0",
+    "--reporter=line,json",
+    "--output=<WORKTREE>/runtime/release-closeout/e2e-artifacts"
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 94.67875745799392,
+  "log": "frontend-e2e.log",
+  "phase": "concentrated_frontend_acceptance",
+  "reruns": 0,
+  "engine": "bundled Chromium; synthetic API/media fixtures, not Safari or GPU"
+}

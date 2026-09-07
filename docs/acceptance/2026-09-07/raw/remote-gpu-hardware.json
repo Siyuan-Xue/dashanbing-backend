@@ -1,0 +1,5 @@
+{
+  "snapshot": "NVIDIA GeForce RTX 4090, 24564, 3, 0",
+  "timing": "after blocked GPU preflight; not peak task VRAM",
+  "exit_code": 0
+}

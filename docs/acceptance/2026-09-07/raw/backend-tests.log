@@ -1,0 +1,490 @@
+........................................................................ [  8%]
+................................F................FF..................... [ 17%]
+.........................................FFFFFFFF....................... [ 25%]
+.......FFFF............................................................. [ 34%]
+....FFF................F..F..................................F.........F [ 42%]
+........................................................................ [ 51%]
+........................................................................ [ 59%]
+........................................................................ [ 68%]
+....................................................F....F.............. [ 76%]
+........................................................................ [ 85%]
+..............................F......................................... [ 94%]
+..................................................                       [100%]
+=================================== FAILURES ===================================
+__ test_collection_queues_full_reports_for_both_styles_once_and_charges_once ___
+tests/test_analyst_collections.py:36: in test_collection_queues_full_reports_for_both_styles_once_and_charges_once
+    assert client.post(f'/api/v1/tasks/{client.task_id}/analyst/report', json={'locale':'en','regenerate':True}).status_code == 429
+E   AssertionError: assert 202 == 429
+E    +  where 202 = <Response [202 Accepted]>.status_code
+E    +    where <Response [202 Accepted]> = post('/api/v1/tasks/7f1edfc0-56e6-4a0f-8b0a-e456d265e2a4/analyst/report', json={'locale': 'en', 'regenerate': True})
+E    +      where post = <starlette.testclient.TestClient object at 0x12fab3da0>.post
+_ test_comparison_validation_dedup_and_quota_are_separate_from_session[coach] __
+tests/test_analyst_comparisons.py:224: in test_comparison_validation_dedup_and_quota_are_separate_from_session
+    assert post_comparison(client, observation, locale='zh', style=style).status_code == 429
+E   AssertionError: assert 202 == 429
+E    +  where 202 = <Response [202 Accepted]>.status_code
+E    +    where <Response [202 Accepted]> = post_comparison(<starlette.testclient.TestClient object at 0x13159e1e0>, '4beec6d8-81e3-46db-b8eb-9bfef6f9bbb4', locale='zh', style='coach')
+_ test_comparison_validation_dedup_and_quota_are_separate_from_session[roast] __
+tests/test_analyst_comparisons.py:224: in test_comparison_validation_dedup_and_quota_are_separate_from_session
+    assert post_comparison(client, observation, locale='zh', style=style).status_code == 429
+E   AssertionError: assert 202 == 429
+E    +  where 202 = <Response [202 Accepted]>.status_code
+E    +    where <Response [202 Accepted]> = post_comparison(<starlette.testclient.TestClient object at 0x13199b260>, 'a85371c7-79f6-4677-8ec9-47abd96a3e74', locale='zh', style='roast')
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-report] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-message] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:494: in run
+    await asyncio.wait_for(running, timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+app/services/analyst.py:488: in run_once
+    job_id = claim_ai(self.app)
+             ^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:262: in claim_ai
+    session.add(job);add_lease(session,'ai',job.id,'ai')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:40: in add_lease
+    acquire_guard(session, lease)
+app/services/admin_leases.py:36: in acquire_guard
+    raise RuntimeError('Shared runtime is required for worker claims')
+E   RuntimeError: Shared runtime is required for worker claims
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-report] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-message] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:494: in run
+    await asyncio.wait_for(running, timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+app/services/analyst.py:488: in run_once
+    job_id = claim_ai(self.app)
+             ^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:262: in claim_ai
+    session.add(job);add_lease(session,'ai',job.id,'ai')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:40: in add_lease
+    acquire_guard(session, lease)
+app/services/admin_leases.py:36: in acquire_guard
+    raise RuntimeError('Shared runtime is required for worker claims')
+E   RuntimeError: Shared runtime is required for worker claims
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-report] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-message] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:494: in run
+    await asyncio.wait_for(running, timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+app/services/analyst.py:488: in run_once
+    job_id = claim_ai(self.app)
+             ^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:262: in claim_ai
+    session.add(job);add_lease(session,'ai',job.id,'ai')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:40: in add_lease
+    acquire_guard(session, lease)
+app/services/admin_leases.py:36: in acquire_guard
+    raise RuntimeError('Shared runtime is required for worker claims')
+E   RuntimeError: Shared runtime is required for worker claims
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-report] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+_ test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-message] _
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_analyst_invalidation.py:461: in run
+    await asyncio.wait_for(provider.started.wait(), timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_analyst_invalidation.py:502: in test_scoped_inflight_revocation_cannot_republish_or_release_quota
+    asyncio.run(run())
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_analyst_invalidation.py:494: in run
+    await asyncio.wait_for(running, timeout=2)
+../../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+app/services/analyst.py:488: in run_once
+    job_id = claim_ai(self.app)
+             ^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:262: in claim_ai
+    session.add(job);add_lease(session,'ai',job.id,'ai')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/services/admin_scheduling.py:40: in add_lease
+    acquire_guard(session, lease)
+app/services/admin_leases.py:36: in acquire_guard
+    raise RuntimeError('Shared runtime is required for worker claims')
+E   RuntimeError: Shared runtime is required for worker claims
+_ test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-report] _
+tests/test_analyst_jobs.py:816: in test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message
+    assert ledger.attempts == 1
+E   assert 0 == 1
+E    +  where 0 = AnalystJob(owner_id=2, kind='report', report_id=None, request_id='35467b00-b766-4673-974d-0fb02330e966', attempts=0, u...='failed', payload_json='{"automatic":false}', error=None, created_at=datetime.datetime(2026, 9, 7, 5, 20, 55, 739119)).attempts
+_ test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-message] _
+tests/test_analyst_jobs.py:816: in test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message
+    assert ledger.attempts == 1
+E   assert 0 == 1
+E    +  where 0 = AnalystJob(owner_id=2, kind='message', report_id=None, request_id='77044af041efc72251a58965daa1e032918d9c3a77f875a9b6f...='failed', payload_json='{"automatic":false}', error=None, created_at=datetime.datetime(2026, 9, 7, 5, 20, 55, 882970)).attempts
+_ test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-report] _
+tests/test_analyst_jobs.py:816: in test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message
+    assert ledger.attempts == 1
+E   assert 0 == 1
+E    +  where 0 = AnalystJob(owner_id=2, kind='report', report_id=None, request_id='4cdeeae8-8d9b-44e6-ac48-3dfd0ebb5d2d', attempts=0, u...s='failed', payload_json='{"automatic":false}', error=None, created_at=datetime.datetime(2026, 9, 7, 5, 20, 56, 16917)).attempts
+_ test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-message] _
+tests/test_analyst_jobs.py:816: in test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message
+    assert ledger.attempts == 1
+E   assert 0 == 1
+E    +  where 0 = AnalystJob(owner_id=2, kind='message', report_id=None, request_id='4719965fb56c19543149ea53cd1e4aa46568ca76d3fbd2aa6f9...='failed', payload_json='{"automatic":false}', error=None, created_at=datetime.datetime(2026, 9, 7, 5, 20, 56, 155738)).attempts
+_ test_product_real_runner_carries_task_context_and_retains_artifact[0.5-True] _
+tests/test_analyst_pose.py:314: in test_product_real_runner_carries_task_context_and_retains_artifact
+    product_runner.run_product_task(root, manifest_path, "full", tmp_path / "models")
+research_engine/product_runner.py:209: in run_product_task
+    validate_gallery_samples(task_root / "data" / "enrollment" / enrollment["session_id"], student_ids, expected_persons)
+research_engine/src/identity/enrollment_validation.py:48: in validate_gallery_samples
+    raise RegistrationError('registration_quality_failed', 'Each person needs valid frontal face and body samples.', student_id=student)
+E   src.identity.enrollment_validation.RegistrationError: registration_quality_failed: Each person needs valid frontal face and body samples.
+----------------------------- Captured stdout call -----------------------------
+PRODUCT_EVENT {"stage": "registering", "message": "注册匿名参与者"}
+_ test_product_real_runner_carries_task_context_and_retains_artifact[30.0-False] _
+tests/test_analyst_pose.py:314: in test_product_real_runner_carries_task_context_and_retains_artifact
+    product_runner.run_product_task(root, manifest_path, "full", tmp_path / "models")
+research_engine/product_runner.py:209: in run_product_task
+    validate_gallery_samples(task_root / "data" / "enrollment" / enrollment["session_id"], student_ids, expected_persons)
+research_engine/src/identity/enrollment_validation.py:48: in validate_gallery_samples
+    raise RegistrationError('registration_quality_failed', 'Each person needs valid frontal face and body samples.', student_id=student)
+E   src.identity.enrollment_validation.RegistrationError: registration_quality_failed: Each person needs valid frontal face and body samples.
+----------------------------- Captured stdout call -----------------------------
+PRODUCT_EVENT {"stage": "registering", "message": "注册匿名参与者"}
+_ test_product_real_runner_carries_task_context_and_retains_artifact[52.0-False] _
+tests/test_analyst_pose.py:314: in test_product_real_runner_carries_task_context_and_retains_artifact
+    product_runner.run_product_task(root, manifest_path, "full", tmp_path / "models")
+research_engine/product_runner.py:209: in run_product_task
+    validate_gallery_samples(task_root / "data" / "enrollment" / enrollment["session_id"], student_ids, expected_persons)
+research_engine/src/identity/enrollment_validation.py:48: in validate_gallery_samples
+    raise RegistrationError('registration_quality_failed', 'Each person needs valid frontal face and body samples.', student_id=student)
+E   src.identity.enrollment_validation.RegistrationError: registration_quality_failed: Each person needs valid frontal face and body samples.
+----------------------------- Captured stdout call -----------------------------
+PRODUCT_EVENT {"stage": "registering", "message": "注册匿名参与者"}
+__________ test_generator_reuses_legacy_preset_and_fills_both_styles ___________
+tests/test_analyst_report_regressions.py:149: in test_generator_reuses_legacy_preset_and_fills_both_styles
+    monkeypatch.setattr(generator, 'GlmClient', Provider)
+E   AttributeError: <module 'scripts.generate_analyst_presets' from '<WORKTREE>/scripts/generate_analyst_presets.py'> has no attribute 'GlmClient'
+_____ test_additive_migration_defaults_language_and_preserves_legacy_rows ______
+tests/test_analyst_report_regressions.py:245: in test_additive_migration_defaults_language_and_preserves_legacy_rows
+    assert task == before_task
+E   AssertionError: assert {'id': 'old-t...'upload', ...} == {'id': 'old-t...'upload', ...}
+E     
+E     Omitting 19 identical items, use -vv to show
+E     Left contains 3 more items:
+E     {'enrollment_mode': 'sequential',
+E      'expected_persons': None,
+E      'sync_config_json': None}
+E     Use -v to get more diff
+----------------------------- Captured stderr call -----------------------------
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260903_0001, Initial local product schema.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0001 -> 20260904_0002, Add user identity metadata and analysis ownership.
+INFO  [alembic.runtime.migration] Running upgrade 20260904_0002 -> 20260904_0003, Enforce global normalized user identities.
+INFO  [alembic.runtime.migration] Running upgrade 20260904_0003 -> 20260904_0004, Add durable staged task input metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260904_0004 -> 20260904_0005, Add immutable submission events for durable daily quotas.
+INFO  [alembic.runtime.migration] Running upgrade 20260904_0005 -> 20260904_0006, Record staged upload operations for crash recovery.
+INFO  [alembic.runtime.migration] Running upgrade 20260904_0006 -> 20260904_0007, Add owner-scoped API key verifiers and lifecycle metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260904_0007 -> 20260905_0008, Add durable fixed-target filesystem deletion outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0008 -> 20260905_0009, Add durable analyst queue, conversations and confirmed training memory.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0009 -> 20260905_0010, Separate requested comparisons from the original session report.
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0010 -> 20260905_0011, Add personal report scope and the task's initial report language.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0011 -> 20260907_0012, Exclusive account roles and durable administrator operations metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260907_0012 -> 20260907_0013, Persist explicit registration settings and versioned task synchronization.
+______ test_readiness_rejects_admin_password_that_does_not_match_database ______
+tests/test_app.py:165: in test_readiness_rejects_admin_password_that_does_not_match_database
+    assert response.status_code == 503
+E   assert 200 == 503
+E    +  where 200 = <Response [200 OK]>.status_code
+_______ test_registration_normalizes_identity_and_returns_a_public_user ________
+tests/test_app.py:240: in test_registration_normalizes_identity_and_returns_a_public_user
+    assert response.json() == {
+E   AssertionError: assert {'id': 2, 'us...e': True, ...} == {'id': 2, 'us...active': True}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Left contains 1 more item:
+E     {'role': 'user'}
+E     Use -v to get more diff
+_____ test_preset_rerun_manifest_binds_registration_cameras_and_group_sync _____
+tests/test_presets.py:114: in test_preset_rerun_manifest_binds_registration_cameras_and_group_sync
+    assert manifest == {
+E   AssertionError: assert {'enrollment_...4-3.mkv', ...} == {'enrollment_...4-3.mkv', ...}
+E     
+E     Omitting 6 identical items, use -vv to show
+E     Left contains 2 more items:
+E     {'enrollment_mode': 'lineup', 'expected_persons': 4}
+E     Use -v to get more diff
+___________ test_real_readiness_names_missing_active_models_and_sync ___________
+tests/test_readiness.py:55: in test_real_readiness_names_missing_active_models_and_sync
+    assert {
+E   AssertionError: assert {'basketball'..., 'rtmw', ...} <= {'basketball'..., 'rtmw', ...}
+E     
+E     Extra items in the left set:
+E     'sync_config'
+________ test_submit_requires_all_slots_and_injects_sync_only_at_submit ________
+tests/test_tasks_api.py:547: in test_submit_requires_all_slots_and_injects_sync_only_at_submit
+    assert json.loads((job_input / "sync.json").read_text()) == {"offset": 17}
+E   AssertionError: assert {'schema_vers...: 200.0}, ...} == {'offset': 17}
+E     
+E     Left contains 9 more items:
+E     {'anchor_camera': 'cam_03',
+E      'camera_time_offsets_ms': {'cam_01': 40.0,
+E                                 'cam_02': 80.0,
+E                                 'cam_03': 0.0,
+E                                 'cam_04': 40.0},...
+E     
+E     ...Full output truncated (19 lines hidden), use '-vv' to show
+=============================== warnings summary ===============================
+tests/test_admin_migration.py: 2 warnings
+tests/test_analyst_report_regressions.py: 2 warnings
+tests/test_migrations.py: 15 warnings
+tests/test_training_profiles.py: 5 warnings
+  <WORKTREE>/.venv/lib/python3.12/site-packages/alembic/config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_analyst_collections.py::test_collection_queues_full_reports_for_both_styles_once_and_charges_once
+FAILED tests/test_analyst_comparisons.py::test_comparison_validation_dedup_and_quota_are_separate_from_session[coach]
+FAILED tests/test_analyst_comparisons.py::test_comparison_validation_dedup_and_quota_are_separate_from_session[roast]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-report]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-False-message]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-report]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[profile_edit-True-message]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-report]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-False-message]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-report]
+FAILED tests/test_analyst_invalidation.py::test_scoped_inflight_revocation_cannot_republish_or_release_quota[task_delete-True-message]
+FAILED tests/test_analyst_jobs.py::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-report]
+FAILED tests/test_analyst_jobs.py::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[before_load-message]
+FAILED tests/test_analyst_jobs.py::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-report]
+FAILED tests/test_analyst_jobs.py::test_invalidation_between_claim_and_load_cannot_delete_ledger_or_restart_message[after_load-message]
+FAILED tests/test_analyst_pose.py::test_product_real_runner_carries_task_context_and_retains_artifact[0.5-True]
+FAILED tests/test_analyst_pose.py::test_product_real_runner_carries_task_context_and_retains_artifact[30.0-False]
+FAILED tests/test_analyst_pose.py::test_product_real_runner_carries_task_context_and_retains_artifact[52.0-False]
+FAILED tests/test_analyst_report_regressions.py::test_generator_reuses_legacy_preset_and_fills_both_styles
+FAILED tests/test_analyst_report_regressions.py::test_additive_migration_defaults_language_and_preserves_legacy_rows
+FAILED tests/test_app.py::test_readiness_rejects_admin_password_that_does_not_match_database
+FAILED tests/test_app.py::test_registration_normalizes_identity_and_returns_a_public_user
+FAILED tests/test_presets.py::test_preset_rerun_manifest_binds_registration_cameras_and_group_sync
+FAILED tests/test_readiness.py::test_real_readiness_names_missing_active_models_and_sync
+FAILED tests/test_tasks_api.py::test_submit_requires_all_slots_and_injects_sync_only_at_submit
+25 failed, 817 passed, 24 warnings in 74.80s (0:01:14)
