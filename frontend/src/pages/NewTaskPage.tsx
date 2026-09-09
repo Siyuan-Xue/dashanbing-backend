@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { PresetCards } from "../components/PresetCards";
 import { WorkspaceState } from "../components/WorkspaceState";
-import { WorkspaceSelect } from "../components/WorkspaceSelect";
+import { TaskConfiguration } from "../components/TaskConfiguration";
 import { VideoSyncDialog } from "../components/VideoSyncDialog";
 import { useLocale } from "../providers/LocaleProvider";
 import { useLoadable } from "../workspace/useLoadable";
@@ -17,7 +17,10 @@ import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 import "../styles/video-sync.css";
 
 type UploadState = { file: File; progress: number; phase: "uploading" | "error" | "success"; error?: string };
-const registrationFor = (task?: Partial<RegistrationFields>): RegistrationFields => ({ enrollment_mode: task?.enrollment_mode || "sequential", expected_persons: task?.expected_persons ?? null });
+// The manual demo packs share a four-person, sequential enrollment video.
+const registrationFor = (task?: Partial<RegistrationFields>): RegistrationFields => ({ enrollment_mode: task?.enrollment_mode || "sequential", expected_persons: task?.expected_persons ?? 4 });
+// Keep the saved null distinct so a restored incomplete draft is patched before submission.
+const savedRegistrationFor = (task: Partial<RegistrationFields>): RegistrationFields => ({ ...registrationFor(task), expected_persons: task.expected_persons ?? null });
 
 const slotLabels = {
   zh: { enrollment_video: "注册视频", cam_01: "机位 1", cam_02: "机位 2", cam_03: "机位 3", cam_04: "机位 4" },
@@ -82,7 +85,7 @@ export function NewTaskPage() {
         taskRef.current = restored;
         setTask(restored);
         if (!initialized) {
-          savedMetadataRef.current = { title: restored.title, mode: restored.mode, analyst_locale: restored.analyst_locale || "zh", ...registrationFor(restored) };
+          savedMetadataRef.current = { title: restored.title, mode: restored.mode, analyst_locale: restored.analyst_locale || "zh", ...savedRegistrationFor(restored) };
           formRef.current = { title: restored.title, mode: restored.mode, ...registrationFor(restored) };
           setTitle(restored.title); setMode(restored.mode);
           setRegistration(registrationFor(restored));
@@ -108,7 +111,7 @@ export function NewTaskPage() {
       const creation = workspaceApi.createTask(savedTitle, formRef.current.mode, locale, registrationFor(formRef.current)).then((created) => {
         if (generation !== generationRef.current) throw new DOMException("Draft closed", "AbortError");
         taskRef.current = created;
-        savedMetadataRef.current = { title: created.title, mode: created.mode, analyst_locale: locale, ...registrationFor(created) };
+        savedMetadataRef.current = { title: created.title, mode: created.mode, analyst_locale: locale, ...savedRegistrationFor(created) };
         if (!formRef.current.title.trim()) {
           formRef.current.title = created.title;
           setTitle(created.title);
@@ -145,10 +148,10 @@ export function NewTaskPage() {
       savedMetadata.title = updated.title;
       savedMetadata.mode = updated.mode;
       savedMetadata.analyst_locale = locale;
-      Object.assign(savedMetadata, registrationFor(updated));
+      Object.assign(savedMetadata, savedRegistrationFor(updated));
       if (generation === generationRef.current && taskRef.current) {
         // Metadata responses may predate a completed upload observed by polling.
-        taskRef.current = { ...taskRef.current, title: updated.title, mode: updated.mode, analyst_locale: locale, ...registrationFor(updated) };
+        taskRef.current = { ...taskRef.current, title: updated.title, mode: updated.mode, analyst_locale: locale, ...savedRegistrationFor(updated) };
         setTask(taskRef.current);
         setSubmitError("");
       }
@@ -283,11 +286,9 @@ export function NewTaskPage() {
     <section className="create-panel">
       <div className="create-fields">
         <label><span>{wt("taskTitle")}</span><input value={title} aria-invalid={Boolean(titleError)} disabled={submitting} onBlur={saveQuietly} onChange={(event) => { formRef.current.title = event.target.value; setTitle(event.target.value); setTitleError(""); }} placeholder={wt("defaultTitle")}/></label>
-        <fieldset disabled={submitting}><legend>{wt("mode")}</legend><label><input type="radio" name="mode" checked={mode === "quick"} onChange={() => { formRef.current.mode = "quick"; setMode("quick"); saveQuietly(); }}/><span><b>{wt("quick")}</b><small>5–15 {wt("minutes")}</small></span></label><label><input type="radio" name="mode" checked={mode === "full"} onChange={() => { formRef.current.mode = "full"; setMode("full"); saveQuietly(); }}/><span><b>{wt("full")}</b><small>20–45 {wt("minutes")}</small></span></label></fieldset>
-      </div>
-      <div className="task-registration-fields">
-        <label><span>{locale === "zh" ? "注册方式" : "Registration method"}</span><WorkspaceSelect disabled={submitting} value={registration.enrollment_mode} onChange={event => changeRegistration({ enrollment_mode: event.target.value as RegistrationFields["enrollment_mode"] })}><option value="sequential">{locale === "zh" ? "依次注册" : "One at a time"}</option><option value="lineup">{locale === "zh" ? "并排注册" : "Line up together"}</option></WorkspaceSelect></label>
-        <label><span>{locale === "zh" ? "注册人数" : "Number of people"}</span><WorkspaceSelect disabled={submitting} value={registration.expected_persons ?? ""} onChange={event => changeRegistration({ expected_persons: event.target.value === "" ? null : Number(event.target.value) })}><option value="">{locale === "zh" ? "请选择人数" : "Choose count"}</option>{[1, 2, 3, 4, 5, 6].map(count => <option key={count} value={count}>{count}</option>)}</WorkspaceSelect></label>
+        <TaskConfiguration mode={mode} registration={registration} disabled={submitting}
+          onModeChange={value => { formRef.current.mode = value; setMode(value); saveQuietly(); }}
+          onRegistrationChange={changeRegistration}/>
       </div>
       <div className="upload-grid">
         {TASK_SLOTS.map((slot) => {
@@ -308,7 +309,6 @@ export function NewTaskPage() {
         })}
       </div>
       <div className="task-sync-summary"><div><strong>{locale === "zh" ? "四机位同步" : "Four-camera sync"}</strong><span role="status" className={task?.sync_status === "confirmed" ? "is-confirmed" : ""}>{syncLabel}</span><small>{!canSync ? (locale === "zh" ? "四个机位上传完成后可同步" : "Upload all four cameras to sync.") : (locale === "zh" ? "在四个画面中选定同一瞬间" : "Choose the same instant in all four views.")}</small></div><button className="button button-outline" type="button" disabled={!canSync || submitting} onClick={() => setSyncOpen(true)}>{locale === "zh" ? "同步视频" : "Sync videos"}</button></div>
-      {registration.expected_persons === null && <p className="task-registration-hint">{locale === "zh" ? "可保留未完成的草稿；提交前请选择人数并确认同步" : "Drafts may be incomplete. Choose the count and confirm sync before submitting."}</p>}
       {(titleError || submitError) && <p className="inline-error" role="alert">{titleError || submitError}</p>}
       <div className="create-submit">{task && <small className="draft-note">{task.status === "uploading" ? wt("uploadingBody") : wt("draftHint")}</small>}<span>{wt("uploadCount")} {verified.size} / 5</span><button className="button button-primary" type="button" disabled={!canSubmit || submitting} onClick={() => void submit()}>{submitting ? wt("submitting") : wt("submit")} <Icon name="arrow"/></button></div>
     </section>

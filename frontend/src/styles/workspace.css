@@ -18,6 +18,7 @@
 .workspace-brand .brand-name small { display: none; }
 .workspace-collapse, .workspace-drawer-close, .workspace-menu-button { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; flex: none; border: 0; border-radius: 8px; color: var(--muted); background: transparent; }
 .workspace-collapse:hover, .workspace-drawer-close:hover, .workspace-menu-button:hover { color: var(--text); background: var(--surface); }
+.workspace-collapse .icon { pointer-events: none; }
 .workspace-nav { flex-shrink: 0; display: grid; gap: 6px; }
 .workspace-nav a { min-height: 40px; padding: 7px 11px; border: 2px solid transparent; display: flex; align-items: center; gap: 10px; border-radius: 12px; color: var(--text-soft); font-size: 14px; font-weight: 500; }
 .workspace-nav a:hover { color: var(--text); background: var(--surface); }
@@ -30,12 +31,23 @@
 .workspace-recent a > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .workspace-recent p { margin: 10px; color: var(--muted); font-size: 13px; }
 .workspace-sidebar-bottom { min-height: 48px; margin-top: auto; padding: 6px 8px; display: flex; align-items: center; justify-content: space-between; flex: none; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.workspace-account { display: grid; place-items: center; flex: none; border-radius: 50%; }
+.workspace-account { border: 0; padding: 0; background: transparent; display: grid; place-items: center; flex: none; border-radius: 50%; }
+.workspace-account-named { min-width: 0; flex: 1; display: flex; gap: 7px; border-radius: 8px; color: var(--text); font: inherit; text-align: left; }
+.workspace-account-named .workspace-avatar { flex: none; }
+.workspace-account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .workspace-avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #16171a; }
-.workspace-utility-row { display: flex; align-items: center; gap: 3px; }
-.workspace-utility-row a { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: var(--muted); }
-.workspace-utility-row a:hover { color: var(--text); background: var(--surface-subtle); }
+.workspace-utility-row { display: flex; flex: none; align-items: center; gap: 3px; }
+.workspace-utility-row :is(a, button) { border: 0; padding: 0; background: transparent; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: var(--muted); }
+.workspace-utility-row :is(a, button):hover { color: var(--text); background: var(--surface-subtle); }
 .workspace-utility-row a:first-child svg { fill: currentColor; stroke: none; }
+.workspace-account-menu { position: relative; margin-top: auto; }
+.workspace-account-popover { position: absolute; bottom: calc(100% + 8px); inset-inline: 0; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-md); }
+.workspace-account-info { display: grid; gap: 3px; overflow-wrap: anywhere; }
+.workspace-account-info strong { font-size: 14px; font-weight: 500; }
+.workspace-account-info :is(span, small) { color: var(--muted); font-size: 12px; }
+.workspace-utility-row .workspace-logout { color: var(--accent); }
+.workspace-utility-row button:disabled { opacity: .45; cursor: wait; }
+.workspace-account-error { position: absolute; bottom: calc(100% + 8px); inset-inline: 0; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--danger); font-size: 12px; }
 .workspace-sidebar[hidden] { display: none; }
 .workspace-sidebar.is-floating { inset: 64px auto 8px 8px; width: 260px; padding: 16px 12px 12px; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-md); }
 .workspace-collapsed-header { height: 64px; width: fit-content; max-width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--surface); }
@@ -67,20 +79,20 @@
 .new-task-page .workspace-page-header p { max-width: 620px; }
 .create-panel, .new-task-page .workspace-section { max-width: 860px; margin-inline: auto; }
 .create-panel { padding: 0; border: 0; border-radius: 0; }
-.create-fields { display: grid; grid-template-columns: minmax(180px, 1fr) auto; align-items: end; gap: 20px; }
+.create-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
 .create-fields > label { min-width: 0; display: grid; gap: 8px; color: var(--text-soft); }
 .create-fields > label input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
 .create-fields input:focus { border-color: var(--brand); }
-.create-fields fieldset { min-width: 0; margin: 0; padding: 0; display: flex; gap: 8px; border: 0; }
+.task-mode-options { min-width: 0; margin: 0; padding: 0; display: flex; gap: 8px; border: 0; }
 .create-fields legend { margin-bottom: 8px; color: var(--text-soft); }
-.create-fields fieldset label { position: relative; }
-.create-fields fieldset input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.create-fields fieldset span { min-height: 40px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
-.create-fields fieldset b { font-size: 14px; font-weight: 500; }
-.create-fields fieldset small { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.create-fields fieldset input:checked + span { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+.task-mode-options label { position: relative; }
+.task-mode-options input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.task-mode-options span { min-height: 40px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.task-mode-options b { font-size: 14px; font-weight: 500; }
+.task-mode-options small { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.task-mode-options input:checked + span { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
 .create-fields :disabled { opacity: .7; }
-.create-fields fieldset input:focus-visible + span, .upload-drop:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--brand) 38%, transparent); outline-offset: 3px; }
+.task-mode-options input:focus-visible + span, .upload-drop:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--brand) 38%, transparent); outline-offset: 3px; }
 .upload-grid { margin-top: 20px; padding: 16px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-radius: 12px; background-color: var(--surface-subtle); background-image: radial-gradient(circle, color-mix(in srgb, var(--brand) 22%, transparent) .7px, transparent .8px); background-size: 12px 12px; }
 .upload-card { min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
 .upload-card:first-child { grid-column: 1 / -1; }
@@ -356,9 +368,6 @@
   .upload-grid, .preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .insight-content { max-height: 520px; }
 }
-@media (min-width: 768px) and (max-width: 1100px) {
-  .workspace-shell:not(.is-collapsed) .create-fields { grid-template-columns: minmax(0, 1fr); }
-}
 
 /* Phone: one drawer, no duplicate bottom navigation. */
 @media (max-width: 767px) {
@@ -373,9 +382,9 @@
   .detail-heading { flex-basis: 100%; }
   .new-task-page .workspace-page-header h1 { font-size: 22px; }
   .workspace-page-header p, .detail-header p { font-size: 13px; }
-  .create-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .create-fields fieldset label { min-width: 0; flex: 1; }
-  .create-fields fieldset span { padding: 8px; flex-wrap: wrap; gap: 4px 8px; }
+  .create-fields { gap: 8px; }
+  .task-mode-options label { min-width: 0; flex: 1; }
+  .task-mode-options span { padding: 8px; flex-wrap: wrap; gap: 4px 8px; }
   .upload-grid { padding: 10px; grid-template-columns: minmax(0, 1fr); }
   .upload-drop, .upload-card:first-child .upload-drop { min-height: 92px; }
   .preset-card { display: grid; grid-template-columns: 100px minmax(0, 1fr); }

@@ -5,9 +5,13 @@ export async function fulfillSyncFixture(route: Route, response: Response) {
 }
 
 // Complete the new submission prerequisites through the real UI on desktop or mobile.
-export async function confirmTaskSync(page: Page, locale: "zh" | "en" = "zh") {
+export async function confirmTaskSync(page: Page, locale: "zh" | "en" = "zh", count: number | null = 2) {
   const zh = locale === "zh";
-  await page.getByRole("combobox", { name: zh ? "注册人数" : "Number of people", exact: true }).selectOption("2");
+  if (count !== null) {
+    const config = page.getByRole("button", { name: zh ? "配置" : "Configure", exact: true });
+    if (await config.getAttribute("aria-expanded") !== "true") await config.click();
+    await page.getByRole("combobox", { name: zh ? "注册人数" : "Number of people", exact: true }).selectOption(String(count));
+  }
   await page.getByRole("button", { name: zh ? "同步视频" : "Sync videos", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: zh ? "同步四个机位" : "Sync four cameras", exact: true });
   const selectLabel = zh ? "选定当前帧" : "Select current frame";

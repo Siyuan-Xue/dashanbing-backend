@@ -85,12 +85,14 @@ test("uploads before naming, keeps fields editable and restores saved draft afte
   expect(title).toBeEnabled();
   await user.clear(title);
   await user.type(title, "周末训练");
+  await user.click(screen.getByRole("button", { name: "配置" }));
   await user.click(screen.getByRole("radio", { name: /完整/ }));
   await waitFor(() => expect(server.task).toMatchObject({ title: "周末训练", mode: "full" }));
   expect(screen.getByText("点击替换")).toBeVisible();
   page.unmount();
   open("/workspace/new?draft=draft-1");
   expect(await screen.findByDisplayValue("周末训练")).toBeEnabled();
+  await user.click(screen.getByRole("button", { name: "配置" }));
   expect(screen.getByRole("radio", { name: /完整/ })).toBeChecked();
   expect(screen.getByText("players.mp4")).toBeVisible();
   expect(screen.getByText(/已验证视频 1 \/ 5/)).toBeVisible();

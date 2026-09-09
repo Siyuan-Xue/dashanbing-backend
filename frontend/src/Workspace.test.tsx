@@ -183,9 +183,11 @@ describe("workspace shell and staged creation", () => {
     await user.upload(screen.getByLabelText("注册视频"), new File(["video"], "enroll.mp4", { type: "video/mp4" }));
 
     expect(title).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "配置" }));
     expect(screen.getByRole("radio", { name: /快速/ })).toBeEnabled();
     await user.clear(title);
     await user.type(title, "训练 B");
+    await user.click(screen.getByRole("button", { name: "配置" }));
     await user.click(screen.getByRole("radio", { name: /完整/ }));
     await act(async () => { resolveCreate(json(task({ title: "训练 A" }), { status: 201 })); });
     expect(title).toHaveValue("训练 B");
@@ -448,6 +450,7 @@ describe("workspace shell and staged creation", () => {
     await user.upload(screen.getByLabelText("机位 3"), new File(["cam3"], "cam3.mp4", { type: "video/mp4" }));
     await user.upload(screen.getByLabelText("机位 4"), new File(["cam4"], "cam4.mp4", { type: "video/mp4" }));
     expect(submit).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "配置" }));
     await user.selectOptions(screen.getByLabelText("注册人数"), "2");
     await user.click(screen.getByRole("button", { name: "同步视频" }));
     const dialog = await screen.findByRole("dialog", { name: "同步四个机位" });

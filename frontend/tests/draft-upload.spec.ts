@@ -59,6 +59,7 @@ for (const locale of ["zh", "en"] as const) for (const theme of ["light", "dark"
     await expect(page).toHaveURL(/\/workspace\/new\?draft=draft-1$/);
     await expect(page.getByRole("alert")).toHaveCount(0);
     await page.getByLabel(zh ? "任务标题" : "Task title").fill("Saturday practice");
+    await page.getByRole("button", { name: zh ? "配置" : "Configure", exact: true }).click();
     await page.getByRole("radio", { name: zh ? /完整/ : /Full/ }).check();
     await expect.poll(() => api.task.mode).toBe("full");
     await expect.poll(() => api.task.title).toBe("Saturday practice");
@@ -91,6 +92,26 @@ for (const locale of ["zh", "en"] as const) for (const theme of ["light", "dark"
     expect(api.creates).toBe(1);
   });
 }
+
+test("manual demo uploads submit with defaults without opening configuration", async ({ page }) => {
+  const api = await server(page);
+  await page.goto("/workspace/new");
+  const fileInputs = page.locator('input[type="file"]');
+  for (let index = 0; index < slots.length; index++) {
+    await fileInputs.nth(index).setInputFiles({ name: `${slots[index]}.mp4`, mimeType: "video/mp4", buffer: Buffer.from("video") });
+    await expect(page.getByText(`${slots[index]}.mp4`, { exact: true })).toBeVisible();
+  }
+  expect(api.task).toMatchObject({ mode: "quick", enrollment_mode: "sequential", expected_persons: 4 });
+  await expect(page.getByRole("dialog", { name: "配置", exact: true })).toHaveCount(0);
+  const submit = page.getByRole("button", { name: "提交分析", exact: true });
+  await expect(submit).toBeDisabled();
+  await confirmTaskSync(page, "zh", null);
+  await expect(page.getByRole("button", { name: "配置", exact: true })).toHaveAttribute("aria-expanded", "false");
+  await expect(submit).toBeEnabled();
+  await submit.click();
+  await expect(page).toHaveURL(/\/workspace\/tasks\/draft-1$/);
+  expect(api.task).toMatchObject({ status: "queued", mode: "quick", enrollment_mode: "sequential", expected_persons: 4 });
+});
 
 test("reopened uploads wait for validation and preserve completed inputs", async ({ page }) => {
   const api = await server(page, true);

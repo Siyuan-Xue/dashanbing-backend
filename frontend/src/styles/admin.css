@@ -1,15 +1,7 @@
 .admin-shell { --admin-blue: #1678a6; --admin-danger: #a64b38; }
 :root[data-theme="dark"] .admin-shell { --admin-blue: #7cc1e7; --admin-danger: #eea08c; }
 .admin-shell .workspace-main { background: var(--surface); }
-.admin-nav .icon { color: var(--admin-blue); }
-.admin-nav a.active { border-color: transparent; background: var(--brand-soft); color: var(--admin-blue); }
-.admin-sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 12px; }
-.admin-account-identity { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.admin-account-identity span { display: grid; min-width: 0; }
-.admin-account-identity strong { overflow: hidden; text-overflow: ellipsis; font-size: 14px; font-weight: 500; }
-.admin-account-identity small { color: var(--muted); }
 .admin-actions { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-.admin-account .admin-actions { margin-top: 10px; }
 .admin-shell .admin-danger, .admin-shell .admin-error { color: var(--admin-danger); }
 .admin-page { padding: 28px 32px; min-height: 100vh; min-width: 0; }
 .admin-page h1 { font-size: 20px; margin: 0 0 6px; font-weight: 600; }

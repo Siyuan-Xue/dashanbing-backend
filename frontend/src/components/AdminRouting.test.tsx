@@ -60,13 +60,39 @@ test("ordinary task route remains available", async () => {
   expect(screen.getByTestId("location")).toHaveTextContent("/workspace/tasks");
 });
 
+test("admin sidebar exposes theme, language and logout directly beside the account", async () => {
+  const requests = serve("admin"); const user = userEvent.setup(); view("/admin/overview");
+  const avatar = await screen.findByRole("button", { name: /Account.*operator/ });
+  expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Recent tasks")).not.toBeInTheDocument();
+  expect(within(avatar).getByText("operator")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Log out" })).toBeVisible();
+  const themeButton = screen.getByRole("button", { name: /dark theme/i });
+  await user.click(themeButton);
+  expect(document.documentElement.dataset.theme).toBe("dark");
+  await user.click(screen.getByRole("button", { name: /light theme/i }));
+  await user.click(screen.getByRole("button", { name: "中文" }));
+  expect(screen.getByRole("button", { name: "退出登录" })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "English" }));
+  await user.click(avatar);
+  const menu = screen.getByRole("region", { name: "Account" });
+  expect(within(menu).getByText("Administrator")).toBeVisible();
+  expect(within(menu).getByText("operator@example.test")).toBeVisible();
+  await user.keyboard("{Escape}");
+  expect(avatar).toHaveFocus();
+  expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Log out" }));
+  expect(await screen.findByRole("link", { name: "Log in" })).toBeVisible();
+  expect(requests).not.toContain("/api/v1/tasks");
+});
+
 test("admin mobile navigation traps focus, switches sections and supports logout", async () => {
   vi.mocked(window.matchMedia).mockImplementation(query => ({ matches: query === "(max-width: 767px)", media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() } as unknown as MediaQueryList));
   serve("admin"); const user = userEvent.setup(); view("/admin");
   const trigger = await screen.findByRole("button", { name: "Open administrator menu" });
   await user.click(trigger);
   const drawer = screen.getByRole("dialog", { name: "Administrator navigation" });
-  expect(within(drawer).getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["/", "/admin/overview", "/admin/users", "/admin/scheduling", "/admin/quotas", "/admin/operations", "/admin/audit"]);
+  expect(within(within(drawer).getByRole("navigation")).getAllByRole("link").map(link => link.getAttribute("href"))).toEqual([ "/admin/overview", "/admin/users", "/admin/scheduling", "/admin/quotas", "/admin/operations", "/admin/audit"]);
   within(drawer).getByRole("link", { name: "DaShanBing home" }).focus();
   await user.keyboard("{Shift>}{Tab}{/Shift}");
   expect(within(drawer).getByRole("button", { name: "Log out" })).toHaveFocus();
@@ -74,6 +100,7 @@ test("admin mobile navigation traps focus, switches sections and supports logout
   expect(await screen.findByRole("heading", { name: "Audit log" })).toBeVisible();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   await user.click(trigger);
+  await user.click(screen.getByRole("button", { name: /Account.*operator/ }));
   await user.click(screen.getByRole("button", { name: "Log out" }));
   expect(await screen.findByRole("link", { name: "Log in" })).toBeVisible();
 });
