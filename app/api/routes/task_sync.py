@@ -10,6 +10,7 @@ from app.api.deps import get_current_user
 from app.database import get_session
 from app.models import User
 from app.services.input_preview import InputPreviewService
+from app.services.prepared_demo_sync import prepared_demo_config
 from app.services.task_sync import (
     camera_paths, confirm_sync, read_sync_config, source_versions, sync_error, sync_status,
 )
@@ -57,6 +58,29 @@ def put_sync(task_id: str, payload: SyncInput, session: Session = Depends(get_se
     task.sync_config_json = json.dumps(config, allow_nan=False)
     task.updated_at = utc_now()
     session.add(task)
+    session.commit()
+    return _public(task, items)
+
+
+@router.post('/{task_id}/sync/demo', response_model=SyncPublic)
+def confirm_prepared_demo(task_id: str, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
+    task, items = _owned(task_id, session, current_user)
+    if task.status != 'draft':
+        raise sync_error('task_state_conflict', 'Synchronization can only be changed on a draft task.', 409)
+    if sync_status(task, items) == 'confirmed':
+        return _public(task, items)
+    config = prepared_demo_config(items)
+    if config is None:
+        return _public(task, items)
+    session.rollback()
+    begin_write(session)
+    task, items = _owned(task_id, session, current_user)
+    if task.status != 'draft' or source_versions(items) != config['input_versions']:
+        raise sync_error('sync_stale', 'Task inputs changed during demo recognition.', 409)
+    if sync_status(task, items) != 'confirmed':
+        task.sync_config_json = json.dumps(config, allow_nan=False)
+        task.updated_at = utc_now()
+        session.add(task)
     session.commit()
     return _public(task, items)
 

@@ -918,6 +918,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{task_id}/sync/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Prepared Demo */
+        post: operations["confirm_prepared_demo_api_v1_tasks__task_id__sync_demo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{task_id}/sync/preview": {
         parameters: {
             query?: never;
@@ -1250,7 +1267,7 @@ export interface components {
              */
             analyst_locale: "zh" | "en";
             /** Sync */
-            sync: string;
+            sync?: string | null;
             /** Enrollment Video */
             enrollment_video: string;
             /** Cam 01 */
@@ -4145,6 +4162,37 @@ export interface operations {
                 "application/json": components["schemas"]["SyncInput"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_prepared_demo_api_v1_tasks__task_id__sync_demo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

@@ -91,7 +91,7 @@ def upload_analysis(
     enrollment_mode: Literal["sequential", "lineup"] = Form(),
     expected_persons: int = Form(ge=1, le=6),
     analyst_locale: Literal["zh", "en"] = Form(),
-    sync: str = Form(max_length=8192),
+    sync: str | None = Form(default=None, max_length=8192),
     enrollment_video: UploadFile = File(),
     cam_01: UploadFile = File(),
     cam_02: UploadFile = File(),
@@ -101,7 +101,7 @@ def upload_analysis(
     current_user: User = Depends(get_current_user),
 ) -> Analysis:
     try:
-        sync_payload = SyncInput.model_validate_json(sync)
+        sync_payload = SyncInput.model_validate_json(sync) if sync is not None else None
     except ValidationError:
         raise sync_error("sync_invalid", "Supply synchronization as a valid JSON object.") from None
     try:
@@ -159,7 +159,8 @@ def upload_analysis(
         )
         session.flush()
         items = task_inputs(analysis.id, session)
-        confirm_sync(analysis, items, sync_payload, bind_uploaded_versions=True)
+        if sync_payload is not None:
+            confirm_sync(analysis, items, sync_payload, bind_uploaded_versions=True)
         config = require_submission_config(analysis, items)
         manifest = storage.prepare_task_submission(analysis.id, manifest | registration_manifest(analysis), sync_config=config)
         analysis.input_manifest_json = json.dumps(manifest, ensure_ascii=False)

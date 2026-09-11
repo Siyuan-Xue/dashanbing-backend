@@ -29,6 +29,7 @@ export type SyncConfig = {
 export type TaskSync = { status: SyncStatus; source_versions: CameraValues<string>; config: SyncConfig | null };
 const base = (id: string) => `/api/v1/tasks/${encodeURIComponent(id)}/sync`;
 export const taskSyncApi = {
+  recognizeDemo: (id: string, signal?: AbortSignal) => request<TaskSync>(`${base(id)}/demo`, { ...jsonInit("POST"), signal }),
   get: (id: string, signal?: AbortSignal) => request<TaskSync>(base(id), { signal }),
   prepare: (id: string, signal?: AbortSignal) => request<SyncPreview>(`${base(id)}/preview`, { ...jsonInit("POST"), signal }),
   preview: (id: string, signal?: AbortSignal) => request<SyncPreview>(`${base(id)}/preview`, { signal }),

@@ -1,0 +1,102 @@
+[
+  {
+    "name": "01_jump_shot_quick",
+    "cameras": {
+      "cam_01": {
+        "size": 22217769,
+        "sha256": "f6c5e6a1d461f5603f8aaf7d88ada50de4db5f42e4afd5f4ab358c825f1c3f29",
+        "duration_ms": 22000.0
+      },
+      "cam_02": {
+        "size": 41596983,
+        "sha256": "09d795b03746da2f51099cfade3f99632f348bcdf86b8f57168934e2ea0bd137",
+        "duration_ms": 22000.0
+      },
+      "cam_03": {
+        "size": 20925918,
+        "sha256": "4723c033cf7ac8998ab9a21bd99f43c70e7395cb6cd4beea7062f0cf93e1ae7c",
+        "duration_ms": 22000.0
+      },
+      "cam_04": {
+        "size": 21563762,
+        "sha256": "6bb08b3c114e75f33aa6f2a888296845d8079b73bd4ea7cf000a138f1297e1b2",
+        "duration_ms": 22000.0
+      }
+    }
+  },
+  {
+    "name": "02_mixed_actions_full",
+    "cameras": {
+      "cam_01": {
+        "size": 22923744,
+        "sha256": "c056d9c6a99ac91ed9768850e085c1adf0415d10b7b62645877e3ec8d312951c",
+        "duration_ms": 22000.0
+      },
+      "cam_02": {
+        "size": 35748167,
+        "sha256": "fbd8e390f4aa70bbb803b0f10dfb4d80a40b7566a032c73698d5de3df9238173",
+        "duration_ms": 22000.0
+      },
+      "cam_03": {
+        "size": 23917020,
+        "sha256": "9353f3d32309ed3cbc97a22a75040f54729222dd53b470f6251dacb619de1d01",
+        "duration_ms": 22000.0
+      },
+      "cam_04": {
+        "size": 23303244,
+        "sha256": "37558fbbd8a42cc290e58bfb30c45b6ce3883f40f228744ba787a5717246e431",
+        "duration_ms": 22000.0
+      }
+    }
+  },
+  {
+    "name": "03_free_throw_full",
+    "cameras": {
+      "cam_01": {
+        "size": 24196470,
+        "sha256": "5bd7d700b797710e4406dc2243c1300db19cd667c408ee2717eb1ff16fc47bdf",
+        "duration_ms": 23000.0
+      },
+      "cam_02": {
+        "size": 26060121,
+        "sha256": "60d8deb8a38ba0b6723b8b3cbb1cec5cda5662e826ad9a5f016b0d0d6daa8696",
+        "duration_ms": 23000.0
+      },
+      "cam_03": {
+        "size": 22695601,
+        "sha256": "5d23dd98e7cb3f37a68ac30892408cfed69517feb1b660e13c1974abcfbbb2a4",
+        "duration_ms": 23000.0
+      },
+      "cam_04": {
+        "size": 22661000,
+        "sha256": "66dc197d008d8d001c691411c8fff283bc30bb2dc5ca29acd8c8d56308432f6e",
+        "duration_ms": 23000.0
+      }
+    }
+  },
+  {
+    "name": "04_layup_quick",
+    "cameras": {
+      "cam_01": {
+        "size": 20646116,
+        "sha256": "4d2c3b4eae48f7368ff3909a64784a32aa5a79ee6ce475f8787db4d832c432dd",
+        "duration_ms": 21000.0
+      },
+      "cam_02": {
+        "size": 29806198,
+        "sha256": "cd620feca087c7c3418dc638bf7d8b05806205f171c007cabf01910f42f369ff",
+        "duration_ms": 21000.0
+      },
+      "cam_03": {
+        "size": 21556358,
+        "sha256": "c8128cbacec2cb6ef5d19518c9ed72f5c92a30934e491f121410673a2ef35918",
+        "duration_ms": 21000.0
+      },
+      "cam_04": {
+        "size": 21039800,
+        "sha256": "8383c8dda83acb30dc71dc142b4d7688a95e8d8723da1dcbace3ff47833c9583",
+        "duration_ms": 21000.0
+      }
+    }
+  }
+]

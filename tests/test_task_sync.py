@@ -337,3 +337,69 @@ def test_historical_submitted_task_retries_without_new_config(api):
     assert response.status_code == 200
     assert response.json()['sync_status'] == 'legacy'
     assert sync.read_text() == '{"old_sync":true}'
+
+
+def test_prepared_demo_auto_sync_is_exact_and_grouped(tmp_path, monkeypatch):
+    import hashlib
+    from app.services import prepared_demo_sync as demo
+    items = inputs(tmp_path)
+    cameras = {}
+    for index, item in enumerate(items[:4]):
+        Path(item.path).write_bytes(f'video-{index}'.encode())
+        cameras[item.slot] = {'size': 7, 'sha256': hashlib.sha256(Path(item.path).read_bytes()).hexdigest(), 'duration_ms': 22000}
+    monkeypatch.setattr(demo, 'DEMOS', [{'name': 'test-demo', 'cameras': cameras}])
+    config = demo.prepared_demo_config(items)
+    assert config['camera_time_offsets_ms'] == dict.fromkeys(CAMERAS, 0)
+    assert config['input_versions']
+    assert config['overlap_end_ms'] == 22000
+    # A byte change of the same length and a camera swap must both be rejected.
+    original = Path(items[0].path).read_bytes()
+    Path(items[0].path).write_bytes(b'altered')
+    assert demo.prepared_demo_config(items) is None
+    Path(items[0].path).write_bytes(original)
+    items[0].path, items[1].path = items[1].path, items[0].path
+    assert demo.prepared_demo_config(items) is None
+
+
+def test_demo_sync_route_confirms_and_preserves_manual_sync(api, monkeypatch):
+    from app.api.routes import task_sync
+    from app.services.task_sync import source_versions, validate_sync
+    task_id = create_full_draft(api, expected_persons=4)
+    def recognized(items):
+        return validate_sync({'offsets_ms': dict.fromkeys(CAMERAS, 0)}, source_versions(items),
+                             dict.fromkeys(CAMERAS, 2000), bind_uploaded_versions=True)
+    monkeypatch.setattr(task_sync, 'prepared_demo_config', recognized)
+    response = api.post(f'/api/v1/tasks/{task_id}/sync/demo')
+    assert response.status_code == 200
+    assert response.json()['status'] == 'confirmed'
+    monkeypatch.setattr(task_sync, 'prepared_demo_config', lambda _: pytest.fail('Do not overwrite manual confirmation'))
+    assert api.post(f'/api/v1/tasks/{task_id}/sync/demo').json()['status'] == 'confirmed'
+    assert api.post(f'/api/v1/tasks/{task_id}/submit').status_code == 200
+
+
+def test_unknown_inputs_are_not_automatically_confirmed(api):
+    task_id = create_full_draft(api, expected_persons=4)
+    response = api.post(f'/api/v1/tasks/{task_id}/sync/demo')
+    assert response.status_code == 200
+    assert response.json()['status'] == 'unconfirmed'
+    assert api.post(f'/api/v1/tasks/{task_id}/submit').status_code == 422
+
+
+def test_single_upload_can_omit_sync_only_for_recognized_demo(api, monkeypatch):
+    from app.services import prepared_demo_sync as demo
+    from app.services.task_sync import source_versions, validate_sync
+    files = {slot: (slot+'.mkv', b'\x1aE\xdf\xa3video') for slot in ('enrollment_video', *CAMERAS)}
+    fields = {'title': 'Demo without sync UI', 'mode': 'quick', 'enrollment_mode': 'sequential',
+              'expected_persons': '4', 'analyst_locale': 'zh'}
+    rejected = api.post('/api/v1/analyses/upload', data=fields, files=files)
+    assert rejected.status_code == 422
+    assert rejected.json()['detail']['code'] == 'sync_config_required'
+    def recognized(items):
+        return validate_sync({'offsets_ms': dict.fromkeys(CAMERAS, 0)}, source_versions(items),
+                             dict.fromkeys(CAMERAS, 22000), bind_uploaded_versions=True)
+    monkeypatch.setattr(demo, 'prepared_demo_config', recognized)
+    created = api.post('/api/v1/analyses/upload', data=fields, files=files)
+    assert created.status_code == 201, created.text
+    task_id = created.json()['id']
+    assert created.json()['status'] == 'queued'
+    assert api.get(f'/api/v1/tasks/{task_id}/sync').json()['config']['camera_time_offsets_ms'] == dict.fromkeys(CAMERAS, 0)

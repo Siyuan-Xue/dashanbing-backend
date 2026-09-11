@@ -2927,6 +2927,48 @@
         }
       }
     },
+    "/api/v1/tasks/{task_id}/sync/demo": {
+      "post": {
+        "tags": [
+          "task-sync"
+        ],
+        "summary": "Confirm Prepared Demo",
+        "operationId": "confirm_prepared_demo_api_v1_tasks__task_id__sync_demo_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{task_id}/sync/preview": {
       "post": {
         "tags": [
@@ -3957,8 +3999,15 @@
             "title": "Analyst Locale"
           },
           "sync": {
-            "type": "string",
-            "maxLength": 8192,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8192
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Sync"
           },
           "enrollment_video": {
@@ -3994,7 +4043,6 @@
           "enrollment_mode",
           "expected_persons",
           "analyst_locale",
-          "sync",
           "enrollment_video",
           "cam_01",
           "cam_02",

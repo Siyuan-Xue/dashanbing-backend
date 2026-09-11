@@ -106,6 +106,12 @@ def require_submission_config(task, items) -> dict:
     if task.enrollment_mode not in {'sequential', 'lineup'} or type(task.expected_persons) is not int or not 1 <= task.expected_persons <= 6:
         raise sync_error('registration_config_required', 'Select an enrollment method and an expected person count from 1 to 6.')
     config = read_sync_config(task)
+    if config is None or config.get('input_versions') != source_versions(items):
+        from app.services.prepared_demo_sync import prepared_demo_config
+        automatic = prepared_demo_config(items)
+        if automatic is not None:
+            config = automatic
+            task.sync_config_json = json.dumps(config, allow_nan=False)
     if config is None:
         raise sync_error('sync_config_required', 'Confirm camera synchronization before submission.')
     # Always compare live versions for new submission, even after a correction of a failed task.

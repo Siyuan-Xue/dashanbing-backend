@@ -10,6 +10,19 @@ function open(path = "/workspace/new?draft=draft-1") {
   return render(<MemoryRouter initialEntries={[path]}><LocaleProvider><Routes><Route path="/workspace/new" element={<NewTaskPage/>}/><Route path="/workspace/tasks/:id" element={<p>任务详情</p>}/></Routes></LocaleProvider></MemoryRouter>);
 }
 
+test("restored prepared demos submit without opening the synchronization dialog", async () => {
+  const server = installSyncServer(draftTask({ expected_persons: 4 }));
+  server.recognizePreparedDemo();
+  const user = userEvent.setup(); open();
+  const submit = await screen.findByRole("button", { name: "提交分析" });
+  await waitFor(() => expect(submit).toBeEnabled());
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await user.click(submit);
+  expect(await screen.findByText("任务详情")).toBeVisible();
+  expect(server.writes.some(write => write.path.endsWith("/sync/demo"))).toBe(true);
+  expect(server.writes.some(write => write.method === "PUT")).toBe(false);
+});
+
 test("task settings stay in one compact popover, persist changes and restore focus on Escape", async () => {
   const server = installSyncServer(draftTask({ sync_status: "confirmed" }));
   const user = userEvent.setup(); open();
@@ -108,7 +121,7 @@ test("camera replacement uses stale backend status while registration replacemen
   expect(screen.getByRole("button", { name: "提交分析" })).toBeEnabled();
   await user.upload(screen.getByLabelText("机位 1"), new File(["video"], "camera-new.mp4", { type: "video/mp4" }));
   await screen.findByText("camera-new.mp4");
-  expect(screen.getByText("视频已更换，请重新同步")).toBeVisible();
+  expect(await screen.findByText("视频已更换，请重新同步")).toBeVisible();
   expect(screen.getByRole("button", { name: "提交分析" })).toBeDisabled();
 });
 

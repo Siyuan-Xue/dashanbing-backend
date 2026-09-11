@@ -37,6 +37,7 @@ export function installSyncServer(initial = draftTask()) {
   const frames: Array<{ camera: string; time: number; version: string | null }> = [];
   let previewState = structuredClone(preview);
   let confirmError: { code: string; message: string } | null = null;
+  let preparedDemo = false;
   vi.stubGlobal("fetch", vi.fn(async (path: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(path), "http://localhost");
     const method = init?.method || "GET";
@@ -50,6 +51,13 @@ export function installSyncServer(initial = draftTask()) {
     }
     if (url.pathname.endsWith("/return-to-input")) { task = { ...task, status: "draft", error_code: null }; return Response.json(task); }
     if (url.pathname.endsWith("/submit")) { task = { ...task, status: "queued" }; return Response.json(task); }
+    if (url.pathname.endsWith("/sync/demo")) {
+      if (preparedDemo) {
+        sync = { ...sync, status: "confirmed", config };
+        task = { ...task, sync_status: "confirmed" };
+      }
+      return Response.json(sync);
+    }
     if (url.pathname.endsWith("/sync/preview")) return Response.json(previewState, { status: method === "POST" ? 202 : 200 });
     if (url.pathname.includes("/sync/frames/")) {
       const camera = url.pathname.split("/").at(-1)!;
@@ -80,10 +88,12 @@ export function installSyncServer(initial = draftTask()) {
       const slot = this.url.split("/").at(-1) as TaskSlot;
       const file = body.get("file") as File;
       task = { ...task, inputs: [...task.inputs.filter(item => item.slot !== slot), input(slot, file.name)], sync_status: slot === "enrollment_video" ? task.sync_status : "stale" };
+      sync = { ...sync, status: task.sync_status };
       this.status = 200; this.responseText = JSON.stringify(task); queueMicrotask(() => this.listeners.get("load")?.());
     }
   });
   return { get task() { return task; }, writes, frames,
+    recognizePreparedDemo() { preparedDemo = true; },
     setPreview(value: typeof previewState) { previewState = value; },
     rejectConfirmation(value: typeof confirmError) { confirmError = value; },
   };

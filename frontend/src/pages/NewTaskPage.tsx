@@ -11,7 +11,7 @@ import { useLoadable } from "../workspace/useLoadable";
 import { uploadTaskInput, workspaceApi, WorkspaceApiError } from "../workspace/api";
 import { TASK_SLOTS } from "../workspace/types";
 import type { TaskMode, TaskSlot } from "../workspace/types";
-import { SYNC_CAMERAS } from "../lib/task-sync";
+import { SYNC_CAMERAS, taskSyncApi } from "../lib/task-sync";
 import type { ConfigurableTask as Task, RegistrationFields } from "../lib/task-sync";
 import { useWorkspaceCopy } from "../workspace/useWorkspaceCopy";
 import "../styles/video-sync.css";
@@ -209,8 +209,23 @@ export function NewTaskPage() {
   const verified = new Set(task?.inputs.filter((item) => item.validation_state === "valid").map((item) => item.slot));
   const uploading = Object.values(uploads).some((item) => item?.phase === "uploading");
   const canSync = task?.status === "draft" && SYNC_CAMERAS.every((slot) => verified.has(slot)) && !uploading;
+  const cameraRevision = task?.inputs.filter(item => SYNC_CAMERAS.some(camera => camera === item.slot))
+    .map(item => `${item.slot}:${item.updated_at}:${item.byte_size}`).sort().join("|");
+  useEffect(() => {
+    if (!task || !canSync || syncOpen || task.sync_status === "confirmed") return;
+    const controller = new AbortController();
+    const generation = generationRef.current;
+    setRefreshingSync(true);
+    void taskSyncApi.recognizeDemo(task.id, controller.signal).then(sync => {
+      if (controller.signal.aborted || generation !== generationRef.current || taskRef.current?.id !== task.id) return;
+      taskRef.current = { ...taskRef.current, sync_status: sync.status };
+      setTask(taskRef.current);
+    }).catch(() => { /* Unknown inputs and transient errors retain the manual synchronization path. */ })
+      .finally(() => { if (!controller.signal.aborted && generation === generationRef.current) setRefreshingSync(false); });
+    return () => { controller.abort(); setRefreshingSync(false); };
+  }, [task?.id, cameraRevision, canSync, syncOpen]);
   const canSubmit = canSync && !refreshingSync && TASK_SLOTS.every((slot) => verified.has(slot)) && registration.expected_persons !== null && task?.sync_status === "confirmed";
-  const syncLabel = task?.sync_status === "confirmed" ? (locale === "zh" ? "已确认同步" : "Sync confirmed")
+  const syncLabel = refreshingSync ? (locale === "zh" ? "正在检查同步" : "Checking sync") : task?.sync_status === "confirmed" ? (locale === "zh" ? "已确认同步" : "Sync confirmed")
     : task?.sync_status === "stale" ? (locale === "zh" ? "视频已更换，请重新同步" : "Videos changed. Sync again")
     : (locale === "zh" ? "未确认同步" : "Sync unconfirmed");
   const changeRegistration = (patch: Partial<RegistrationFields>) => {
