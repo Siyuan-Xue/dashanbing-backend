@@ -27,6 +27,14 @@ MAX_CACHE_BYTES = 2 * 1024**3
 def _run(args, *, timeout=120):
     try:
         result = subprocess.run(args, capture_output=True, timeout=timeout, check=False)
+        # FFmpeg 4.4 lacks -fps_mode; newer FFmpeg releases have removed -vsync.
+        # Retry only this unsupported option, keeping passthrough frame timing.
+        if (result.returncode and args[0] == 'ffmpeg' and '-fps_mode' in args
+                and b"Unrecognized option 'fps_mode'" in (result.stderr or b'')):
+            legacy = list(args)
+            index = legacy.index('-fps_mode')
+            legacy[index:index + 2] = ['-vsync', '0']
+            result = subprocess.run(legacy, capture_output=True, timeout=timeout, check=False)
     except (OSError, subprocess.TimeoutExpired):
         raise sync_error('preview_failed', 'Video processing is unavailable or timed out.', 503) from None
     if result.returncode:

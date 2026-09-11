@@ -136,3 +136,31 @@ def test_single_preview_cannot_exceed_cache_budget(tmp_path, monkeypatch):
     assert state['status'] == 'failed'
     assert state['error']['code'] == 'preview_cache_limit'
     assert not list(service._directory('task', versions).glob('*.mp4'))
+
+
+def test_preview_keeps_frames_with_ffmpeg_44_command_options(tmp_path, monkeypatch):
+    from app.services import input_preview as preview
+    # Production uses FFmpeg 4.4: preserve its CLI constraint while doing real encoding.
+    real_run = subprocess.run
+    def ffmpeg_44(args, **kwargs):
+        if args[0] == 'ffmpeg' and '-fps_mode' in args:
+            return subprocess.CompletedProcess(args, 1, stdout=b'', stderr=b"Unrecognized option 'fps_mode'.")
+        if args[0] == 'ffmpeg' and '-vsync' in args:
+            # The test host uses modern FFmpeg, so translate the legacy CLI for real encoding.
+            args = list(args)
+            index = args.index('-vsync')
+            args[index:index + 2] = ['-fps_mode', 'passthrough']
+        return real_run(args, **kwargs)
+    monkeypatch.setattr(subprocess, 'run', ffmpeg_44)
+    source = make_video(tmp_path / 'source.mp4', fps=60)
+    paths = dict.fromkeys(('cam_01', 'cam_02', 'cam_03', 'cam_04'), source)
+    versions = dict.fromkeys(paths, 'v1')
+    service = preview.InputPreviewService(tmp_path / 'cache')
+    service.prepare('task', paths, versions)
+    service.wait_for_idle(timeout=30)
+    state = service.status('task', versions)
+    assert state['status'] == 'ready', state
+    for camera in paths:
+        assert state['cameras'][camera]['frame_count'] == 60
+        assert state['cameras'][camera]['duration_ms'] == pytest.approx(1000, abs=1)
+        assert service.frame('task', camera, versions, 500)['actual_time_ms'] == 500
